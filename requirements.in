@@ -1,0 +1,6 @@
+uvicorn[standard]
+fastapi
+requests
+pylint
+pymongo
+pytest

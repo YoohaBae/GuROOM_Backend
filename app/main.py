@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from app.micro_apps import router as apps_router
 
 app = FastAPI()
 app.include_router(apps_router, prefix="/apps")

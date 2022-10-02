@@ -12,10 +12,7 @@ app = FastAPI()
 app.include_router(apps_router, prefix="/apps")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://guroom.live"
-    ],
+    allow_origins=["http://localhost:3000", "http://guroom.live"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,12 +21,12 @@ app.add_middleware(
 
 @app.get("/")
 async def test():
-    return JSONResponse({'message': 'test'})
+    return JSONResponse({"message": "test"})
 
 
 def run():
     uvicorn.run(app)
 
+
 if __name__ == "__main__":
     run()
-

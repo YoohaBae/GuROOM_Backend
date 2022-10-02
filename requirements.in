@@ -1,6 +1,7 @@
 uvicorn[standard]
 fastapi
 requests
-pylint
 pymongo
 pytest
+flake8
+black

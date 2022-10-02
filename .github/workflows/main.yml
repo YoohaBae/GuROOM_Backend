@@ -1,0 +1,58 @@
+name: Initalization of VM
+on: workflow_dispatch
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Server
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          key: ${{secrets.SSH_KEY}}
+          username: ${{secrets.SSH_USERNAME}}
+        
+          script: |
+            sudo apt-get -y update
+      
+      - name: Install Nginx
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          key: ${{secrets.SSH_KEY}}
+          username: ${{secrets.SSH_USERNAME}}
+        
+          script: |
+            sudo apt-get -y install nginx
+            nginx -v
+            
+      - name: Install Python3
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          key: ${{secrets.SSH_KEY}}
+          username: ${{secrets.SSH_USERNAME}}
+        
+          script: |
+            sudo apt-get -y install python3
+            
+      - name: Install pip
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          key: ${{secrets.SSH_KEY}}
+          username: ${{secrets.SSH_USERNAME}}
+        
+          script: |
+            sudo apt-get install python3-pip
+      - name: Copy Github Repository
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          key: ${{secrets.SSH_KEY}}
+          username: ${{secrets.SSH_USERNAME}}
+          
+          script: |
+            cd /root
+            git clone git@github.com:YoohaBae/GuROOM_Backend.git --config core.sshCommand="ssh -i ~/.ssh/guroom2github"
+            echo 'Repository successfully cloned'
+            

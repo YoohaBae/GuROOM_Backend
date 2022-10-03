@@ -29,7 +29,7 @@ jobs:
             cd /root/GuROOM_Backend
             pip install -r requirements.txt
             
-      - name: restart uvicorn
+      - name: restart python script
         uses: appleboy/ssh-action@v0.1.2
         with:
           host: ${{secrets.SSH_HOST}}
@@ -38,6 +38,7 @@ jobs:
         
           script: |
              cd /root/GuROOM_Backend
-             pkill python
+             pkill python3
              export PYTHONPATH=`pwd`
-             python3 app/main.py
+             chmod +x app/main.py
+             nohup app/main.py

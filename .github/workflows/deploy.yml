@@ -15,7 +15,7 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-            cd /root/GuROOM_Frontend
+            cd /root/GuROOM_Backend
             git pull
             
       - name: pip install
@@ -29,7 +29,7 @@ jobs:
             cd /root/GuROOM_Backend
             pip install -r requirements.txt
             
-      - name: run uvicorn
+      - name: restart uvicorn
         uses: appleboy/ssh-action@v0.1.2
         with:
           host: ${{secrets.SSH_HOST}}
@@ -37,15 +37,6 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-             cd /root/GuROOM_Frontend
+             cd /root/GuROOM_Backend
+             pkill uvicorn
              uvicorn app.main:app
-            
-      - name: Restart Nginx
-        uses: appleboy/ssh-action@v0.1.2
-        with:
-          host: ${{secrets.SSH_HOST}}
-          key: ${{secrets.SSH_KEY}}
-          username: ${{secrets.SSH_USERNAME}}
-        
-          script: |
-            systemctl restart nginx

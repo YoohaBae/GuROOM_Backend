@@ -45,7 +45,7 @@ jobs:
           script: |
             sudo apt-get install python3-pip
             
-      - name: Install uvicorn
+      - name: Install gunicorn
         uses: appleboy/ssh-action@v0.1.2
         with:
           host: ${{secrets.SSH_HOST}}
@@ -53,7 +53,7 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-            pip install uvicorn[standard]
+            sudo apt-get install gunicorn
             
       - name: Copy Github Repository
         uses: appleboy/ssh-action@v0.1.2

@@ -40,4 +40,4 @@ jobs:
              cd /root/GuROOM_Backend
              pkill python
              export PYTHONPATH=`pwd`
-             python app/main.py
+             python3 app/main.py

@@ -26,7 +26,7 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-            cd /root/GuROOM_Frontend
+            cd /root/GuROOM_Backend
             pip install -r requirements.txt
             
       - name: run uvicorn

@@ -38,5 +38,6 @@ jobs:
         
           script: |
              cd /root/GuROOM_Backend
-             pkill uvicorn
-             uvicorn app.main:app
+             pkill python
+             export PYTHONPATH=`pwd`
+             python app/main.py

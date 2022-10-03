@@ -39,4 +39,4 @@ jobs:
           script: |
              cd /root/GuROOM_Backend
              pkill gunicorn
-             gunicorn app.main:app -D
+             gunicorn app.main:app -D --worker-class uvicorn.workers.UvicornWorker

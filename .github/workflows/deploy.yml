@@ -38,7 +38,5 @@ jobs:
         
           script: |
              cd /root/GuROOM_Backend
-             pkill python3
-             export PYTHONPATH=`pwd`
-             chmod +x app/main.py
-             nohup app/main.py
+             pkill gunicorn
+             gunicorn app.main:app -D

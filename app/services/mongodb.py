@@ -3,11 +3,10 @@ import os
 
 
 class MongoDB:
-
     def __init__(self):
         URL = "mongodb://127.0.0.1:27017"
         client = pymongo.MongoClient(URL)
-        db_name = os.getenv('DB_NAME')
+        db_name = os.getenv("DB_NAME")
         self.db = client[db_name]
 
     def get_all_dictionaries(self, collection_name):

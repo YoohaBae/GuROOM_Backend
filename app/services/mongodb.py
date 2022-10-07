@@ -1,45 +1,46 @@
 import pymongo
+import os
 
 
 class MongoDB:
-    def __init__():
-        client = pymongo.MongoClient(
-            "mongodb+srv://admin:<password>@guroom.bazfzg5.mongodb.net/?retryWrites=true&w=majority",
-            server_api=ServerApi("1"),
-        )
-        db = client.test
 
-    def get_all_dictionaries(collection_name):
-        return db.collection_name.find().pretty()
+    def __init__(self):
+        URL = "mongodb://127.0.0.1:27017"
+        client = pymongo.MongoClient(URL)
+        db_name = os.getenv('DB_NAME')
+        self.db = client[db_name]
 
-    def get_larger_than(collection_name, value):
-        return db.collection_name.find(value).pretty()
+    def get_all_dictionaries(self, collection_name):
+        return self.db.collection_name.find().pretty()
 
-    def insert(collection_name, data):
-        db.collection_name.insert(data)
+    def get_larger_than(self, collection_name, value):
+        return self.db.collection_name.find(value).pretty()
 
-    def delete_one(collection_name, value):
-        db.collection_name.delectOne(value)
+    def insert(self, collection_name, data):
+        self.db.collection_name.insert(data)
 
-    def delete_many(collection_name, value):
-        db.collection_name.delectMany(value)
+    def delete_one(self, collection_name, value):
+        self.db.collection_name.delectOne(value)
 
-    def update(collection_name, original, desired):
-        db.collection_name.update(original, desired)
+    def delete_many(self, collection_name, value):
+        self.db.collection_name.delectMany(value)
 
-    def find_one(collection_name, value):
-        return db.collection_name.findOne(value).pretty()
+    def update(self, collection_name, original, desired):
+        self.db.collection_name.update(original, desired)
 
-    def file_folder_sharing_difference(collection_name, absolute_path):
-        return db.collection_name.find(absolute_path).pretty()
+    def find_one(self, collection_name, value):
+        return self.db.collection_name.findOne(value).pretty()
 
-    def redundant_sharing(collection_name, absoulte_path):
-        return db.collection_name.find(absoulte_path).pretty()
+    def file_folder_sharing_difference(self, collection_name, absolute_path):
+        return self.db.collection_name.find(absolute_path).pretty()
 
-    def deviant_sharing(collection_name, absolute_path):
-        return db.collection_name.find(absoulte_path).pretty()
+    def redundant_sharing(self, collection_name, absolute_path):
+        return self.db.collection_name.find(absolute_path).pretty()
 
-    def sharing_changes(collection_name):
-        db.collection_name.find(
+    def deviant_sharing(self, collection_name, absolute_path):
+        return self.db.collection_name.find(absolute_path).pretty()
+
+    def sharing_changes(self, collection_name):
+        self.db.collection_name.find(
             {"$where": "function(){" "return (this.file!=this.file)" "}"}
         ).pretty()

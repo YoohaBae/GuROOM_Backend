@@ -8,7 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.micro_apps import router as apps_router
 
-app = FastAPI()
+tags_metadata = [
+    {
+        "name": "users",
+        "description": "Operations with users. **login** and **register**",
+    }
+]
+app = FastAPI(openapi_tags=tags_metadata)
 app.include_router(apps_router, prefix="/apps")
 app.add_middleware(
     CORSMiddleware,

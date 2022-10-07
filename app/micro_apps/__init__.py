@@ -3,7 +3,7 @@
 """
 
 from fastapi import APIRouter
-from .test import router as test_router
+from .auth import router as auth_router
 
 router = APIRouter()
-router.include_router(test_router, prefix="/test")
+router.include_router(auth_router, prefix="/auth")

@@ -28,16 +28,16 @@ class MongoDB:
         db.collection_name.update(original, desired)
 
     def find_one(collection_name, value):
-        db.collection_name.findOne(value).pretty()
+        return db.collection_name.findOne(value).pretty()
 
     def file_folder_sharing_difference(collection_name, absolute_path):
-        db.collection_name.find(absolute_path).pretty()
+        return db.collection_name.find(absolute_path).pretty()
 
     def redundant_sharing(collection_name, absoulte_path):
-        db.collection_name.find(absoulte_path).pretty()
+        return db.collection_name.find(absoulte_path).pretty()
 
     def deviant_sharing(collection_name, absolute_path):
-        db.collection_name.find(absoulte_path).pretty()
+        return db.collection_name.find(absoulte_path).pretty()
 
     def sharing_changes(collection_name):
         db.collection_name.find(

@@ -26,6 +26,8 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
+            cd /root
+            source guroom/bin/activate
             cd /root/GuROOM_Backend
             pip install -r requirements.txt
             
@@ -37,6 +39,8 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-             cd /root/GuROOM_Backend
-             pkill gunicorn
-             gunicorn app.main:app -D --worker-class uvicorn.workers.UvicornWorker
+            cd /root
+            source guroom/bin/activate
+            cd /root/GuROOM_Backend
+            pkill gunicorn
+            gunicorn app.main:app -D --worker-class uvicorn.workers.UvicornWorker

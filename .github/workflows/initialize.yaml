@@ -45,6 +45,16 @@ jobs:
           script: |
             sudo apt-get -y install python3-pip
             
+      - name: Change default Python to Python3
+        uses: appleboy/ssh-action@v0.1.2
+        with:
+          host: ${{secrets.SSH_HOST}}
+          key: ${{secrets.SSH_KEY}}
+          username: ${{secrets.SSH_USERNAME}}
+        
+          script: |
+            sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+        
       - name: Install gunicorn
         uses: appleboy/ssh-action@v0.1.2
         with:

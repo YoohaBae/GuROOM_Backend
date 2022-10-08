@@ -43,7 +43,7 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-            sudo apt-get install python3-pip
+            sudo apt-get -y install python3-pip
             
       - name: Install gunicorn
         uses: appleboy/ssh-action@v0.1.2
@@ -53,7 +53,7 @@ jobs:
           username: ${{secrets.SSH_USERNAME}}
         
           script: |
-            sudo apt-get install gunicorn
+            sudo apt-get -y install gunicorn
             
       - name: Copy Github Repository
         uses: appleboy/ssh-action@v0.1.2

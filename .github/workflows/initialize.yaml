@@ -64,6 +64,6 @@ jobs:
           
           script: |
             cd /root
-            git clone git@github.com:YoohaBae/GuROOM_Backend.git --config core.sshCommand="ssh -i ~/.ssh/guroom2github"
+            git clone git@github.com:YoohaBae/GuROOM_Backend.git --config core.sshCommand="ssh -i ~/.ssh/guroom2github2"
             echo 'Repository successfully cloned'
             

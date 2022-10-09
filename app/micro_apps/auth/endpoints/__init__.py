@@ -1,5 +1,5 @@
 """
-    prefix: /apps/test
+    prefix: /apps/auth
 """
 
 from fastapi import APIRouter

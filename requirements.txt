@@ -44,8 +44,10 @@ google-auth-oauthlib==0.5.3
     # via -r requirements.in
 googleapis-common-protos==1.56.4
     # via google-api-core
-h11==0.14.0
-    # via uvicorn
+h11==0.12.0
+    # via
+    #   -r requirements.in
+    #   uvicorn
 httplib2==0.20.4
     # via
     #   google-api-python-client
@@ -58,6 +60,8 @@ idna==3.3
     #   requests
 iniconfig==1.1.1
     # via pytest
+itsdangerous==2.1.2
+    # via -r requirements.in
 mccabe==0.7.0
     # via flake8
 mypy-extensions==0.4.3

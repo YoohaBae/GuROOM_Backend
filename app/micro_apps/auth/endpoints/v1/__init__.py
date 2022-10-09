@@ -1,10 +1,10 @@
 """
-    prefix: /apps/test/v1
+    prefix: /apps/auth/v1
 """
 
 from fastapi import APIRouter
 
-from .user import router as auth_router
+from .google import router as google_router
 
 router = APIRouter()
-router.include_router(auth_router, prefix="/user")
+router.include_router(google_router, prefix="/google")

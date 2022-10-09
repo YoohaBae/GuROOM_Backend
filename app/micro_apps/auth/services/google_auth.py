@@ -61,21 +61,9 @@ class GoogleAuth(Auth):
         )
         return authorization_url, state
 
-    def get_drive_service(self, creds):
-        service = build("snapshot", "v3", credentials=creds)
-        return service
-
     def get_user_service(self, creds):
         service = build("oauth2", "v2", credentials=creds)
         return service
-
-    def get_files(self, creds):
-        try:
-            service = self.get_drive_service(creds)
-            files = service.files().list().execute()
-        except Exception as error:
-            print(error)
-        return files
 
     def get_user(self, creds):
         service = self.get_user_service(creds)
@@ -87,3 +75,6 @@ class GoogleAuth(Auth):
             if s not in scope:
                 return False
         return True
+
+    def add_user_to_database(self, user_info):
+        pass

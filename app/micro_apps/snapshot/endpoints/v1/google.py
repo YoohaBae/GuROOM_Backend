@@ -8,6 +8,7 @@ from fastapi import APIRouter, Request
 from app.micro_apps.auth.endpoints.v1.google import router as auth_router
 from fastapi.responses import RedirectResponse
 from app.micro_apps.auth.services.google_auth import GoogleAuth
+from app.micro_apps.snapshot.services.google_drive import GoogleDrive
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "0"
@@ -30,7 +31,8 @@ def get_files(request: Request):
         )
 
     google_auth = GoogleAuth()
+    google_drive = GoogleDrive()
     credentials = google_auth.dict_to_credentials(request.session["credentials"])
-    files = google_auth.get_files(credentials)
+    files = google_drive.get_files(credentials)
     request.session["credentials"] = google_auth.credentials_to_dict(credentials)
     return files

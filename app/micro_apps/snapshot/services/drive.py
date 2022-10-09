@@ -5,14 +5,17 @@ import logging
 import os
 
 
-class Auth:
+class Drive:
     def __init__(self):
         self.SECRET = os.getenv("JWT_SECRET_KEY")
         self.ALGORITHM = "HS256"
         self._logger = logging.getLogger(__name__)
 
-    def get_user(self, creds):
+    def get_files(self, creds):
         pass
 
-    def add_user_to_database(self, user_info):
+    def save_file_snapshot(self, creds):
+        pass
+
+    def save_group_snapshot(self, creds):
         pass

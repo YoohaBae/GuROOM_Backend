@@ -43,4 +43,5 @@ jobs:
             source guroom/bin/activate
             cd /root/GuROOM_Backend
             pkill python
+            source setenv.sh
             python -m gunicorn -D app.main:app --worker-class uvicorn.workers.UvicornWorker

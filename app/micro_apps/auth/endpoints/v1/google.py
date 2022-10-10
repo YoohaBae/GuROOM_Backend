@@ -150,11 +150,13 @@ def get_user(credentials: Optional[str] = Cookie(None)):
     if credentials:
         credentials = json.loads(credentials)
         if credentials["refresh_token"] is None:
+            logging.info("no refresh token in cookie")
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content="Refresh token invalid",
             )
     else:
+        logging.info("no cookie")
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content="no credentials in cookie. Login again",
@@ -163,10 +165,10 @@ def get_user(credentials: Optional[str] = Cookie(None)):
     credentials = google_auth.dict_to_credentials(credentials)
     user = google_auth.get_user(credentials)
     db = DataBase()
-    if db.check_user_exists(user.email):
+    if db.check_user_exists(user["email"]):
         response = JSONResponse(status_code=status.HTTP_200_OK, content=user)
     else:
-        db.save_user(user.email)
+        db.save_user(user["email"])
         response = JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
     response.set_cookie(
         "credentials", json.dumps(google_auth.credentials_to_dict(credentials))

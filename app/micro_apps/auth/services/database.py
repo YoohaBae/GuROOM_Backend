@@ -10,7 +10,8 @@ class DataBase:
         self.collection_name = "user_info"
 
     def save_user(self, email):
-        self._db.insert_document(self.collection_name, email)
+        user = {"email": email}
+        self._db.insert_document(self.collection_name, user)
 
     def check_user_exists(self, email):
         query = {"email": email}

@@ -55,9 +55,7 @@ class GoogleAuth(Auth):
             "./app/micro_apps/auth/services/credentials.json", scopes=self.SCOPES
         )
         flow.redirect_uri = os.getenv("REDIRECT_URI")
-        authorization_url, state = flow.authorization_url(
-            access_type="offline", include_granted_scopes="true"
-        )
+        authorization_url, state = flow.authorization_url(include_granted_scopes="true")
         return authorization_url, state
 
     def get_user_service(self, creds):

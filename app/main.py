@@ -4,11 +4,14 @@ GuROOM backend main.py
 
 import uvicorn
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.micro_apps import router as apps_router
 from starlette.middleware.sessions import SessionMiddleware
+
+load_dotenv()
 
 tags_metadata = [
     {

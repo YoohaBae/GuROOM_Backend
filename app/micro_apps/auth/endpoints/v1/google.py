@@ -7,7 +7,7 @@ import urllib.parse
 import os
 import json
 import requests
-from fastapi import APIRouter, status, Request, Response, Cookie
+from fastapi import APIRouter, status, Request, Cookie
 from fastapi.responses import JSONResponse
 from typing import Optional
 from app.micro_apps.auth.services.google_auth import GoogleAuth
@@ -41,7 +41,7 @@ def create_google_auth():
         response.set_cookie("state", state)
     except Exception as error:
         logging.error("Authorization url retrieving failed", error)
-        return Response(
+        return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve url",
         )
@@ -59,7 +59,9 @@ def oauth_callback(request: Request, scope: str):
     google_auth = GoogleAuth()
     sufficient = google_auth.check_for_sufficient_permissions(scope)
     if not sufficient:
-        return Response(status_code=400, content="Insufficient Permissions")
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST, content="Insufficient Permissions"
+        )
     state = request.cookies.get("state")
     parsed_url = urllib.parse.urlparse(str(request.url))
     parsed_url = parsed_url._replace(scheme=str(os.getenv("SCHEME")))
@@ -95,7 +97,7 @@ def revoke(credentials: Optional[str] = Cookie(None)):
     if credentials:
         credentials = json.loads(credentials)
     else:
-        return Response(
+        return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content="no credentials in cookies. Login again",
         )
@@ -110,14 +112,14 @@ def revoke(credentials: Optional[str] = Cookie(None)):
 
     status_code = getattr(revoke, "status_code")
     if status_code == status.HTTP_200_OK:
-        return Response(status_code=status.HTTP_200_OK)
+        return JSONResponse(status_code=status.HTTP_200_OK)
     elif status_code == status.HTTP_400_BAD_REQUEST:
-        return Response(
+        return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content="Token already expired or revoked.",
         )
     else:
-        return Response(
+        return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="Internal server error",
         )
@@ -147,12 +149,12 @@ def get_user(credentials: Optional[str] = Cookie(None)):
     if credentials:
         credentials = json.loads(credentials)
         if credentials["refresh_token"] is None:
-            return Response(
+            return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content="Refresh token invalid",
             )
     else:
-        return Response(
+        return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content="no credentials in cookie. Login again",
         )

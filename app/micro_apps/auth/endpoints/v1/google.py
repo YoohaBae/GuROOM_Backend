@@ -86,9 +86,7 @@ def oauth_callback(request: Request, scope: str):
     description="Deletes the permission granted by the user, similar to deleting account",
     tags=["auth"],
     responses={
-        status.HTTP_200_OK: {
-            "description": "Refresh token was successfully revoked"
-        },
+        status.HTTP_200_OK: {"description": "Refresh token was successfully revoked"},
         status.HTTP_400_BAD_REQUEST: {
             "description": "Token already expired or revoked"
         },
@@ -113,7 +111,9 @@ def revoke(credentials: Optional[str] = Cookie(None)):
 
     status_code = getattr(revoke, "status_code")
     if status_code == status.HTTP_200_OK:
-        return JSONResponse(status_code=status.HTTP_200_OK, content="successfully revoked")
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content="successfully revoked"
+        )
     elif status_code == status.HTTP_400_BAD_REQUEST:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,

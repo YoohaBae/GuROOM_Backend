@@ -11,7 +11,8 @@ from fastapi import APIRouter, status, Request, Cookie
 from fastapi.responses import JSONResponse
 from typing import Optional
 from app.micro_apps.auth.services.google_auth import GoogleAuth
-from app.micro_apps.auth.models.user import User
+from app.micro_apps.auth.endpoints.models.user import User
+from app.micro_apps.auth.services.database import DataBase
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -161,10 +162,12 @@ def get_user(credentials: Optional[str] = Cookie(None)):
     google_auth = GoogleAuth()
     credentials = google_auth.dict_to_credentials(credentials)
     user = google_auth.get_user(credentials)
-    # TODO: check if user is inside internal DB
-    # TODO: if inside db -> return 200 and user info
-    # TODO: if not inside db -> put in db -> return 201 and user info
-    response = JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
+    db = DataBase()
+    if db.check_user_exists(user.email):
+        response = JSONResponse(status_code=status.HTTP_200_OK, content=user)
+    else:
+        db.save_user(user.email)
+        response = JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
     response.set_cookie(
         "credentials", json.dumps(google_auth.credentials_to_dict(credentials))
     )

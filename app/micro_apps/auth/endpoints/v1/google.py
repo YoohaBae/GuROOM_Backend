@@ -3,6 +3,7 @@
 """
 
 import logging
+import urllib.parse
 import os
 import requests
 from fastapi import APIRouter, status, Request, Response
@@ -51,9 +52,11 @@ def oauth_callback(request: Request, scope: str):
     if not sufficient:
         return JSONResponse(status_code=400, content="Insufficient Permissions")
     state = request.session["state"]
-    authorization_response = str(request.url)
-
-    redirect_uri = request.url_for("oauth_callback")
+    parsed_url = urllib.parse.urlparse(str(request.url))
+    parsed_url = parsed_url._replace(scheme="https")
+    parsed_url = parsed_url._replace(netloc="guroom.live")
+    authorization_response = urllib.parse.urlunparse(parsed_url)
+    redirect_uri = os.getenv("REDIRECT_URI")
     credentials = google_auth.get_credentials(
         state, authorization_response, redirect_uri
     )

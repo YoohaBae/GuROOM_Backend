@@ -33,7 +33,6 @@ class GoogleAuth(Auth):
             scopes=self.SCOPES,
             state=state,
         )
-        print(authorization_response)
         flow.redirect_uri = redirect_uri
         flow.fetch_token(authorization_response=authorization_response)
         return flow.credentials

@@ -7,7 +7,6 @@ import urllib.parse
 import os
 import requests
 from fastapi import APIRouter, status, Request, Response
-from fastapi.responses import RedirectResponse
 from fastapi.responses import JSONResponse
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.models.user import User
@@ -26,25 +25,32 @@ logging.Formatter(
 
 @router.get(
     "/authorize",
-    description="Authorize Request: redirects to google authentication page",
+    description="Authorize Request, retrieves url of google login",
     tags=["auth"],
-    status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+    status_code=status.HTTP_200_OK,
 )
 def create_google_auth(request: Request):
     google_auth = GoogleAuth()
     # get google url
-    url, state = google_auth.get_authorization_url()
-    # save state to session
-    request.session["state"] = state
-    # redirect to authorization of google
-    return RedirectResponse(url)
+    try:
+        url, state = google_auth.get_authorization_url()
+        # save state to session
+        request.session["state"] = state
+    except Exception as error:
+        logging.error("Authorization url retrieving failed", error)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve url",
+        )
+    return JSONResponse(status_code=status.HTTP_200_OK, content=url)
 
 
 @router.get(
     "/oauth-callback",
-    description="Callback of Google Authorization: redirects to get user",
+    description="Callback of Google Authorization, Logs in",
     tags=["auth"],
-    status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_200_OK: {"description": "successfully "}},
 )
 def oauth_callback(request: Request, scope: str):
     google_auth = GoogleAuth()
@@ -53,15 +59,15 @@ def oauth_callback(request: Request, scope: str):
         return JSONResponse(status_code=400, content="Insufficient Permissions")
     state = request.session["state"]
     parsed_url = urllib.parse.urlparse(str(request.url))
-    parsed_url = parsed_url._replace(scheme="https")
-    parsed_url = parsed_url._replace(netloc="guroom.live")
+    parsed_url = parsed_url._replace(scheme=os.getenv("SCHEME"))
+    parsed_url = parsed_url._replace(netloc=os.getenv("NETLOC"))
     authorization_response = urllib.parse.urlunparse(parsed_url)
     redirect_uri = os.getenv("REDIRECT_URI")
     credentials = google_auth.get_credentials(
         state, authorization_response, redirect_uri
     )
     request.session["credentials"] = google_auth.credentials_to_dict(credentials)
-    return RedirectResponse(request.url_for("get_user"))
+    return Response(status_code=200, content="successfully logged in")
 
 
 @router.get(
@@ -75,15 +81,13 @@ def oauth_callback(request: Request, scope: str):
         status.HTTP_400_BAD_REQUEST: {
             "description": "Token already expired or revoked"
         },
-        status.HTTP_307_TEMPORARY_REDIRECT: {
-            "description": "Redirects to /authorize as there are no credentials in session"
-        },
     },
 )
 def revoke(request: Request):
     if "credentials" not in request.session:
-        return RedirectResponse(
-            "/apps/auth/v1/google" + router.url_path_for("create_google_auth")
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="no credentials in session. Login again",
         )
 
     google_auth = GoogleAuth()
@@ -105,18 +109,23 @@ def revoke(request: Request):
             status_code=status.HTTP_400_BAD_REQUEST,
             content="Token already expired or revoked.",
         )
+    else:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="Internal server error",
+        )
 
 
 @router.get(
     "/logout",
     description="Logs out by deleting the session of credentials",
     tags=["auth"],
-    responses={status.HTTP_204_NO_CONTENT: {"description": "Successfully logged out"}},
+    responses={status.HTTP_200_OK: {"description": "Successfully logged out"}},
 )
 def clear_credentials(request: Request):
     if "credentials" in request.session:
         request.session.pop("credentials")
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return Response(status_code=status.HTTP_200_OK, content="Successfully logged out")
 
 
 @router.get(
@@ -141,13 +150,14 @@ def clear_credentials(request: Request):
 )
 def get_user(request: Request):
     if "credentials" not in request.session:
-        return RedirectResponse(
-            "/apps/auth/v1/google" + router.url_path_for("create_google_auth")
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="no credentials in session. Login again",
         )
     elif request.session["credentials"]["refresh_token"] is None:
         request.session.pop("credentials")
-        return RedirectResponse(
-            "/apps/auth/v1/google" + router.url_path_for("create_google_auth")
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED, content="Refresh token invalid"
         )
     google_auth = GoogleAuth()
     credentials = google_auth.dict_to_credentials(request.session["credentials"])
@@ -156,4 +166,4 @@ def get_user(request: Request):
     # TODO: if inside db -> return 200 and user info
     # TODO: if not inside db -> put in db -> return 201 and user info
     request.session["credentials"] = google_auth.credentials_to_dict(credentials)
-    return user
+    return JSONResponse(status_code=status.HTTP_200_OK, content=user)

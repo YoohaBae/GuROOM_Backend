@@ -15,26 +15,26 @@ class MongoDB:
     def get_all_documents(self, collection_name: str):
         return list(self.db[collection_name].find())
 
-    def insert_document(self, collection_name: str, data: dict):
+    def insert_document(self, collection_name: str, data):
         self.db[collection_name].insert_one(data)
 
-    def insert_documents(self, collection_name: str, data: list):
+    def insert_documents(self, collection_name: str, data):
         self.db[collection_name].insert_many(data)
 
-    def delete_document(self, collection_name: str, query: str):
+    def delete_document(self, collection_name: str, query: dict):
         self.db[collection_name].delectOne(query)
 
-    def delete_documents(self, collection_name: str, query: str):
+    def delete_documents(self, collection_name: str, query: dict):
         self.db[collection_name].delectMany(query)
 
-    def find_document(self, collection_name: str, query: str):
+    def find_document(self, collection_name: str, query: dict):
         return self.db[collection_name].findOne(query)
 
-    def find_documents(self, collection_name: str, query: str):
+    def find_documents(self, collection_name: str, query: dict):
         return list(self.db[collection_name].find(query))
 
-    def update_document(self, collection_name: str, query: dict, new_data: dict):
+    def update_document(self, collection_name: str, query: dict, new_data):
         self.db[collection_name].update_one(query, new_data)
 
-    def update_documents(self, collection_name: str, query: dict, new_data: dict):
+    def update_documents(self, collection_name: str, query: dict, new_data):
         self.db[collection_name].update_one(query, new_data)

@@ -22,13 +22,13 @@ class MongoDB:
         self.db[collection_name].insert_many(data)
 
     def delete_document(self, collection_name: str, query: dict):
-        self.db[collection_name].delectOne(query)
+        self.db[collection_name].delete_one(query)
 
     def delete_documents(self, collection_name: str, query: dict):
-        self.db[collection_name].delectMany(query)
+        self.db[collection_name].delete_many(query)
 
     def find_document(self, collection_name: str, query: dict):
-        return self.db[collection_name].findOne(query)
+        return self.db[collection_name].find_one(query)
 
     def find_documents(self, collection_name: str, query: dict):
         return list(self.db[collection_name].find(query))

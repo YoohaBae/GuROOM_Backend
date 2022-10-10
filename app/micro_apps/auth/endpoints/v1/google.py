@@ -86,9 +86,7 @@ def oauth_callback(request: Request, scope: str):
     description="Deletes the permission granted by the user, similar to deleting account",
     tags=["auth"],
     responses={
-        status.HTTP_204_NO_CONTENT: {
-            "description": "Refresh token was successfully revoked"
-        },
+        status.HTTP_200_OK: {"description": "Refresh token was successfully revoked"},
         status.HTTP_400_BAD_REQUEST: {
             "description": "Token already expired or revoked"
         },
@@ -113,7 +111,9 @@ def revoke(credentials: Optional[str] = Cookie(None)):
 
     status_code = getattr(revoke, "status_code")
     if status_code == status.HTTP_200_OK:
-        return JSONResponse(status_code=status.HTTP_200_OK)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content="successfully revoked"
+        )
     elif status_code == status.HTTP_400_BAD_REQUEST:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -150,11 +150,13 @@ def get_user(credentials: Optional[str] = Cookie(None)):
     if credentials:
         credentials = json.loads(credentials)
         if credentials["refresh_token"] is None:
+            logging.info("no refresh token in cookie")
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content="Refresh token invalid",
             )
     else:
+        logging.info("no cookie")
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content="no credentials in cookie. Login again",
@@ -163,10 +165,10 @@ def get_user(credentials: Optional[str] = Cookie(None)):
     credentials = google_auth.dict_to_credentials(credentials)
     user = google_auth.get_user(credentials)
     db = DataBase()
-    if db.check_user_exists(user.email):
+    if db.check_user_exists(user["email"]):
         response = JSONResponse(status_code=status.HTTP_200_OK, content=user)
     else:
-        db.save_user(user.email)
+        db.save_user(user["email"])
         response = JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
     response.set_cookie(
         "credentials", json.dumps(google_auth.credentials_to_dict(credentials))

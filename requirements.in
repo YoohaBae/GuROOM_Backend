@@ -11,3 +11,4 @@ google-auth-oauthlib
 pyjwt
 itsdangerous
 h11==0.12.0
+pymongo[srv]

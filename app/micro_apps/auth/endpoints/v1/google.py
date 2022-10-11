@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.endpoints.models.user import User
-from app.micro_apps.auth.endpoints.models.config import Settings
+from app.services.models.config import Settings
 from app.micro_apps.auth.services.database import DataBase
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"

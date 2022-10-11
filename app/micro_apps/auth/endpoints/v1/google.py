@@ -51,8 +51,8 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
     google_auth = GoogleAuth()
     token = google_auth.get_token(code)
     if token:
-        access_token = token["access_token"]
-        refresh_token = token["refresh_token"]
+        access_token = authorize.create_access_token(subject=token["access_token"])
+        refresh_token = authorize.create_refresh_token(subject=token["refresh_token"])
         response = JSONResponse(
             status_code=status.HTTP_201_CREATED, content="token successfully created"
         )
@@ -87,7 +87,8 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
 )
 def get_user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
-    access_token = authorize.get_jwt_subject()
+    access_token_bytes = authorize.get_jwt_subject()
+    access_token = access_token_bytes
     google_auth = GoogleAuth()
     user = google_auth.get_user(access_token)
     db = DataBase()

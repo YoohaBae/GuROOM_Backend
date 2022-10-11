@@ -71,7 +71,8 @@ class GoogleAuth(Auth):
 
     def get_user(self, token):
         user_request = requests.get(
-            "https://www.googleapis.com/auth/userinfo.email", params={"token": token}
+            "https://www.googleapis.com/oauth2/v1/userinfo",
+            params={"access_token": token, "alt": "json"},
         )
         status_code = getattr(user_request, "status_code")
         if status_code == 200:

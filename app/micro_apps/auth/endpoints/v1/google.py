@@ -4,7 +4,7 @@
 
 import logging
 import os
-from fastapi import APIRouter, status, Depends, Body
+from fastapi import APIRouter, status, Depends, Body, Response
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.micro_apps.auth.services.google_auth import GoogleAuth
@@ -53,16 +53,19 @@ def create_google_auth():
 
 @router.post("/login")
 def login(body=Body(...), authorize: AuthJWT = Depends()):
-    code = body.code
+    code = body["code"]
     google_auth = GoogleAuth()
     token = google_auth.get_token(code)
     access_token = token["access_token"]
     refresh_token = token["refresh_token"]
-    authorize.set_access_cookies(access_token)
-    authorize.set_refresh_cookies(refresh_token)
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content="token successfully created"
+    response = Response(
+        status_code=status.HTTP_201_CREATED,
+        content="token successfully created",
+        media_type="application/json",
     )
+    authorize.set_access_cookies(access_token, response)
+    authorize.set_refresh_cookies(refresh_token, response)
+    return response
 
 
 @router.get(
@@ -87,8 +90,9 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
 )
 def get_user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
     google_auth = GoogleAuth()
-    user = google_auth.get_user()
+    user = google_auth.get_user(access_token)
     db = DataBase()
     if db.check_user_exists(user["email"]):
         response = JSONResponse(status_code=status.HTTP_200_OK, content=user)

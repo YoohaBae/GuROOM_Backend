@@ -27,11 +27,11 @@ class MongoDB:
     def delete_documents(self, collection_name: str, query: dict):
         self.db[collection_name].delete_many(query)
 
-    def find_document(self, collection_name: str, query: dict):
-        return self.db[collection_name].find_one(query)
+    def find_document(self, collection_name: str, query: dict, filter_query=None):
+        return self.db[collection_name].find_one(query, filter_query)
 
-    def find_documents(self, collection_name: str, query: dict):
-        return list(self.db[collection_name].find(query))
+    def find_documents(self, collection_name: str, query: dict, filter_query=None):
+        return list(self.db[collection_name].find(query, filter_query))
 
     def update_document(self, collection_name: str, query: dict, new_data):
         self.db[collection_name].update_one(query, new_data)

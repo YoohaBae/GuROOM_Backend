@@ -3,8 +3,10 @@ Google Drive Auth
 """
 import logging
 from googleapiclient.discovery import build
-
+from .models.files import File
 from .drive import Drive
+from pydantic import parse_obj_as
+from typing import List
 
 logging.Formatter(
     "[%(asctime)s] p%(process)s {%(pathname)s:"
@@ -19,14 +21,23 @@ class GoogleDrive(Drive):
         self._logger = logging.getLogger(__name__)
 
     def get_drive_service(self, creds):
-        service = build("snapshot", "v3", credentials=creds)
+        service = build("drive", "v3", credentials=creds)
         return service
 
-    def save_file_snapshot(self, creds):
-        pass
-
-    def save_group_snapshot(self, creds):
+    def get_groups(self, creds):
         pass
 
     def get_files(self, creds):
-        pass
+        service = self.get_drive_service(creds)
+        file_obj = (
+            service.files()
+            .list(fields="*", corpora="allDrives", supportsAllDrives=True, includeItemsFromAllDrives=True,
+                  q="trashed=false")
+            .execute()
+        )
+        try:
+            files = parse_obj_as(List[File], file_obj["files"])
+            return files
+        except Exception as error:
+            self._logger.error("marshalling", error)
+        return []

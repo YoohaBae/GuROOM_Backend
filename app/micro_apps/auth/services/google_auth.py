@@ -57,5 +57,5 @@ class GoogleAuth(Auth):
         else:
             return False
 
-    def get_user(self, token):
+    def get_user(self):
         pass

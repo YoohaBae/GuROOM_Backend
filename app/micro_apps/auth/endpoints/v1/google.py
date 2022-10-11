@@ -4,10 +4,9 @@
 
 import logging
 import os
-from fastapi import APIRouter, status, Cookie, Depends, Body
+from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
-from typing import Optional
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.endpoints.models.user import User
 from app.micro_apps.auth.endpoints.models.config import Settings
@@ -89,7 +88,7 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
 def get_user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     google_auth = GoogleAuth()
-    user = google_auth.get_user(token)
+    user = google_auth.get_user()
     db = DataBase()
     if db.check_user_exists(user["email"]):
         response = JSONResponse(status_code=status.HTTP_200_OK, content=user)

@@ -86,7 +86,8 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
         },
     },
 )
-def get_user(token: Optional[str] = Cookie(None)):
+def get_user(authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
     google_auth = GoogleAuth()
     user = google_auth.get_user(token)
     db = DataBase()

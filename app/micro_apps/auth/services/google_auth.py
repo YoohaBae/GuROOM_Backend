@@ -39,34 +39,9 @@ class GoogleAuth(Auth):
         )
         return auth_url
 
-    def get_user(self, creds):
-        pass
-
-    def check_for_sufficient_permissions(self, scope):
-        for s in self.SCOPES:
-            if s not in scope:
-                return False
-        return True
-
-    def add_user_to_database(self, user_info):
-        pass
-
-    def revoke_token(self, token):
-        revoke_request = requests.post(
-            "https://oauth2.googleapis.com/revoke",
-            params={"token": token},
-            headers={"content-type": "application/x-www-form-urlencoded"},
-        )
-
-        status_code = getattr(revoke_request, "status_code")
-        if status_code == 200:
-            return True
-        else:
-            return False
-
     def get_token(self, code):
         token_request = requests.post(
-            "https://oauth2.googleapis.com/revoke",
+            "https://oauth2.googleapis.com/token",
             params={
                 "code": code,
                 "client_id": os.getenv("CLIENT_ID"),
@@ -81,3 +56,6 @@ class GoogleAuth(Auth):
             return token_request.json()
         else:
             return False
+
+    def get_user(self, token):
+        pass

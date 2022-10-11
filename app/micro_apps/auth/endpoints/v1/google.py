@@ -3,15 +3,14 @@
 """
 
 import logging
-import urllib.parse
 import os
-import json
-import requests
-from fastapi import APIRouter, status, Request, Cookie
+from fastapi import APIRouter, status, Cookie, Depends, Body
 from fastapi.responses import JSONResponse
+from fastapi_jwt_auth import AuthJWT
 from typing import Optional
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.endpoints.models.user import User
+from app.micro_apps.auth.endpoints.models.config import Settings
 from app.micro_apps.auth.services.database import DataBase
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -26,6 +25,11 @@ logging.Formatter(
 )
 
 
+@AuthJWT.load_config
+def get_config():
+    return Settings()
+
+
 @router.get(
     "/authorize",
     description="Authorize Request, retrieves url of google login",
@@ -36,10 +40,9 @@ def create_google_auth():
     google_auth = GoogleAuth()
     # get google url
     try:
-        url, state = google_auth.get_authorization_url()
+        url = google_auth.get_authorization_url()
         # save state to cookie
         response = JSONResponse(status_code=status.HTTP_200_OK, content=url)
-        response.set_cookie("state", state)
     except Exception as error:
         logging.error("Authorization url retrieving failed", error)
         return JSONResponse(
@@ -49,81 +52,18 @@ def create_google_auth():
     return response
 
 
-@router.get(
-    "/oauth-callback",
-    description="Callback of Google Authorization, Logs in",
-    tags=["auth"],
-    status_code=status.HTTP_200_OK,
-    responses={status.HTTP_200_OK: {"description": "successfully "}},
-)
-def oauth_callback(request: Request, scope: str):
+@router.post("/login")
+def login(body=Body(...), authorize: AuthJWT = Depends()):
+    code = body.code
     google_auth = GoogleAuth()
-    sufficient = google_auth.check_for_sufficient_permissions(scope)
-    if not sufficient:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST, content="Insufficient Permissions"
-        )
-    state = request.cookies.get("state")
-    parsed_url = urllib.parse.urlparse(str(request.url))
-    parsed_url = parsed_url._replace(scheme=str(os.getenv("SCHEME")))
-    parsed_url = parsed_url._replace(netloc=str(os.getenv("NETLOC")))
-    authorization_response = urllib.parse.urlunparse(parsed_url)
-    redirect_uri = os.getenv("REDIRECT_URI")
-    credentials = google_auth.get_credentials(
-        state, authorization_response, redirect_uri
+    token = google_auth.get_token(code)
+    access_token = token["access_token"]
+    refresh_token = token["refresh_token"]
+    authorize.set_access_cookies(access_token)
+    authorize.set_refresh_cookies(refresh_token)
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content="token successfully created"
     )
-    response = JSONResponse(
-        status_code=status.HTTP_200_OK, content="successfully logged in"
-    )
-    response.set_cookie(
-        "credentials", json.dumps(google_auth.credentials_to_dict(credentials))
-    )
-    return response
-
-
-@router.get(
-    "/revoke",
-    description="Deletes the permission granted by the user, similar to deleting account",
-    tags=["auth"],
-    responses={
-        status.HTTP_200_OK: {"description": "Refresh token was successfully revoked"},
-        status.HTTP_400_BAD_REQUEST: {
-            "description": "Token already expired or revoked"
-        },
-    },
-)
-def revoke(credentials: Optional[str] = Cookie(None)):
-    if credentials:
-        credentials = json.loads(credentials)
-    else:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content="no credentials in cookies. Login again",
-        )
-    google_auth = GoogleAuth()
-    credentials = google_auth.dict_to_credentials(credentials)
-
-    revoke = requests.post(
-        "https://oauth2.googleapis.com/revoke",
-        params={"token": credentials.token},
-        headers={"content-type": "application/x-www-form-urlencoded"},
-    )
-
-    status_code = getattr(revoke, "status_code")
-    if status_code == status.HTTP_200_OK:
-        return JSONResponse(
-            status_code=status.HTTP_200_OK, content="successfully revoked"
-        )
-    elif status_code == status.HTTP_400_BAD_REQUEST:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content="Token already expired or revoked.",
-        )
-    else:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="Internal server error",
-        )
 
 
 @router.get(
@@ -146,31 +86,26 @@ def revoke(credentials: Optional[str] = Cookie(None)):
         },
     },
 )
-def get_user(credentials: Optional[str] = Cookie(None)):
-    if credentials:
-        credentials = json.loads(credentials)
-        if credentials["refresh_token"] is None:
-            logging.info("no refresh token in cookie")
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content="Refresh token invalid",
-            )
-    else:
-        logging.info("no cookie")
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content="no credentials in cookie. Login again",
-        )
+def get_user(token: Optional[str] = Cookie(None)):
     google_auth = GoogleAuth()
-    credentials = google_auth.dict_to_credentials(credentials)
-    user = google_auth.get_user(credentials)
+    user = google_auth.get_user(token)
     db = DataBase()
     if db.check_user_exists(user["email"]):
         response = JSONResponse(status_code=status.HTTP_200_OK, content=user)
     else:
         db.save_user(user["email"])
         response = JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
-    response.set_cookie(
-        "credentials", json.dumps(google_auth.credentials_to_dict(credentials))
-    )
     return response
+
+
+@router.delete("/logout")
+def logout(authorize: AuthJWT = Depends()):
+    """
+    Because the JWT are stored in an httponly cookie now, we cannot
+    log the user out by simply deleting the cookies in the frontend.
+    We need the backend to send us a response to delete the cookies.
+    """
+    authorize.jwt_required()
+
+    authorize.unset_jwt_cookies()
+    return JSONResponse(status_code=status.HTTP_200_OK, content="token deleted")

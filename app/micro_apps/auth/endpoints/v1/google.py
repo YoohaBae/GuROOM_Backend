@@ -54,7 +54,7 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
     refresh_token = token["refresh_token"]
     response = Response(
         status_code=status.HTTP_201_CREATED,
-        content="token successfully created",
+        content={"message": "token successfully created"},
         media_type="application/json",
     )
     authorize.set_access_cookies(access_token, response)

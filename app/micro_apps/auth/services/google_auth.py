@@ -35,7 +35,7 @@ class GoogleAuth(Auth):
             f"client_id={quote_plus(client_id)}"
             f"&response_type=code&scope={quote_plus(scope)}"
             f"&redirect_uri={quote_plus(redirect_uri)}"
-            f"&include_granted_scopes=true"
+            f"&include_granted_scopes=true&access_type=offline&prompt=consent"
         )
         return auth_url
 

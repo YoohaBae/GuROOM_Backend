@@ -50,16 +50,20 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
     code = body["code"]
     google_auth = GoogleAuth()
     token = google_auth.get_token(code)
-    access_token = token["access_token"]
-    refresh_token = token["refresh_token"]
-    response = Response(
-        status_code=status.HTTP_201_CREATED,
-        content={"message": "token successfully created"},
-        media_type="application/json",
+    if token:
+        access_token = token["access_token"]
+        refresh_token = token["refresh_token"]
+        response = JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content="token successfully created"
+        )
+        authorize.set_access_cookies(access_token, response)
+        authorize.set_refresh_cookies(refresh_token, response)
+        return response
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content="token creation failed"
     )
-    authorize.set_access_cookies(access_token, response)
-    authorize.set_refresh_cookies(refresh_token, response)
-    return response
 
 
 @router.get(

@@ -9,7 +9,6 @@ from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.endpoints.models.user import User
-from app.services.models.config import Settings
 from app.micro_apps.auth.services.database import DataBase
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -22,11 +21,6 @@ logging.Formatter(
     ":%(lineno)d} %(levelname)s - %(message)s",
     "%m-%d %H:%M:%S",
 )
-
-
-@AuthJWT.load_config
-def get_config():
-    return Settings()
 
 
 @router.get(
@@ -105,9 +99,9 @@ def get_user(authorize: AuthJWT = Depends()):
 @router.delete("/logout")
 def logout(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
-
     authorize.unset_jwt_cookies()
-    return JSONResponse(status_code=status.HTTP_200_OK, content="token deleted")
+    response = JSONResponse(status_code=status.HTTP_200_OK, content="token deleted")
+    return response
 
 
 @router.delete("/revoke")
@@ -117,8 +111,9 @@ def revoke(authorize: AuthJWT = Depends()):
 
     google_auth = GoogleAuth()
     if google_auth.revoke_token(access_token):
+        response = JSONResponse(status_code=status.HTTP_200_OK, content="token revoked")
         authorize.unset_jwt_cookies()
-        return JSONResponse(status_code=status.HTTP_200_OK, content="token revoked")
+        return response
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content="unable to revoke token",

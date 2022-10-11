@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseSettings
 import os
 
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
     authjwt_secret_key: str = os.getenv("JWT_SECRET_KEY")
     # Configure application to store and get JWT from cookies
     authjwt_token_location: set = {"cookies"}

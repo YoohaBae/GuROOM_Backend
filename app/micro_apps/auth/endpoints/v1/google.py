@@ -104,12 +104,22 @@ def get_user(authorize: AuthJWT = Depends()):
 
 @router.delete("/logout")
 def logout(authorize: AuthJWT = Depends()):
-    """
-    Because the JWT are stored in an httponly cookie now, we cannot
-    log the user out by simply deleting the cookies in the frontend.
-    We need the backend to send us a response to delete the cookies.
-    """
     authorize.jwt_required()
 
     authorize.unset_jwt_cookies()
     return JSONResponse(status_code=status.HTTP_200_OK, content="token deleted")
+
+
+@router.delete("/revoke")
+def revoke(authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    google_auth = GoogleAuth()
+    if google_auth.revoke_token(access_token):
+        authorize.unset_jwt_cookies()
+        return JSONResponse(status_code=status.HTTP_200_OK, content="token revoked")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content="unable to revoke token",
+    )

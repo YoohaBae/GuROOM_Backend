@@ -2,11 +2,11 @@
 Google Drive Auth
 """
 import logging
-from googleapiclient.discovery import build
-from .models.files import File
-from .drive import Drive
+import requests
 from pydantic import parse_obj_as
 from typing import List
+from .models.files import File
+from .drive import Drive
 
 logging.Formatter(
     "[%(asctime)s] p%(process)s {%(pathname)s:"
@@ -20,29 +20,22 @@ class GoogleDrive(Drive):
         super().__init__()
         self._logger = logging.getLogger(__name__)
 
-    def get_drive_service(self, creds):
-        service = build("drive", "v3", credentials=creds)
-        return service
-
-    def get_groups(self, creds):
-        pass
-
-    def get_files(self, creds):
-        service = self.get_drive_service(creds)
-        file_obj = (
-            service.files()
-            .list(
-                fields="*",
-                corpora="allDrives",
-                supportsAllDrives=True,
-                includeItemsFromAllDrives=True,
-                q="trashed=false",
-            )
-            .execute()
+    def get_files(self, token):
+        file_request = requests.get(
+            "https://www.googleapis.com/drive/v3/files",
+            params={
+                "access_token": token,
+                "fields": "*",
+                "corpora": "allDrives",
+                "supportAllDrives": True,
+                "includeItemsFromAllDrives": True,
+                "q": "trashed=False",
+            },
         )
-        try:
+        status_code = getattr(file_request, "status_code")
+        if status_code == 200:
+            file_obj = file_request.json()
             files = parse_obj_as(List[File], file_obj["files"])
             return files
-        except Exception as error:
-            self._logger.error("marshalling", error)
-        return []
+        else:
+            return []

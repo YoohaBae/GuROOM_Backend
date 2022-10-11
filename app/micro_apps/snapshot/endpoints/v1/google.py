@@ -59,14 +59,23 @@ def take_file_snapshot(snapshot_name: str, credentials: Optional[str] = Cookie(N
         snapshot_db = SnapshotDataBase()
         snapshot_db.create_file_snapshot(snapshot_name, files, user_obj["_id"])
 
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content="snapshot successfully created")
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
+        )
     except Exception as error:
         logging.error(error)
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="snapshot creation failed")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="snapshot creation failed",
+        )
 
 
 @router.get("/files", tags=["snapshots"])
-def get_file_snapshots(name_only: bool, snapshot_name: Optional[str] = None, credentials: Optional[str] = Cookie(None)):
+def get_file_snapshots(
+    name_only: bool,
+    snapshot_name: Optional[str] = None,
+    credentials: Optional[str] = Cookie(None),
+):
     if credentials:
         credentials = json.loads(credentials)
         if credentials["refresh_token"] is None:

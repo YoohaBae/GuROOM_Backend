@@ -31,8 +31,13 @@ class GoogleDrive(Drive):
         service = self.get_drive_service(creds)
         file_obj = (
             service.files()
-            .list(fields="*", corpora="allDrives", supportsAllDrives=True, includeItemsFromAllDrives=True,
-                  q="trashed=false")
+            .list(
+                fields="*",
+                corpora="allDrives",
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
+                q="trashed=false",
+            )
             .execute()
         )
         try:

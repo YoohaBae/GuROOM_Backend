@@ -3,9 +3,8 @@ Google Drive Auth
 """
 import os
 import logging
-import google.oauth2.credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
+import requests
+from urllib.parse import quote_plus
 
 from .auth import Auth
 
@@ -27,45 +26,21 @@ class GoogleAuth(Auth):
             "https://www.googleapis.com/auth/userinfo.profile",
         ]
 
-    def get_credentials(self, state, authorization_response, redirect_uri):
-        flow = Flow.from_client_secrets_file(
-            "./app/micro_apps/auth/services/credentials.json",
-            scopes=self.SCOPES,
-            state=state,
-        )
-        flow.redirect_uri = redirect_uri
-        flow.fetch_token(authorization_response=authorization_response)
-        return flow.credentials
-
-    def credentials_to_dict(self, creds):
-        return {
-            "token": creds.token,
-            "refresh_token": creds.refresh_token,
-            "token_uri": creds.token_uri,
-            "client_id": creds.client_id,
-            "client_secret": creds.client_secret,
-            "scopes": creds.scopes,
-        }
-
-    def dict_to_credentials(self, creds):
-        return google.oauth2.credentials.Credentials(**creds)
-
     def get_authorization_url(self):
-        flow = Flow.from_client_secrets_file(
-            "./app/micro_apps/auth/services/credentials.json", scopes=self.SCOPES
+        client_id = str(os.getenv("CLIENT_ID"))
+        redirect_uri = str(os.getenv("REDIRECT_URI"))
+        scope = " ".join(self.SCOPES)
+        auth_url = (
+            f"https://accounts.google.com/o/oauth2/v2/auth?"
+            f"client_id={quote_plus(client_id)}"
+            f"&response_type=code&scope={quote_plus(scope)}"
+            f"&redirect_uri={quote_plus(redirect_uri)}"
+            f"&include_granted_scopes=true"
         )
-        flow.redirect_uri = os.getenv("REDIRECT_URI")
-        authorization_url, state = flow.authorization_url(include_granted_scopes="true")
-        return authorization_url, state
-
-    def get_user_service(self, creds):
-        service = build("oauth2", "v2", credentials=creds)
-        return service
+        return auth_url
 
     def get_user(self, creds):
-        service = self.get_user_service(creds)
-        user_info = service.userinfo().get().execute()
-        return user_info
+        pass
 
     def check_for_sufficient_permissions(self, scope):
         for s in self.SCOPES:
@@ -75,3 +50,34 @@ class GoogleAuth(Auth):
 
     def add_user_to_database(self, user_info):
         pass
+
+    def revoke_token(self, token):
+        revoke_request = requests.post(
+            "https://oauth2.googleapis.com/revoke",
+            params={"token": token},
+            headers={"content-type": "application/x-www-form-urlencoded"},
+        )
+
+        status_code = getattr(revoke_request, "status_code")
+        if status_code == 200:
+            return True
+        else:
+            return False
+
+    def get_token(self, code):
+        token_request = requests.post(
+            "https://oauth2.googleapis.com/revoke",
+            params={
+                "code": code,
+                "client_id": os.getenv("CLIENT_ID"),
+                "client_secret": os.getenv("CLIENT_SECRET"),
+                "redirect_uri": os.getenv("REDIRECT_URI"),
+                "grant_type": "authorization_code",
+            },
+        )
+
+        status_code = getattr(token_request, "status_code")
+        if status_code == 200:
+            return token_request.json()
+        else:
+            return False

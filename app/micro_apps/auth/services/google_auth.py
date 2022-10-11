@@ -57,6 +57,18 @@ class GoogleAuth(Auth):
         else:
             return False
 
+    def revoke_token(self, token):
+        revoke_request = requests.post(
+            "https://oauth2.googleapis.com/revoke",
+            params={"token": token},
+        )
+
+        status_code = getattr(revoke_request, "status_code")
+        if status_code == 200:
+            return True
+        else:
+            return False
+
     def get_user(self, token):
         user_request = requests.get(
             "https://www.googleapis.com/auth/userinfo.email", params={"token": token}

@@ -4,7 +4,7 @@
 
 import logging
 import os
-from fastapi import APIRouter, status, Depends, Body, Response
+from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.micro_apps.auth.services.google_auth import GoogleAuth
@@ -54,15 +54,14 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
         access_token = token["access_token"]
         refresh_token = token["refresh_token"]
         response = JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content="token successfully created"
+            status_code=status.HTTP_201_CREATED, content="token successfully created"
         )
         authorize.set_access_cookies(access_token, response)
         authorize.set_refresh_cookies(refresh_token, response)
         return response
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content="token creation failed"
+        content="token creation failed",
     )
 
 

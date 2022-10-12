@@ -69,6 +69,23 @@ class GoogleAuth(Auth):
         else:
             return False
 
+    def refresh_token(self, refresh_token):
+        refresh_request = requests.post(
+            "https://oauth2.googleapis.com/token",
+            params={
+                "client_id": os.getenv("CLIENT_ID"),
+                "client_secret": os.getenv("CLIENT_SECRET"),
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token",
+            },
+        )
+
+        status_code = getattr(refresh_request, "status_code")
+        if status_code == 200:
+            return refresh_request.json()
+        else:
+            return None
+
     def get_user(self, token):
         user_request = requests.get(
             "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -78,4 +95,4 @@ class GoogleAuth(Auth):
         if status_code == 200:
             return user_request.json()
         else:
-            return False
+            return None

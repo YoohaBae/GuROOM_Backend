@@ -41,6 +41,11 @@ def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
 
     user = google_auth.get_user(access_token)
 
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
+
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
 
@@ -64,6 +69,11 @@ def get_file_snapshots(authorize: AuthJWT = Depends()):
     google_auth = GoogleAuth()
 
     user = google_auth.get_user(access_token)
+
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
 
     user_db = UserDataBase()
 

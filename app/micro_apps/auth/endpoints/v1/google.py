@@ -87,10 +87,15 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
 )
 def get_user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
-    access_token_bytes = authorize.get_jwt_subject()
-    access_token = access_token_bytes
+    access_token = authorize.get_jwt_subject()
     google_auth = GoogleAuth()
     user = google_auth.get_user(access_token)
+
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
+
     db = DataBase()
     if db.check_user_exists(user["email"]):
         response = JSONResponse(status_code=status.HTTP_200_OK, content=user)
@@ -98,6 +103,31 @@ def get_user(authorize: AuthJWT = Depends()):
         db.save_user(user["email"])
         response = JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
     return response
+
+
+@router.post("/refresh")
+def refresh_token(authorize: AuthJWT = Depends()):
+    authorize.jwt_refresh_token_required()
+
+    refresh_token = authorize.get_jwt_subject()
+
+    authorize.unset_access_cookies()
+
+    google_auth = GoogleAuth()
+    new_token = google_auth.refresh_token(refresh_token)
+
+    if new_token:
+        new_access_token = new_token["access_token"]
+
+        new_access_token = authorize.create_access_token(new_access_token)
+        response = JSONResponse(
+            status_code=status.HTTP_200_OK, content="access token refreshed"
+        )
+        authorize.set_access_cookies(new_access_token, response)
+        return response
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND, content="failed to refresh access token"
+    )
 
 
 @router.delete("/logout")

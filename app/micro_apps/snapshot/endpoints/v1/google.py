@@ -35,7 +35,7 @@ def take_file_snapshot(
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
-    snapshot_name = body["snapshot_name"]
+    snapshot_name = body.snapshot_name
 
     google_auth = GoogleAuth()
     google_drive = GoogleDrive()

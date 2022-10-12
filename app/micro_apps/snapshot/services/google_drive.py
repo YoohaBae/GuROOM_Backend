@@ -37,7 +37,7 @@ class GoogleDrive(Drive):
         if status_code == 200:
             file_obj = file_request.json()
             next_page_token = None
-            if file_obj["nextPageToken"]:
+            if "nextPageToken" in file_obj:
                 next_page_token = file_obj["nextPageToken"]
             files = parse_obj_as(List[File], file_obj["files"])
             return files, next_page_token
@@ -62,7 +62,7 @@ class GoogleDrive(Drive):
         if status_code == 200:
             file_obj = file_request.json()
             next_page_token = None
-            if file_obj["nextPageToken"]:
+            if "nextPageToken" in file_obj:
                 next_page_token = file_obj["nextPageToken"]
             files = parse_obj_as(List[File], file_obj["files"])
             return files, next_page_token

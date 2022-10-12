@@ -38,3 +38,6 @@ class MongoDB:
 
     def update_documents(self, collection_name: str, query: dict, new_data):
         self.db[collection_name].update_one(query, new_data)
+
+    def aggregate_documents(self, collection_name: str, pipelines: list):
+        return list(self.db[collection_name].aggregate(pipelines))

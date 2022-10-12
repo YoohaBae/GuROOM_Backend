@@ -5,10 +5,10 @@
 import logging
 import os
 import json
-from datetime import datetime
 from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
+from app.utils.util import DateTimeEncoder
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.services.database import DataBase as UserDataBase
 from app.micro_apps.snapshot.services.google_drive import GoogleDrive
@@ -29,14 +29,6 @@ logging.Formatter(
     ":%(lineno)d} %(levelname)s - %(message)s",
     "%m-%d %H:%M:%S",
 )
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, z):
-        if isinstance(z, datetime):
-            return str(z)
-        else:
-            return super().default(z)
 
 
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
@@ -60,6 +52,14 @@ def take_file_snapshot(
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
 
+    # get root drive id
+    root_id = google_drive.get_root_file_id(access_token)
+    if not root_id:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve files",
+        )
+
     # get files from google drive
     files, next_page_token = google_drive.get_files(access_token)
 
@@ -72,7 +72,7 @@ def take_file_snapshot(
             files += new_files
 
         snapshot_db = SnapshotDataBase()
-        snapshot_db.create_file_snapshot(snapshot_name, files, user_obj["_id"])
+        snapshot_db.create_file_snapshot(snapshot_name, root_id, files, user_obj["_id"])
 
         return JSONResponse(
             status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
@@ -152,7 +152,7 @@ def edit_file_snapshot_name(
 
 
 @router.get("/files/names", tags=["snapshots"])
-def get_file_snapshots(authorize: AuthJWT = Depends()):
+def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
     google_auth = GoogleAuth()
@@ -177,4 +177,45 @@ def get_file_snapshots(authorize: AuthJWT = Depends()):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file snapshot names",
+        )
+
+
+@router.get("/files", tags=["snapshots"])
+def get_file_snapshots(
+    snapshot_name: str,
+    offset: int,
+    limit: int,
+    folder_id: str = None,
+    my_drive=False,
+    authorize: AuthJWT = Depends(),
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+    google_auth = GoogleAuth()
+    user = google_auth.get_user(access_token)
+
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
+
+    user_db = UserDataBase()
+    user_obj = user_db.get_user(user["email"])
+
+    snapshot_db = SnapshotDataBase()
+
+    if my_drive:
+        folder_id = snapshot_db.get_root_id(user_obj["_id"], snapshot_name)
+
+    try:
+        files = snapshot_db.get_file_under_folder(
+            user_obj["_id"], snapshot_name, offset, limit, folder_id
+        )
+        data = json.loads(json.dumps(files, cls=DateTimeEncoder))
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+    except Exception as error:
+        logging.error(error)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of file under folder",
         )

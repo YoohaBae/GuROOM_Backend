@@ -62,6 +62,7 @@ class Restriction(BaseModel):
 
 class File(BaseModel):
     kind: str
+    mimeType: str
     id: str
     name: str
     parents: Optional[List[str]] = []

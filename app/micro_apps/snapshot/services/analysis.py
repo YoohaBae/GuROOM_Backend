@@ -1,4 +1,4 @@
-from database import DataBase
+from .database import DataBase
 
 collection_name = "file_snapshots"
 
@@ -10,36 +10,35 @@ class Analysis:
 
     def calculate_permission_and_path(self):
         shared_folder_id = None
-        my_drive_folder_id = self.db.get_root_id(collection_name)
+        my_drive_folder_id = self.db.get_root_id(self.snapshot_name)
 
         # bfs for my_drive
         visited_file_ids = []
         path = "/MyDrive"
-        inherited_permissions = []
-        self.dfs(visited_file_ids, my_drive_folder_id, path, inherited_permissions)
+
+        self.dfs(visited_file_ids, my_drive_folder_id, path, [])
 
         # bfs for shared_drive
         visited_file_ids = []
-        path = "SharedWithMe"
-        inherited_permissions = []
-        self.dfs(visited_file_ids, shared_folder_id, path, inherited_permissions)
+        path = "/SharedWithMe"
+        self.dfs(visited_file_ids, shared_folder_id, path, [])
 
-    def dfs(self, visited, file_id, parent_path, parent_inherited_permission):
+    def dfs(self, visited, file_id, parent_path, parent_permissions):
         visited.append(file_id)
-
-        children_file_ids = self.db.get_file_under_folder(
+        children_files = self.db.get_file_under_folder(
             self.snapshot_name, folder_id=file_id
         )
-        for children_id in children_file_ids:
-            if children_id not in visited:
+        for children_file in children_files:
+            if children_file["files"]["id"] not in visited:
                 (
                     path,
-                    inherited_permission,
+                    updated_permissions,
                 ) = self.db.update_inherited_permission_and_path(
                     self.snapshot_name,
-                    children_id,
+                    children_file["files"]["id"],
                     parent_path,
-                    parent_inherited_permission,
+                    parent_permissions,
                 )
-                visited.append(children_id)
-                self.dfs(visited, children_id, path, inherited_permission)
+                self.dfs(
+                    visited, children_file["files"]["id"], path, updated_permissions
+                )

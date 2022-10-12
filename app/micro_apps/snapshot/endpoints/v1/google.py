@@ -4,6 +4,8 @@
 
 import logging
 import os
+import json
+from datetime import datetime
 from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
@@ -29,9 +31,17 @@ logging.Formatter(
 )
 
 
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, z):
+        if isinstance(z, datetime):
+            return (str(z))
+        else:
+            return super().default(z)
+
+
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -76,7 +86,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["snapshots"])
 def delete_file_snapshot(
-    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -107,7 +117,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["snapshots"])
 def edit_file_snapshot_name(
-    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -159,7 +169,11 @@ def get_file_snapshots(authorize: AuthJWT = Depends()):
     snapshot_db = SnapshotDataBase()
     try:
         names = snapshot_db.get_file_snapshot_names(user_obj["_id"])
-        return JSONResponse(status_code=status.HTTP_200_OK, content=names)
+        data = {
+            "names": names
+        }
+        data = json.loads(json.dumps(data, cls=DateTimeEncoder))
+        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
     except Exception as error:
         logging.error(error)
         return JSONResponse(

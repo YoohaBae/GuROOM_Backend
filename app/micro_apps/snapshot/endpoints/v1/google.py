@@ -7,7 +7,6 @@ import os
 from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
-from app.services.models.config import Settings
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.services.database import DataBase as UserDataBase
 from app.micro_apps.snapshot.services.google_drive import GoogleDrive

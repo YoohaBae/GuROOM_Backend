@@ -36,15 +36,12 @@ class GoogleDrive(Drive):
         status_code = getattr(file_request, "status_code")
         if status_code == 200:
             file_obj = file_request.json()
-            incomplete = False
             next_page_token = None
-            if file_obj["incompleteSearch"]:
-                incomplete = True
+            if file_obj["nextPageToken"]:
                 next_page_token = file_obj["nextPageToken"]
             files = parse_obj_as(List[File], file_obj["files"])
-            return files, incomplete, next_page_token
+            return files, next_page_token
         else:
-            print(file_request.json())
             return None, None, None
 
     def get_next_files(self, token, next_page_token):
@@ -64,12 +61,10 @@ class GoogleDrive(Drive):
         status_code = getattr(file_request, "status_code")
         if status_code == 200:
             file_obj = file_request.json()
-            incomplete = False
             next_page_token = None
-            if file_obj["incompleteSearch"]:
-                incomplete = True
+            if file_obj["nextPageToken"]:
                 next_page_token = file_obj["nextPageToken"]
             files = parse_obj_as(List[File], file_obj["files"])
-            return files, incomplete, next_page_token
+            return files, next_page_token
         else:
             return None, None, None

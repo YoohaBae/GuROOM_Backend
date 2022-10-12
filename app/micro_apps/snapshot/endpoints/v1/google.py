@@ -61,12 +61,12 @@ def take_file_snapshot(
     user_obj = user_db.get_user(user["email"])
 
     # get files from google drive
-    files, incomplete, next_page_token = google_drive.get_files(access_token)
+    files, next_page_token = google_drive.get_files(access_token)
 
     if files:
         # take snapshot
-        while incomplete:
-            new_files, incomplete, next_page_token = google_drive.get_next_files(
+        while next_page_token is not None:
+            new_files, next_page_token = google_drive.get_next_files(
                 access_token, next_page_token
             )
             files += new_files

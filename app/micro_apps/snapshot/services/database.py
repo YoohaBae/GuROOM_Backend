@@ -37,3 +37,12 @@ class DataBase:
         print(offset)
         print(limit)
         print(folder_id)
+
+    def delete_file_snapshot(self, user_id, snapshot_name):
+        query = {"user_id": str(user_id), "name": snapshot_name}
+        self._db.delete_document(self.collection_name, query)
+
+    def edit_file_snapshot_name(self, user_id, snapshot_name, new_snapshot_name):
+        query = {"user_id": str(user_id), "name": snapshot_name}
+        update = {"$set": {"name": new_snapshot_name}}
+        self._db.update_document(self.collection_name, query, update)

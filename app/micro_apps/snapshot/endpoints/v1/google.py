@@ -11,6 +11,11 @@ from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.services.database import DataBase as UserDataBase
 from app.micro_apps.snapshot.services.google_drive import GoogleDrive
 from app.micro_apps.snapshot.services.database import DataBase as SnapshotDataBase
+from ..models.snapshot import (
+    DeleteFileSnapshotBody,
+    PutFileSnapshotBody,
+    PostFileSnapshotBody,
+)
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -25,7 +30,9 @@ logging.Formatter(
 
 
 @router.post("/files", tags=["snapshots"])
-def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
+def take_file_snapshot(
+    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
     snapshot_name = body["snapshot_name"]
@@ -67,13 +74,13 @@ def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
         )
 
 
-@router.get("/files/names", tags=["snapshots"])
-def get_file_snapshots(authorize: AuthJWT = Depends()):
+@router.delete("/files", tags=["snapshots"])
+def delete_file_snapshot(
+    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
-
     google_auth = GoogleAuth()
-
     user = google_auth.get_user(access_token)
 
     if user is None:
@@ -82,9 +89,80 @@ def get_file_snapshots(authorize: AuthJWT = Depends()):
         )
 
     user_db = UserDataBase()
+    user_obj = user_db.get_user(user["email"])
 
+    snapshot_name = body.snapshot_name
+    snapshot_db = SnapshotDataBase()
+
+    try:
+        snapshot_db.delete_file_snapshot(user_obj["_id"], snapshot_name)
+        return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot deleted")
+    except Exception as error:
+        logging.error(error)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to delete snapshot",
+        )
+
+
+@router.put("/files", tags=["snapshots"])
+def edit_file_snapshot_name(
+    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+    google_auth = GoogleAuth()
+    user = google_auth.get_user(access_token)
+
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
+
+    user_db = UserDataBase()
+    user_obj = user_db.get_user(user["email"])
+
+    snapshot_name = body.snapshot_name
+    new_snapshot_name = body.new_snapshot_name
+    snapshot_db = SnapshotDataBase()
+
+    try:
+        snapshot_db.edit_file_snapshot_name(
+            user_obj["_id"], snapshot_name, new_snapshot_name
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content="snapshot name updated"
+        )
+    except Exception as error:
+        logging.error(error)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to update snapshot name",
+        )
+
+
+@router.get("/files/names", tags=["snapshots"])
+def get_file_snapshots(authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+    google_auth = GoogleAuth()
+    user = google_auth.get_user(access_token)
+
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
+
+    user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
 
     snapshot_db = SnapshotDataBase()
-    names = snapshot_db.get_file_snapshot_names(user_obj["_id"])
-    return names
+    try:
+        names = snapshot_db.get_file_snapshot_names(user_obj["_id"])
+        return JSONResponse(status_code=status.HTTP_200_OK, content=names)
+    except Exception as error:
+        logging.error(error)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of file snapshot names",
+        )

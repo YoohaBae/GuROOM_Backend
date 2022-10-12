@@ -25,7 +25,10 @@ class GoogleDrive(Drive):
             "https://www.googleapis.com/drive/v3/files",
             params={
                 "access_token": token,
-                "fields": "*",
+                "fields": "files(kind, id, name, parents, spaces, createdTime, modifiedTime, "
+                          "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                          "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                          "size, contentRestrictions)",
                 "corpora": "allDrives",
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
@@ -35,6 +38,7 @@ class GoogleDrive(Drive):
             },
         )
         status_code = getattr(file_request, "status_code")
+        print(file_request.text)
         if status_code == 200:
             file_obj = file_request.json()
             next_page_token = None
@@ -43,14 +47,17 @@ class GoogleDrive(Drive):
             files = parse_obj_as(List[File], file_obj["files"])
             return files, next_page_token
         else:
-            return None, None, None
+            return None, None
 
     def get_next_files(self, token, next_page_token):
         file_request = requests.get(
             "https://www.googleapis.com/drive/v3/files",
             params={
                 "access_token": token,
-                "fields": "*",
+                "fields": "files(kind, id, name, parents, spaces, createdTime, modifiedTime, "
+                          "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                          "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                          "size, contentRestrictions)",
                 "corpora": "allDrives",
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
@@ -69,4 +76,4 @@ class GoogleDrive(Drive):
             files = parse_obj_as(List[File], file_obj["files"])
             return files, next_page_token
         else:
-            return None, None, None
+            return None, None

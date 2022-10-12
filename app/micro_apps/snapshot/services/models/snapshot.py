@@ -10,3 +10,4 @@ class FileSnapshot(BaseModel):
     created: datetime
     search_query: List[str]
     user_id: str
+    root_id: str

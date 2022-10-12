@@ -20,15 +20,28 @@ class GoogleDrive(Drive):
         super().__init__()
         self._logger = logging.getLogger(__name__)
 
+    def get_root_file_id(self, token):
+        root_file_request = requests.get(
+            "https://www.googleapis.com/drive/v3/files/root",
+            params={"access_token": token},
+        )
+
+        status_code = getattr(root_file_request, "status_code")
+        if status_code == 200:
+            id = root_file_request.json()["id"]
+            return id
+        else:
+            return None
+
     def get_files(self, token):
         file_request = requests.get(
             "https://www.googleapis.com/drive/v3/files",
             params={
                 "access_token": token,
-                "fields": "files(kind, id, name, parents, spaces, createdTime, modifiedTime, "
-                          "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                          "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                          "size, contentRestrictions)",
+                "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
+                "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                "size, contentRestrictions)",
                 "corpora": "allDrives",
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
@@ -38,7 +51,6 @@ class GoogleDrive(Drive):
             },
         )
         status_code = getattr(file_request, "status_code")
-        print(file_request.text)
         if status_code == 200:
             file_obj = file_request.json()
             next_page_token = None
@@ -54,10 +66,10 @@ class GoogleDrive(Drive):
             "https://www.googleapis.com/drive/v3/files",
             params={
                 "access_token": token,
-                "fields": "files(kind, id, name, parents, spaces, createdTime, modifiedTime, "
-                          "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                          "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                          "size, contentRestrictions)",
+                "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
+                "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                "size, contentRestrictions)",
                 "corpora": "allDrives",
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,

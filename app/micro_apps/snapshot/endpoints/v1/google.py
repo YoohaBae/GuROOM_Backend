@@ -25,11 +25,6 @@ logging.Formatter(
 )
 
 
-@AuthJWT.load_config
-def get_config():
-    return Settings()
-
-
 @router.post("/files", tags=["snapshots"])
 def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
     authorize.jwt_required()
@@ -50,10 +45,16 @@ def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
     user_obj = user_db.get_user(user["email"])
 
     # get files from google drive
-    files = google_drive.get_files(access_token)
+    files, incomplete, next_page_token = google_drive.get_files(access_token)
 
     if files:
         # take snapshot
+        while incomplete:
+            new_files, incomplete, next_page_token = google_drive.get_next_files(
+                access_token, next_page_token
+            )
+            files += new_files
+
         snapshot_db = SnapshotDataBase()
         snapshot_db.create_file_snapshot(snapshot_name, files, user_obj["_id"])
 
@@ -63,7 +64,7 @@ def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
     else:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="snapshot creation failed",
+            content="unable to retrieve files",
         )
 
 

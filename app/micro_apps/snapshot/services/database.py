@@ -30,7 +30,10 @@ class DataBase:
         )
         return snapshot_names
 
-    def get_files_under_folder(self, user_id, folder_path):
-        query = {"user_id": str(user_id), "folder_path": folder_path}
-        files = self._db.find_documents(self.collection_name, query)
-        return files
+    def get_file_under_folder(self, user_id, offset, limit, folder_id=None):
+        query = {"files": {"$elemMatch": {}}}
+        print(user_id)
+        print(query)
+        print(offset)
+        print(limit)
+        print(folder_id)

@@ -27,7 +27,7 @@ class GoogleDrive(Drive):
                 "access_token": token,
                 "fields": "*",
                 "corpora": "allDrives",
-                "supportAllDrives": True,
+                "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
                 "q": "trashed=False",
             },
@@ -38,4 +38,4 @@ class GoogleDrive(Drive):
             files = parse_obj_as(List[File], file_obj["files"])
             return files
         else:
-            return []
+            return None

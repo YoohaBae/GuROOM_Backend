@@ -24,6 +24,13 @@ class DataBase:
 
     def get_file_snapshot_names(self, user_id):
         query = {"user_id": str(user_id)}
-        filter_query = {"name": 1, "_id": 0}
-        snapshot = self._db.find_documents(self.collection_name, query, filter_query)
-        return snapshot
+        filter_query = {"name": 1, "created": 1, "_id": 0}
+        snapshot_names = self._db.find_documents(
+            self.collection_name, query, filter_query
+        )
+        return snapshot_names
+
+    def get_files_under_folder(self, user_id, folder_path):
+        query = {"user_id": str(user_id), "folder_path": folder_path}
+        files = self._db.find_documents(self.collection_name, query)
+        return files

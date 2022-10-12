@@ -4,8 +4,7 @@
 
 import logging
 import os
-from typing import Optional
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.services.models.config import Settings
@@ -32,9 +31,10 @@ def get_config():
 
 
 @router.post("/files", tags=["snapshots"])
-def take_file_snapshot(snapshot_name: str, authorize: AuthJWT = Depends()):
+def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
+    snapshot_name = body["snapshot_name"]
 
     google_auth = GoogleAuth()
     google_drive = GoogleDrive()
@@ -42,7 +42,6 @@ def take_file_snapshot(snapshot_name: str, authorize: AuthJWT = Depends()):
     user = google_auth.get_user(access_token)
 
     user_db = UserDataBase()
-
     user_obj = user_db.get_user(user["email"])
 
     # get files from google drive
@@ -57,10 +56,8 @@ def take_file_snapshot(snapshot_name: str, authorize: AuthJWT = Depends()):
     )
 
 
-@router.get("/files", tags=["snapshots"])
-def get_file_snapshots(
-    name_only: bool, snapshot_name: Optional[str] = None, authorize: AuthJWT = Depends()
-):
+@router.get("/files/names", tags=["snapshots"])
+def get_file_snapshots(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -73,5 +70,5 @@ def get_file_snapshots(
     user_obj = user_db.get_user(user["email"])
 
     snapshot_db = SnapshotDataBase()
-    data = snapshot_db.get_file_snapshots(user_obj["_id"], snapshot_name, name_only)
-    return data
+    names = snapshot_db.get_file_snapshot_names(user_obj["_id"])
+    return names

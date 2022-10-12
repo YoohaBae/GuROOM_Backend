@@ -29,7 +29,7 @@ logging.Formatter(
 )
 
 
-@router.post("/files", tags=["snapshots"])
+@router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
     body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):

@@ -89,22 +89,45 @@ class DataBase:
         return files
 
     def update_inherited_permission_and_path(
-        self, snapshot_name, file_id, parent_path, parent_inherit_permission
+        self, snapshot_name, file_id, parent_path, parent_permissions
     ):
-        permissions, name = self.get_file_permission_and_name(snapshot_name, file_id)
-        path = parent_path + "/" + name
-        query = {"name": snapshot_name, "user_id": self.user_id}
-        old_data = self.get_file(snapshot_name, file_id)
-        print(path)
-        print(parent_inherit_permission)
-        print(old_data)
-        # TODO: implement new data
-        new_data = ""
-        files = self._db.update_document(self.collection_name, query, new_data)
-        return files
+        files = self.get_snapshot(snapshot_name)["files"]
+        new_path, new_permissions = None, None
+        for file in files:
+            if file["id"] == file_id:
+                new_path = parent_path + "/" + file["name"]
+                new_permissions = self.calculate_inherit_permissions(
+                    file["permissions"], parent_permissions, parent_path
+                )
+                file["path"] = new_path
+                file["permissions"] = new_permissions
 
-    def get_file(self, snapshot_name, file_id):
+        query = {"name": snapshot_name, "user_id": self.user_id}
+        update = {"$set": {"files": files}}
+        self._db.update_document(self.collection_name, query, update)
+        return new_path, new_permissions
+
+    def get_snapshot(self, snapshot_name):
         query = {"name": snapshot_name, "user_id": self.user_id}
         snapshot = self._db.find_document(self.collection_name, query)
-        file = list(filter(lambda file: file["id"] == file_id, snapshot["files"]))
-        return file[0]
+        return snapshot
+
+    def calculate_inherit_permissions(
+        self, permissions, parent_permissions, parent_path
+    ):
+        for parent_permission in parent_permissions:
+            index = next(
+                (
+                    index
+                    for (index, permission) in enumerate(permissions)
+                    if permission["id"] == parent_permission["id"]
+                )
+            )
+            if index:
+                permissions[index]["inherited"] = True
+                if "inherited" in parent_permission:
+                    permissions[index]["inherited_from"] = parent_permission[
+                        "inherited_from"
+                    ]
+                permissions[index]["inherited_from"] = parent_path
+        return permissions

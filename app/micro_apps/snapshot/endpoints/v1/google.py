@@ -13,6 +13,7 @@ from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.services.database import DataBase as UserDataBase
 from app.micro_apps.snapshot.services.google_drive import GoogleDrive
 from app.micro_apps.snapshot.services.database import DataBase as SnapshotDataBase
+from app.micro_apps.snapshot.services.analysis import Analysis
 from ..models.snapshot import (
     DeleteFileSnapshotBody,
     PutFileSnapshotBody,
@@ -76,6 +77,9 @@ def take_file_snapshot(
 
         snapshot_db = SnapshotDataBase(user_id)
         snapshot_db.create_file_snapshot(snapshot_name, root_id, files)
+
+        analysis = Analysis(user_id, snapshot_name)
+        analysis.calculate_permission_and_path()
 
         return JSONResponse(
             status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
@@ -224,23 +228,3 @@ def get_file_snapshots(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file under folder",
         )
-
-
-@router.get("/")
-def test(snapshot_name: str, authorize: AuthJWT = Depends()):
-    authorize.jwt_required()
-    access_token = authorize.get_jwt_subject()
-    google_auth = GoogleAuth()
-    user = google_auth.get_user(access_token)
-
-    if user is None:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
-        )
-
-    user_db = UserDataBase()
-    user_obj = user_db.get_user(user["email"])
-    user_id = str(user_obj["_id"])
-    snapshot_db = SnapshotDataBase(user_id)
-    file = snapshot_db.get_file(snapshot_name, "16nC4KxfzL5AY7BSakb_i_3d3Mp-ZbU9D")
-    return file

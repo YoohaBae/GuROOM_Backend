@@ -30,6 +30,7 @@ class GoogleDrive(Drive):
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
                 "q": "trashed=False",
+                "pageSize": 500,
                 "orderBy": "folder",
             },
         )
@@ -55,6 +56,7 @@ class GoogleDrive(Drive):
                 "includeItemsFromAllDrives": True,
                 "q": "trashed=False",
                 "pageToken": next_page_token,
+                "pageSize": 500,
                 "orderBy": "folder",
             },
         )

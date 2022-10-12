@@ -52,13 +52,19 @@ def take_file_snapshot(body=Body(...), authorize: AuthJWT = Depends()):
     # get files from google drive
     files = google_drive.get_files(access_token)
 
-    # take snapshot
-    snapshot_db = SnapshotDataBase()
-    snapshot_db.create_file_snapshot(snapshot_name, files, user_obj["_id"])
+    if files:
+        # take snapshot
+        snapshot_db = SnapshotDataBase()
+        snapshot_db.create_file_snapshot(snapshot_name, files, user_obj["_id"])
 
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
-    )
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
+        )
+    else:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="snapshot creation failed",
+        )
 
 
 @router.get("/files/names", tags=["snapshots"])

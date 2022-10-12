@@ -51,6 +51,7 @@ def take_file_snapshot(
 
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
+    user_id = str(user_obj["_id"])
 
     # get root drive id
     root_id = google_drive.get_root_file_id(access_token)
@@ -71,8 +72,10 @@ def take_file_snapshot(
             )
             files += new_files
 
-        snapshot_db = SnapshotDataBase()
-        snapshot_db.create_file_snapshot(snapshot_name, root_id, files, user_obj["_id"])
+        # TODO: calculate inherit direct permissions and file path
+
+        snapshot_db = SnapshotDataBase(user_id)
+        snapshot_db.create_file_snapshot(snapshot_name, root_id, files)
 
         return JSONResponse(
             status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
@@ -100,12 +103,13 @@ def delete_file_snapshot(
 
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
+    user_id = str(user_obj["_id"])
 
     snapshot_name = body.snapshot_name
-    snapshot_db = SnapshotDataBase()
+    snapshot_db = SnapshotDataBase(user_id)
 
     try:
-        snapshot_db.delete_file_snapshot(user_obj["_id"], snapshot_name)
+        snapshot_db.delete_file_snapshot(snapshot_name)
         return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot deleted")
     except Exception as error:
         logging.error(error)
@@ -131,15 +135,14 @@ def edit_file_snapshot_name(
 
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
+    user_id = str(user_obj["_id"])
 
     snapshot_name = body.snapshot_name
     new_snapshot_name = body.new_snapshot_name
-    snapshot_db = SnapshotDataBase()
+    snapshot_db = SnapshotDataBase(user_id)
 
     try:
-        snapshot_db.edit_file_snapshot_name(
-            user_obj["_id"], snapshot_name, new_snapshot_name
-        )
+        snapshot_db.edit_file_snapshot_name(snapshot_name, new_snapshot_name)
         return JSONResponse(
             status_code=status.HTTP_200_OK, content="snapshot name updated"
         )
@@ -165,10 +168,11 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
+    user_id = str(user_obj["_id"])
 
-    snapshot_db = SnapshotDataBase()
+    snapshot_db = SnapshotDataBase(user_id)
     try:
-        names = snapshot_db.get_file_snapshot_names(user_obj["_id"])
+        names = snapshot_db.get_file_snapshot_names()
         data = {"names": names}
         data = json.loads(json.dumps(data, cls=DateTimeEncoder))
         return JSONResponse(status_code=status.HTTP_200_OK, content=data)
@@ -186,7 +190,7 @@ def get_file_snapshots(
     offset: int,
     limit: int,
     folder_id: str = None,
-    my_drive=False,
+    my_drive: bool = False,
     authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
@@ -201,15 +205,16 @@ def get_file_snapshots(
 
     user_db = UserDataBase()
     user_obj = user_db.get_user(user["email"])
+    user_id = str(user_obj["_id"])
 
-    snapshot_db = SnapshotDataBase()
+    snapshot_db = SnapshotDataBase(user_id)
 
     if my_drive:
-        folder_id = snapshot_db.get_root_id(user_obj["_id"], snapshot_name)
+        folder_id = snapshot_db.get_root_id(snapshot_name)
 
     try:
         files = snapshot_db.get_file_under_folder(
-            user_obj["_id"], snapshot_name, offset, limit, folder_id
+            snapshot_name, offset, limit, folder_id
         )
         data = json.loads(json.dumps(files, cls=DateTimeEncoder))
         return JSONResponse(status_code=status.HTTP_200_OK, content=data)
@@ -219,3 +224,23 @@ def get_file_snapshots(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file under folder",
         )
+
+
+@router.get("/")
+def test(snapshot_name: str, authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+    google_auth = GoogleAuth()
+    user = google_auth.get_user(access_token)
+
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+        )
+
+    user_db = UserDataBase()
+    user_obj = user_db.get_user(user["email"])
+    user_id = str(user_obj["_id"])
+    snapshot_db = SnapshotDataBase(user_id)
+    file = snapshot_db.get_file(snapshot_name, "16nC4KxfzL5AY7BSakb_i_3d3Mp-ZbU9D")
+    return file

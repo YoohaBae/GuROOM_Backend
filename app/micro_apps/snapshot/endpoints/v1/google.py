@@ -28,7 +28,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -38,8 +38,7 @@ def take_file_snapshot(
 
     if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content="unable to retrieve user id"
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
     # get root drive id
@@ -51,10 +50,10 @@ def take_file_snapshot(
         )
 
     files = service.get_all_files(access_token)
-    if not files:
+    if len(files) != 0 and not files:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve files"
+            content="unable to retrieve files",
         )
 
     created = service.save_all_files(user_id, snapshot_name, files, root_id)
@@ -64,11 +63,13 @@ def take_file_snapshot(
             content="snapshot creation failed",
         )
 
-    analysis_performed = service.perform_inherit_direct_permission_analysis(user_id, snapshot_name)
+    analysis_performed = service.perform_inherit_direct_permission_analysis(
+        user_id, snapshot_name
+    )
     if not analysis_performed:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="analysis failure"
+            content="analysis failure",
         )
 
     return JSONResponse(
@@ -78,7 +79,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["snapshots"])
 def delete_file_snapshot(
-        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -87,15 +88,14 @@ def delete_file_snapshot(
     user_id = service.get_user_id_from_token(access_token)
     if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content="unable to retrieve user id"
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
     deleted = service.delete_file_snapshot(user_id, snapshot_name)
     if not deleted:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to delete snapshot"
+            content="unable to delete snapshot",
         )
 
     return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot deleted")
@@ -103,7 +103,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["snapshots"])
 def edit_file_snapshot_name(
-        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -113,8 +113,7 @@ def edit_file_snapshot_name(
     user_id = service.get_user_id_from_token(access_token)
     if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content="unable to retrieve user id"
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
     edited = service.edit_file_snapshot_name(user_id, snapshot_name, new_snapshot_name)
@@ -124,9 +123,7 @@ def edit_file_snapshot_name(
             content="unable to update snapshot name",
         )
 
-    return JSONResponse(
-        status_code=status.HTTP_200_OK, content="snapshot name updated"
-    )
+    return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot name updated")
 
 
 @router.get("/files/names", tags=["snapshots"])
@@ -137,28 +134,27 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     user_id = service.get_user_id_from_token(access_token)
     if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content="unable to retrieve user id"
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
     names = service.get_file_snapshot_names(user_id)
-    if not names:
+    if len(names) != 0 and not names:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file snapshot names",
         )
-    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=names)
 
 
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
-        snapshot_name: str,
-        offset: int,
-        limit: int,
-        folder_id: str = None,
-        shared_drive: bool = False,
-        my_drive: bool = False,
-        authorize: AuthJWT = Depends(),
+    snapshot_name: str,
+    offset: int,
+    limit: int,
+    folder_id: str = None,
+    shared_drive: bool = False,
+    my_drive: bool = False,
+    authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -166,8 +162,7 @@ def get_file_snapshots(
     user_id = service.get_user_id_from_token(access_token)
     if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content="unable to retrieve user id"
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
     if my_drive:
@@ -175,9 +170,11 @@ def get_file_snapshots(
     elif shared_drive:
         files = service.get_files_of_shared_drive(user_id, snapshot_name, offset, limit)
     else:
-        files = service.get_files_of_folder(user_id, snapshot_name, offset, limit, folder_id)
+        files = service.get_files_of_folder(
+            user_id, snapshot_name, offset, limit, folder_id
+        )
 
-    if not files:
+    if len(files) != 0 and not files:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file under folder",

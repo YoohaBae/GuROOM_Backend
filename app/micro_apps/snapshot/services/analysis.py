@@ -16,13 +16,13 @@ class Analysis:
 
         # dfs for my_drive
         visited_file_ids = []
-        self.dfs(visited_file_ids, my_drive_folder_id, self.my_drive_path, [])
+        self.dfs(visited_file_ids, self.my_drive_path, [], my_drive_folder_id)
 
         # dfs for shared_drive
         visited_file_ids = []
-        self.dfs(visited_file_ids, shared_folder_id, self.shared_drive_path, [])
+        self.dfs(visited_file_ids, self.shared_drive_path, [], shared_folder_id)
 
-    def dfs(self, visited, file_id, curr_folder_path, curr_permission):
+    def dfs(self, visited, curr_folder_path, curr_permission, file_id=None):
         visited.append(file_id)
         child_files = self.db.get_file_under_folder(
             self.snapshot_name, folder_id=file_id
@@ -30,9 +30,7 @@ class Analysis:
         for child_file in child_files:
             child_file_id = child_file["id"]
             if child_file_id not in visited:
-                child_path, child_permissions = self.db.update_path_and_permissions(self.snapshot_name,
-                                                                                    curr_folder_path,
-                                                                                    curr_permission, child_file_id)
-                self.dfs(
-                    visited, child_file_id, child_path, child_permissions
+                child_path, child_permissions = self.db.update_path_and_permissions(
+                    self.snapshot_name, curr_folder_path, curr_permission, child_file_id
                 )
+                self.dfs(visited, child_path, child_permissions, child_file_id)

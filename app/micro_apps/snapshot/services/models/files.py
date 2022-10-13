@@ -43,6 +43,7 @@ class Permission(BaseModel):
     role: Optional[str]
     allowFileDiscovery: Optional[bool]
     displayName: Optional[str]
+    photoLink: Optional[str]
     permissionDetails: Optional[List[PermissionDetail]] = []
     deleted: Optional[bool]
     pendingOwner: Optional[bool]

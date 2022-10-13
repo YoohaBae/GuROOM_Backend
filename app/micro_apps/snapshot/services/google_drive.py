@@ -3,9 +3,6 @@ Google Drive Auth
 """
 import logging
 import requests
-from pydantic import parse_obj_as
-from typing import List
-from .models.files import File
 from .drive import Drive
 
 logging.Formatter(
@@ -39,9 +36,9 @@ class GoogleDrive(Drive):
             params={
                 "access_token": token,
                 "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                          "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                          "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                          "size, contentRestrictions)",
+                "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                "size, contentRestrictions)",
                 "corpora": "allDrives",
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,
@@ -67,9 +64,9 @@ class GoogleDrive(Drive):
             params={
                 "access_token": token,
                 "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                          "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                          "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                          "size, contentRestrictions)",
+                "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                "size, contentRestrictions)",
                 "corpora": "allDrives",
                 "supportsAllDrives": True,
                 "includeItemsFromAllDrives": True,

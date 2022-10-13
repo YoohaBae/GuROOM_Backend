@@ -100,6 +100,8 @@ def get_file_snapshot_names(user_id):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         data = snapshot_db.get_file_snapshot_names()
+        if len(data) == 0:
+            return data
         names = json.loads(json.dumps(data, cls=DateTimeEncoder))
         return names
     except Exception as error:
@@ -111,7 +113,11 @@ def get_files_of_my_drive(user_id, snapshot_name, offset, limit):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         folder_id = snapshot_db.get_root_id(snapshot_name)
-        data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, folder_id)
+        data = snapshot_db.get_file_under_folder(
+            snapshot_name, offset, limit, folder_id
+        )
+        if len(data) == 0:
+            return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
         return files
     except Exception as error:
@@ -123,6 +129,8 @@ def get_files_of_shared_drive(user_id, snapshot_name, offset, limit):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit)
+        if len(data) == 0:
+            return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
         return files
     except Exception as error:
@@ -133,7 +141,11 @@ def get_files_of_shared_drive(user_id, snapshot_name, offset, limit):
 def get_files_of_folder(user_id, snapshot_name, offset, limit, folder_id):
     snapshot_db = SnapshotDataBase(user_id)
     try:
-        data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, folder_id)
+        data = snapshot_db.get_file_under_folder(
+            snapshot_name, offset, limit, folder_id
+        )
+        if len(data) == 0:
+            return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
         return files
     except Exception as error:

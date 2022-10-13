@@ -4,16 +4,10 @@
 
 import logging
 import os
-import json
 from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
-from app.utils.util import DateTimeEncoder
-from app.micro_apps.auth.services.google_auth import GoogleAuth
-from app.micro_apps.auth.services.database import DataBase as UserDataBase
-from app.micro_apps.snapshot.services.google_drive import GoogleDrive
-from app.micro_apps.snapshot.services.database import DataBase as SnapshotDataBase
-from app.micro_apps.snapshot.services.analysis import Analysis
+from app.micro_apps.snapshot.services import service
 from ..models.snapshot import (
     DeleteFileSnapshotBody,
     PutFileSnapshotBody,
@@ -34,197 +28,159 @@ logging.Formatter(
 
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
     snapshot_name = body.snapshot_name
 
-    google_auth = GoogleAuth()
-    google_drive = GoogleDrive()
+    user_id = service.get_user_id_from_token(access_token)
 
-    user = google_auth.get_user(access_token)
-
-    if user is None:
+    if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="unable to retrieve user id"
         )
 
-    user_db = UserDataBase()
-    user_obj = user_db.get_user(user["email"])
-    user_id = str(user_obj["_id"])
-
     # get root drive id
-    root_id = google_drive.get_root_file_id(access_token)
+    root_id = service.get_root_id(access_token)
     if not root_id:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve files",
+            content="unable to retrieve root id",
         )
 
-    # get files from google drive
-    files, next_page_token = google_drive.get_files(access_token)
-
-    if files:
-        # take snapshot
-        while next_page_token is not None:
-            new_files, next_page_token = google_drive.get_next_files(
-                access_token, next_page_token
-            )
-            files += new_files
-
-        # TODO: calculate inherit direct permissions and file path
-
-        snapshot_db = SnapshotDataBase(user_id)
-        snapshot_db.create_file_snapshot(snapshot_name, root_id, files)
-
-        analysis = Analysis(user_id, snapshot_name)
-        analysis.calculate_permission_and_path()
-
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
-        )
-    else:
+    files = service.get_all_files(access_token)
+    if not files:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve files",
+            content="unable to retrieve files"
         )
+
+    created = service.save_all_files(user_id, snapshot_name, files, root_id)
+    if not created:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="snapshot creation failed",
+        )
+
+    analysis_performed = service.perform_inherit_direct_permission_analysis(user_id, snapshot_name)
+    if not analysis_performed:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="analysis failure"
+        )
+
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content="snapshot successfully created"
+    )
 
 
 @router.delete("/files", tags=["snapshots"])
 def delete_file_snapshot(
-    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
-    google_auth = GoogleAuth()
-    user = google_auth.get_user(access_token)
+    snapshot_name = body.snapshot_name
 
-    if user is None:
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="unable to retrieve user id"
         )
 
-    user_db = UserDataBase()
-    user_obj = user_db.get_user(user["email"])
-    user_id = str(user_obj["_id"])
-
-    snapshot_name = body.snapshot_name
-    snapshot_db = SnapshotDataBase(user_id)
-
-    try:
-        snapshot_db.delete_file_snapshot(snapshot_name)
-        return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot deleted")
-    except Exception as error:
-        logging.error(error)
+    deleted = service.delete_file_snapshot(user_id, snapshot_name)
+    if not deleted:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to delete snapshot",
+            content="unable to delete snapshot"
         )
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot deleted")
 
 
 @router.put("/files", tags=["snapshots"])
 def edit_file_snapshot_name(
-    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
-    google_auth = GoogleAuth()
-    user = google_auth.get_user(access_token)
-
-    if user is None:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
-        )
-
-    user_db = UserDataBase()
-    user_obj = user_db.get_user(user["email"])
-    user_id = str(user_obj["_id"])
-
     snapshot_name = body.snapshot_name
     new_snapshot_name = body.new_snapshot_name
-    snapshot_db = SnapshotDataBase(user_id)
 
-    try:
-        snapshot_db.edit_file_snapshot_name(snapshot_name, new_snapshot_name)
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_200_OK, content="snapshot name updated"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="unable to retrieve user id"
         )
-    except Exception as error:
-        logging.error(error)
+
+    edited = service.edit_file_snapshot_name(user_id, snapshot_name, new_snapshot_name)
+    if not edited:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to update snapshot name",
         )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content="snapshot name updated"
+    )
 
 
 @router.get("/files/names", tags=["snapshots"])
 def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
-    google_auth = GoogleAuth()
-    user = google_auth.get_user(access_token)
 
-    if user is None:
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="unable to retrieve user id"
         )
 
-    user_db = UserDataBase()
-    user_obj = user_db.get_user(user["email"])
-    user_id = str(user_obj["_id"])
-
-    snapshot_db = SnapshotDataBase(user_id)
-    try:
-        names = snapshot_db.get_file_snapshot_names()
-        data = {"names": names}
-        data = json.loads(json.dumps(data, cls=DateTimeEncoder))
-        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
-    except Exception as error:
-        logging.error(error)
+    names = service.get_file_snapshot_names(user_id)
+    if not names:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file snapshot names",
         )
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
-    snapshot_name: str,
-    offset: int,
-    limit: int,
-    folder_id: str = None,
-    my_drive: bool = False,
-    authorize: AuthJWT = Depends(),
+        snapshot_name: str,
+        offset: int,
+        limit: int,
+        folder_id: str = None,
+        shared_drive: bool = False,
+        my_drive: bool = False,
+        authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
-    google_auth = GoogleAuth()
-    user = google_auth.get_user(access_token)
 
-    if user is None:
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
         return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="user not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="unable to retrieve user id"
         )
-
-    user_db = UserDataBase()
-    user_obj = user_db.get_user(user["email"])
-    user_id = str(user_obj["_id"])
-
-    snapshot_db = SnapshotDataBase(user_id)
 
     if my_drive:
-        folder_id = snapshot_db.get_root_id(snapshot_name)
+        files = service.get_files_of_my_drive(user_id, snapshot_name, offset, limit)
+    elif shared_drive:
+        files = service.get_files_of_shared_drive(user_id, snapshot_name, offset, limit)
+    else:
+        files = service.get_files_of_folder(user_id, snapshot_name, offset, limit, folder_id)
 
-    try:
-        files = snapshot_db.get_file_under_folder(
-            snapshot_name, offset, limit, folder_id
-        )
-        data = json.loads(json.dumps(files, cls=DateTimeEncoder))
-        return JSONResponse(status_code=status.HTTP_200_OK, content=data)
-    except Exception as error:
-        logging.error(error)
+    if not files:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file under folder",
         )
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=files)

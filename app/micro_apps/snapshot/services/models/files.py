@@ -46,6 +46,9 @@ class Permission(BaseModel):
     permissionDetails: Optional[List[PermissionDetail]] = []
     deleted: Optional[bool]
     pendingOwner: Optional[bool]
+    inherited: bool = False
+    inherited_from: str = None
+    file_id: Optional[str] = None
 
 
 class Capabilities(BaseModel):
@@ -76,9 +79,8 @@ class File(BaseModel):
     shared: Optional[bool]
     ownedByMe: Optional[bool]
     capabilities: Capabilities
-    permissions: Optional[List[Permission]] = []
-    permissionIds: Optional[List[str]] = []
     fullFileExtension: Optional[str]
     fileExtension: Optional[str]
     size: Optional[str]
     contentRestrictions: Optional[List[Restriction]] = []
+    path: str = None

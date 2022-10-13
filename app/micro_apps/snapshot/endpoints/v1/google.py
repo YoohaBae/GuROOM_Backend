@@ -28,7 +28,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -79,7 +79,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["snapshots"])
 def delete_file_snapshot(
-    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -103,7 +103,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["snapshots"])
 def edit_file_snapshot_name(
-    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -148,13 +148,13 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
-    snapshot_name: str,
-    offset: int,
-    limit: int,
-    folder_id: str = None,
-    shared_drive: bool = False,
-    my_drive: bool = False,
-    authorize: AuthJWT = Depends(),
+        snapshot_name: str,
+        offset: int,
+        limit: int,
+        folder_id: str = None,
+        shared_drive: bool = False,
+        my_drive: bool = False,
+        authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -180,4 +180,17 @@ def get_file_snapshots(
             content="unable to retrieve list of file under folder",
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content=files)
+    permissions = service.get_permission_of_files(user_id, snapshot_name, files)
+
+    if len(permissions) != 0 and not permissions:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of permissions under folder",
+        )
+
+    data = {
+        "files": files,
+        "permissions": permissions
+    }
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data)

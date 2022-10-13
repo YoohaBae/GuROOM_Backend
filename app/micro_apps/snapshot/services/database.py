@@ -52,7 +52,7 @@ class DataBase:
         return snapshot_names
 
     def get_file_under_folder(
-        self, snapshot_name, offset=None, limit=None, folder_id=None
+            self, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
 
@@ -63,9 +63,13 @@ class DataBase:
 
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
-        if offset and limit:
-            return files[offset : (offset + limit)]  # noqa: E203
+        if offset is not None and limit is not None:
+            return files[offset: (offset + limit)]  # noqa: E203
         return files
+
+    def get_permission_of_file(self, snapshot_name, file_id):
+        pass
+
 
     def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
         # change name in user_id.file_snapshots
@@ -105,7 +109,7 @@ class DataBase:
                 self._db.drop_collection(collection)
 
     def update_path_and_permissions(
-        self, snapshot_name, folder_path, folder_permission, file_id
+            self, snapshot_name, folder_path, folder_permission, file_id
     ):
         new_path = self.update_path(snapshot_name, folder_path, file_id)
         new_permissions = self.update_permissions_to_inherit_direct(
@@ -114,7 +118,7 @@ class DataBase:
         return new_path, new_permissions
 
     def update_permissions_to_inherit_direct(
-        self, snapshot_name, parent_permissions, parent_path, file_id
+            self, snapshot_name, parent_permissions, parent_path, file_id
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         for parent_permission in parent_permissions:
@@ -155,5 +159,13 @@ class DataBase:
         filter_query = {"_id": 0}
         permissions = self._db.find_documents(
             permission_collection_name, query, filter_query
+        )
+        return permissions
+
+    def get_all_permission_of_snapshot(self, snapshot_name):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        filter_query = {"_id": 0}
+        permissions = self._db.find_documents(
+            permission_collection_name, filter_query=filter_query
         )
         return permissions

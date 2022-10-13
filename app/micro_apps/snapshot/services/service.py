@@ -151,3 +151,16 @@ def get_files_of_folder(user_id, snapshot_name, offset, limit, folder_id):
     except Exception as error:
         logger.error(error)
         return None
+
+
+def get_permission_of_files(user_id, snapshot_name, files):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        permissions = []
+        for file in files:
+            permission = snapshot_db.get_all_permission_of_file(snapshot_name, file["id"])
+            permissions.append(permission)
+        return permissions
+    except Exception as error:
+        logger.error(error)
+        return None

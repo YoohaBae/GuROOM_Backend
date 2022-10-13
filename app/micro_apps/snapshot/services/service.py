@@ -134,7 +134,7 @@ def get_files_of_shared_drive(user_id, snapshot_name, offset=None, limit=None):
         no_path = snapshot_db.get_files_with_no_path(snapshot_name)
         data = no_path + no_parent
         # slice data
-        data = data[offset : (offset + limit)]  # noqa: E203
+        data = data[offset: (offset + limit)]  # noqa: E203
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -231,8 +231,18 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
         return None
 
 
+def get_file_folder_sharing_difference(user_id, snapshot_name, file_id):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        folder_id = snapshot_db.get_parent_id(snapshot_name, file_id)
+        folder_more, changes, file_more = get_sharing_difference_of_two_files(user_id, snapshot_name, folder_id, file_id)
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
 def get_sharing_difference_of_two_files(
-    user_id, snapshot_name, base_file_id, compare_file_id
+        user_id, snapshot_name, base_file_id, compare_file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:

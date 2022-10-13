@@ -28,7 +28,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -79,7 +79,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["snapshots"])
 def delete_file_snapshot(
-    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -103,7 +103,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["snapshots"])
 def edit_file_snapshot_name(
-    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -148,13 +148,13 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
-    snapshot_name: str,
-    offset: int = None,
-    limit: int = None,
-    folder_id: str = None,
-    shared_drive: bool = False,
-    my_drive: bool = False,
-    authorize: AuthJWT = Depends(),
+        snapshot_name: str,
+        offset: int = None,
+        limit: int = None,
+        folder_id: str = None,
+        shared_drive: bool = False,
+        my_drive: bool = False,
+        authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -195,9 +195,9 @@ def get_file_snapshots(
 
 @router.get("/files/search", tags=["snapshot"])
 def search_files(
-    snapshot_name: str,
-    query: str,
-    authorize: AuthJWT = Depends(),
+        snapshot_name: str,
+        query: str,
+        authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -224,15 +224,23 @@ def search_files(
             )
         result_files = different_files
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content=result_files)
+    permissions = service.get_permission_of_files(user_id, snapshot_name, result_files)
+
+    if permissions is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of permissions under folder",
+        )
+    data = {"files": result_files, "permissions": permissions}
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
 @router.get("/files/differences/sharing", tags=["snapshot"])
-def get_sharing_difference(
-    snapshot_name: str,
-    base_file_id: str,
-    compare_file_id: str,
-    authorize: AuthJWT = Depends(),
+def get_file_folder_sharing_difference(
+        snapshot_name: str,
+        file_id: str,
+        authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -243,8 +251,8 @@ def get_sharing_difference(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    difference = service.get_sharing_difference_of_two_files(
-        user_id, snapshot_name, base_file_id, compare_file_id
+    difference = service.get_file_folder_sharing_difference(
+        user_id, snapshot_name, file_id
     )
     if difference is None:
         return JSONResponse(
@@ -263,7 +271,7 @@ def get_sharing_difference(
 
 @router.get("/files/differences", tags=["snapshot"])
 def get_snapshot_difference(
-    base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
+        base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()

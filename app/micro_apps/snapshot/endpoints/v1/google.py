@@ -28,7 +28,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -50,7 +50,7 @@ def take_file_snapshot(
         )
 
     files = service.get_all_files(access_token)
-    if len(files) != 0 and not files:
+    if files is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve files",
@@ -79,7 +79,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["snapshots"])
 def delete_file_snapshot(
-        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -103,7 +103,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["snapshots"])
 def edit_file_snapshot_name(
-        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -138,7 +138,7 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
         )
 
     names = service.get_file_snapshot_names(user_id)
-    if len(names) != 0 and not names:
+    if names is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file snapshot names",
@@ -148,13 +148,13 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
-        snapshot_name: str,
-        offset: int = None,
-        limit: int = None,
-        folder_id: str = None,
-        shared_drive: bool = False,
-        my_drive: bool = False,
-        authorize: AuthJWT = Depends(),
+    snapshot_name: str,
+    offset: int = None,
+    limit: int = None,
+    folder_id: str = None,
+    shared_drive: bool = False,
+    my_drive: bool = False,
+    authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -183,7 +183,6 @@ def get_file_snapshots(
     permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
     if permissions is None:
-        print(permissions)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of permissions under folder",

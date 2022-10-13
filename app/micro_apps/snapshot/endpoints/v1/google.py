@@ -191,3 +191,25 @@ def get_file_snapshots(
     data = {"files": files, "permissions": permissions}
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+
+# @router.get("/files/search", tags=["snapshot"])
+# def search_files(
+#         snapshot_name: str,
+#         query: str,
+#         authorize: AuthJWT = Depends(),
+# ):
+#     authorize.jwt_required()
+#     access_token = authorize.get_jwt_subject()
+#
+#     user_id = service.get_user_id_from_token(access_token)
+#     if user_id is None:
+#         return JSONResponse(
+#             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+#         )
+#
+#     queries = query.split(" ")
+#
+#     if "is:redundant" in queries:
+#         redundant_files = service.get_redundant_file_permissions(user_id, snapshot_name)
+#     return "hi"

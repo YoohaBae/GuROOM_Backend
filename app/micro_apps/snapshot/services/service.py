@@ -162,10 +162,48 @@ def get_permission_of_files(user_id, snapshot_name, files):
                 snapshot_name, file["id"]
             )
             permissions.extend(permission)
-        permission_grouped = {}
-        for permission in permissions:
-            permission_grouped.setdefault(permission["file_id"], []).append(permission)
+        permission_grouped = group_permission_by_file_id(permissions)
+        for file_id in permission_grouped.keys():
+            inherit, direct = separate_permission_to_inherit_and_direct(
+                permission_grouped[file_id]
+            )
+            permission_grouped[file_id] = {
+                "inherit_permissions": inherit,
+                "direct_permissions": direct,
+            }
         return permission_grouped
     except Exception as error:
         logger.error(error)
         return None
+
+
+# def get_redundant_file_permissions(user_id, snapshot_name):
+#     snapshot_db = SnapshotDataBase(user_id)
+#     try:
+#         all_permissions = snapshot_db.get_all_permission_of_snapshot(snapshot_name)
+#         permission_grouped = group_permission_by_file_id(all_permissions)
+#         for file_id in permission_grouped.keys():
+#             inherit, direct = separate_permission_to_inherit_and_direct(permission_grouped[file_id])
+#             get_permission_id_with_redundancy = None
+#         return None
+#     except Exception as error:
+#         logger.error(error)
+#         return None
+
+
+def group_permission_by_file_id(permissions):
+    permission_grouped = {}
+    for permission in permissions:
+        permission_grouped.setdefault(permission["file_id"], []).append(permission)
+    return permission_grouped
+
+
+def separate_permission_to_inherit_and_direct(permissions):
+    inherit = []
+    direct = []
+    for permission in permissions:
+        if permission["inherited"]:
+            inherit.append(permission)
+        else:
+            direct.append(permission)
+    return inherit, direct

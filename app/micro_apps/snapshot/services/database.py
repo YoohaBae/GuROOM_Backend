@@ -67,9 +67,6 @@ class DataBase:
             return files[offset : (offset + limit)]  # noqa: E203
         return files
 
-    def get_permission_of_file(self, snapshot_name, file_id):
-        pass
-
     def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
         # change name in user_id.file_snapshots
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"

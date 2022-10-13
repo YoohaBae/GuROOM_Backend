@@ -38,8 +38,10 @@ class Analysis:
 
     def get_sharing_differences(self, base_permissions, compare_permissions):
         comparor = ListOfDictsComparor()
-        base_permission_ids = [permission['id'] for permission in base_permissions]
-        compare_permission_ids = [permission['id'] for permission in compare_permissions]
+        base_permission_ids = [permission["id"] for permission in base_permissions]
+        compare_permission_ids = [
+            permission["id"] for permission in compare_permissions
+        ]
         base_permission_more_ids = comparor.difference(
             base_permission_ids, compare_permission_ids
         )

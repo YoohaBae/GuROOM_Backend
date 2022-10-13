@@ -158,6 +158,13 @@ class DataBase:
         )
         return permissions
 
+    def get_files_with_no_path(self, snapshot_name):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"path": None}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
     def get_all_permission_of_snapshot(self, snapshot_name):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         filter_query = {"_id": 0}
@@ -165,3 +172,9 @@ class DataBase:
             permission_collection_name, filter_query=filter_query
         )
         return permissions
+
+    def get_all_files_of_snapshot(self, snapshot_name):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, filter_query=filter_query)
+        return files

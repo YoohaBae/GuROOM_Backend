@@ -193,23 +193,53 @@ def get_file_snapshots(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-# @router.get("/files/search", tags=["snapshot"])
-# def search_files(
-#         snapshot_name: str,
-#         query: str,
-#         authorize: AuthJWT = Depends(),
-# ):
-#     authorize.jwt_required()
-#     access_token = authorize.get_jwt_subject()
-#
-#     user_id = service.get_user_id_from_token(access_token)
-#     if user_id is None:
-#         return JSONResponse(
-#             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
-#         )
-#
-#     queries = query.split(" ")
-#
-#     if "is:redundant" in queries:
-#         redundant_files = service.get_redundant_file_permissions(user_id, snapshot_name)
-#     return "hi"
+@router.get("/files/search", tags=["snapshot"])
+def search_files(
+    snapshot_name: str,
+    query: str,
+    authorize: AuthJWT = Depends(),
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    queries = query.split(" ")
+
+    result_files = []
+
+    if "is:file_folder_diff" in queries:
+        different_files = service.get_files_with_diff_permission_from_folder(
+            user_id,
+            snapshot_name,
+        )
+        if different_files is None:
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content="failed to perform file_folder_diff search",
+            )
+        result_files = different_files
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=result_files)
+
+
+@router.get("/files/sharing_difference", tags=["snapshot"])
+def get_sharing_difference(
+    snapshot_name: str, file_id_1: str, file_id_2: str, authorize: AuthJWT = Depends()
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    difference = service.get_sharing_difference_of_two_files(
+        user_id, snapshot_name, file_id_1, file_id_2
+    )

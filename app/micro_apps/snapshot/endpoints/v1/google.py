@@ -149,8 +149,8 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
         snapshot_name: str,
-        offset: int,
-        limit: int,
+        offset: int = None,
+        limit: int = None,
         folder_id: str = None,
         shared_drive: bool = False,
         my_drive: bool = False,
@@ -171,10 +171,10 @@ def get_file_snapshots(
         files = service.get_files_of_shared_drive(user_id, snapshot_name, offset, limit)
     else:
         files = service.get_files_of_folder(
-            user_id, snapshot_name, offset, limit, folder_id
+            user_id, snapshot_name, folder_id, offset, limit
         )
 
-    if len(files) != 0 and not files:
+    if files is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file under folder",
@@ -182,15 +182,13 @@ def get_file_snapshots(
 
     permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
-    if len(permissions) != 0 and not permissions:
+    if permissions is None:
+        print(permissions)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of permissions under folder",
         )
 
-    data = {
-        "files": files,
-        "permissions": permissions
-    }
+    data = {"files": files, "permissions": permissions}
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)

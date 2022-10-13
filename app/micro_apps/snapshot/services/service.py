@@ -109,7 +109,7 @@ def get_file_snapshot_names(user_id):
         return None
 
 
-def get_files_of_my_drive(user_id, snapshot_name, offset, limit):
+def get_files_of_my_drive(user_id, snapshot_name, offset=None, limit=None):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         folder_id = snapshot_db.get_root_id(snapshot_name)
@@ -125,7 +125,7 @@ def get_files_of_my_drive(user_id, snapshot_name, offset, limit):
         return None
 
 
-def get_files_of_shared_drive(user_id, snapshot_name, offset, limit):
+def get_files_of_shared_drive(user_id, snapshot_name, offset=None, limit=None):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit)
@@ -138,7 +138,7 @@ def get_files_of_shared_drive(user_id, snapshot_name, offset, limit):
         return None
 
 
-def get_files_of_folder(user_id, snapshot_name, offset, limit, folder_id):
+def get_files_of_folder(user_id, snapshot_name, folder_id, offset=None, limit=None):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         data = snapshot_db.get_file_under_folder(
@@ -158,9 +158,14 @@ def get_permission_of_files(user_id, snapshot_name, files):
     try:
         permissions = []
         for file in files:
-            permission = snapshot_db.get_all_permission_of_file(snapshot_name, file["id"])
-            permissions.append(permission)
-        return permissions
+            permission = snapshot_db.get_all_permission_of_file(
+                snapshot_name, file["id"]
+            )
+            permissions.extend(permission)
+        permission_grouped = {}
+        for permission in permissions:
+            permission_grouped.setdefault(permission["file_id"], []).append(permission)
+        return permission_grouped
     except Exception as error:
         logger.error(error)
         return None

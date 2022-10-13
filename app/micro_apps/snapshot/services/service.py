@@ -128,7 +128,13 @@ def get_files_of_my_drive(user_id, snapshot_name, offset=None, limit=None):
 def get_files_of_shared_drive(user_id, snapshot_name, offset=None, limit=None):
     snapshot_db = SnapshotDataBase(user_id)
     try:
-        data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit)
+        # get all files with no parent attribute
+        no_parent = snapshot_db.get_file_under_folder(snapshot_name)
+        # get all files that do not have a path attribute -> has a parent but that parent is not in snapshot
+        no_path = snapshot_db.get_files_with_no_path(snapshot_name)
+        data = no_path + no_parent
+        # slice data
+        data = data[offset : (offset + limit)]
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -189,6 +195,59 @@ def get_permission_of_files(user_id, snapshot_name, files):
 #     except Exception as error:
 #         logger.error(error)
 #         return None
+
+
+def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        all_files = snapshot_db.get_all_files_of_snapshot(snapshot_name)
+        different_files = []
+        root_id = snapshot_db.get_root_id(snapshot_name)
+        for file in all_files:
+            file_id = file["id"]
+            parents = file["parents"]
+
+            if len(parents) == 0 or parents[0] == root_id:
+                continue
+
+            folder_id = parents[0]
+
+            file_permissions = snapshot_db.get_all_permission_of_file(
+                snapshot_name, file_id
+            )
+            folder_permissions = snapshot_db.get_all_permission_of_file(
+                snapshot_name, folder_id
+            )
+
+            # no folder with such id
+            if folder_permissions is None:
+                continue
+            if file_permissions != folder_permissions:
+                different_files.append(file)
+        different_files = json.loads(json.dumps(different_files, cls=DateTimeEncoder))
+        return different_files
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def get_sharing_difference_of_two_files(user_id, snapshot_name, file_id_1, file_id_2):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        file1_permissions = snapshot_db.get_all_permission_of_file(
+            snapshot_name, file_id_1
+        )
+        file2_permissions = snapshot_db.get_all_permission_of_file(
+            snapshot_name, file_id_2
+        )
+        analysis = Analysis(user_id, snapshot_name)
+        file1_more, changes, file2_more = analysis.get_sharing_differences(
+            file1_permissions, file2_permissions
+        )
+
+    except Exception as error:
+        logger.error(error)
+        return None
 
 
 def group_permission_by_file_id(permissions):

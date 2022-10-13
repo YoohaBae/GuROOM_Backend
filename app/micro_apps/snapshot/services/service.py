@@ -134,7 +134,7 @@ def get_files_of_shared_drive(user_id, snapshot_name, offset=None, limit=None):
         no_path = snapshot_db.get_files_with_no_path(snapshot_name)
         data = no_path + no_parent
         # slice data
-        data = data[offset : (offset + limit)]
+        data = data[offset : (offset + limit)]  # noqa: E203
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -231,20 +231,46 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
         return None
 
 
-def get_sharing_difference_of_two_files(user_id, snapshot_name, file_id_1, file_id_2):
+def get_sharing_difference_of_two_files(
+    user_id, snapshot_name, base_file_id, compare_file_id
+):
     snapshot_db = SnapshotDataBase(user_id)
     try:
-        file1_permissions = snapshot_db.get_all_permission_of_file(
-            snapshot_name, file_id_1
+        base_file_permissions = snapshot_db.get_all_permission_of_file(
+            snapshot_name, base_file_id
         )
-        file2_permissions = snapshot_db.get_all_permission_of_file(
-            snapshot_name, file_id_2
+        compare_file_permissions = snapshot_db.get_all_permission_of_file(
+            snapshot_name, compare_file_id
         )
         analysis = Analysis(user_id, snapshot_name)
-        file1_more, changes, file2_more = analysis.get_sharing_differences(
-            file1_permissions, file2_permissions
+        (
+            base_more_permissions,
+            changes,
+            compare_more_permissions,
+        ) = analysis.get_sharing_differences(
+            base_file_permissions, compare_file_permissions
         )
+        return base_more_permissions, changes, compare_more_permissions
+    except Exception as error:
+        logger.error(error)
+        return None
 
+
+def get_difference_of_two_snapshots(user_id, base_snapshot_name, compare_snapshot_name):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        base_snapshot_files = snapshot_db.get_all_files_of_snapshot(base_snapshot_name)
+        compare_snapshot_files = snapshot_db.get_all_files_of_snapshot(
+            compare_snapshot_name
+        )
+        # get new files: files that exist in compare_snapshot_files and not base_snapshot_files
+        analysis = Analysis(user_id, None)
+        changes, compare_more_files = analysis.compare_two_file_snapshots(
+            base_snapshot_files, compare_snapshot_files
+        )
+        # get changed files: files that information has changed
+        # format = {"<file_id>": {"base": <file_data>, "compare": <file_data>}
+        return changes, compare_more_files
     except Exception as error:
         logger.error(error)
         return None

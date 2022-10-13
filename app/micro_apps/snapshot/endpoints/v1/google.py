@@ -227,9 +227,12 @@ def search_files(
     return JSONResponse(status_code=status.HTTP_200_OK, content=result_files)
 
 
-@router.get("/files/sharing_difference", tags=["snapshot"])
+@router.get("/files/differences/sharing", tags=["snapshot"])
 def get_sharing_difference(
-    snapshot_name: str, file_id_1: str, file_id_2: str, authorize: AuthJWT = Depends()
+    snapshot_name: str,
+    base_file_id: str,
+    compare_file_id: str,
+    authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -241,5 +244,46 @@ def get_sharing_difference(
         )
 
     difference = service.get_sharing_difference_of_two_files(
-        user_id, snapshot_name, file_id_1, file_id_2
+        user_id, snapshot_name, base_file_id, compare_file_id
     )
+    if difference is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve ",
+        )
+    base_more_permissions, changes, compare_more_permissions = difference
+    data = {
+        "additional_folder_permissions": base_more_permissions,
+        "changed_permissions": changes,
+        "additional_file_permissions": compare_more_permissions,
+    }
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+
+@router.get("/files/differences", tags=["snapshot"])
+def get_snapshot_difference(
+    base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    difference = service.get_difference_of_two_snapshots(
+        user_id, base_snapshot_name, compare_snapshot_name
+    )
+    if difference is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve ",
+        )
+
+    changes, compare_more_files = difference
+    data = {"changed_files": changes, "compare_additional_files": compare_more_files}
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data)

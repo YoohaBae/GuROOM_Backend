@@ -35,5 +35,8 @@ class Analysis:
                 )
                 self.dfs(visited, child_path, child_permissions, child_file_id)
 
-    def get_sharing_differences(self, file1_permissions, file2_permissions):
+    def get_sharing_differences(self, base_permissions, compare_permissions):
+        pass
+
+    def compare_two_file_snapshots(self, base_snapshot_files, compare_snapshot_files):
         pass

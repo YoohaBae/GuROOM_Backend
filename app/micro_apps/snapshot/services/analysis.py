@@ -163,5 +163,47 @@ class Analysis:
             changed_permissions.append(change_data)
         return changed_permissions
 
-    def compare_two_file_snapshots(self, base_snapshot_files, compare_snapshot_files):
-        pass
+    def compare_two_file_snapshots(
+        self,
+        base_snapshot_name,
+        compare_snapshot_name,
+        base_snapshot_files,
+        compare_snapshot_files,
+    ):
+        different_files = []
+        base_snapshot_files_ids = [x["id"] for x in base_snapshot_files]
+        for compare_snapshot_file in compare_snapshot_files:
+            file_id = compare_snapshot_file["id"]
+            # if file was newly added
+            if file_id not in base_snapshot_files_ids:
+                compare_snapshot_file["additional_base_file_snapshot_permissions"] = []
+                compare_snapshot_file[
+                    "additional_compare_file_snapshot_permissions"
+                ] = self.db.get_all_permission_of_file(compare_snapshot_name, file_id)
+                compare_snapshot_file["changed_permissions"] = []
+                different_files.append(compare_snapshot_file)
+                continue
+            base_permissions = self.db.get_all_permission_of_file(
+                base_snapshot_name, file_id
+            )
+            compare_permissions = self.db.get_all_permission_of_file(
+                compare_snapshot_name, file_id
+            )
+            (
+                base_more_permissions,
+                changes,
+                compare_more_permissions,
+            ) = self.get_sharing_differences(base_permissions, compare_permissions)
+            if (
+                len(base_more_permissions) != 0
+                or len(changes) != 0
+                or len(compare_more_permissions) != 0
+            ):
+                compare_snapshot_file[
+                    "additional_base_file_snapshot_permissions"
+                ] = base_more_permissions
+                compare_snapshot_file[
+                    "additional_compare_file_snapshot_permissions"
+                ] = compare_more_permissions
+                compare_snapshot_file["changed_permissions"] = changes
+        return different_files

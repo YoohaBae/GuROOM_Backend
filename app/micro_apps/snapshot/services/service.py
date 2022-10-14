@@ -273,10 +273,6 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
                 changes,
                 compare_more_permissions,
             ) = analysis.get_sharing_differences(file_permissions, folder_permissions)
-            print(base_more_permissions, changes, compare_more_permissions)
-            print(
-                len(base_more_permissions), len(changes), len(compare_more_permissions)
-            )
             if (
                 len(base_more_permissions) != 0
                 or len(changes) != 0
@@ -362,12 +358,14 @@ def get_difference_of_two_snapshots(user_id, base_snapshot_name, compare_snapsho
         )
         # get new files: files that exist in compare_snapshot_files and not base_snapshot_files
         analysis = Analysis(user_id)
-        changes, compare_more_files = analysis.compare_two_file_snapshots(
-            base_snapshot_files, compare_snapshot_files
+        data = analysis.compare_two_file_snapshots(
+            base_snapshot_name,
+            compare_snapshot_name,
+            base_snapshot_files,
+            compare_snapshot_files,
         )
-        # get changed files: files that information has changed
-        # format = {"<file_id>": {"base": <file_data>, "compare": <file_data>}
-        return changes, compare_more_files
+        different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
+        return different_files
     except Exception as error:
         logger.error(error)
         return None

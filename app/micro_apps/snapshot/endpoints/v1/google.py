@@ -30,6 +30,12 @@ logging.Formatter(
 def take_file_snapshot(
     body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
+    """
+    operation takes file snapshot
+    :param body: file snapshot name
+    :param authorize: user authentication
+    :return: None
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
     snapshot_name = body.snapshot_name
@@ -90,6 +96,12 @@ def take_file_snapshot(
 def delete_file_snapshot(
     body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
+    """
+    operation: deletes file snapshot
+    :param body: file snapshot name
+    :param authorize: user authentication
+    :return: None
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
     snapshot_name = body.snapshot_name
@@ -114,6 +126,12 @@ def delete_file_snapshot(
 def edit_file_snapshot_name(
     body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
+    """
+    operation: edits file snapshots
+    :param body: file snapshot name to edit, what file snapshot name to edit to
+    :param authorize: user authentication
+    :return: None
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
     snapshot_name = body.snapshot_name
@@ -137,6 +155,11 @@ def edit_file_snapshot_name(
 
 @router.get("/files/names", tags=["snapshots"])
 def get_file_snapshot_names(authorize: AuthJWT = Depends()):
+    """
+    operation: gets list of file snapshots
+    :param authorize: user authentication
+    :return: list of file snapshot names
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -157,6 +180,12 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 
 @router.get("/files/drives", tags=["snapshots"])
 def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
+    """
+    operation: gets name and id of shared drive
+    :param snapshot_name: name of file snapshot
+    :param authorize: user authentication
+    :return: name and id of shared drive
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -186,6 +215,18 @@ def get_file_snapshots(
     folder_id: str = None,
     authorize: AuthJWT = Depends(),
 ):
+    """
+    operation: get all files under certain folder or drive
+    :param snapshot_name:
+    :param offset: what index to start
+    :param limit: how many to retrieve
+    :param my_drive: retrieve all files under my_drive
+    :param shared_with_me: retrieve all files shared with me
+    :param shared_drive: retrieve all files of a certain shared drive
+    :param folder_id: the id of shared drive or folder to retrieve files from
+    :param authorize: user authentication
+    :return:
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -235,6 +276,13 @@ def search_files(
     query: str,
     authorize: AuthJWT = Depends(),
 ):
+    """
+    operation: perform search on a file snapshot
+    :param snapshot_name: file snapshot name
+    :param query: the search query
+    :param authorize: user authentication
+    :return: list of files
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -272,12 +320,20 @@ def search_files(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-@router.get("/files/differences/sharing/single", tags=["snapshot"])
+@router.get("/files/differences/sharing", tags=["snapshot"])
 def get_file_folder_sharing_difference(
-    snapshot_name: str,
-    file_id: str,
-    authorize: AuthJWT = Depends(),
+    snapshot_name: str, file_id: str, authorize: AuthJWT = Depends()
 ):
+    """
+    operation: get the permission difference between a file and folder
+    :param snapshot_name: file snapshot name
+    :param file_id: the file id to perform the analysis
+    :param authorize: user authentication
+    :return:
+        additional_folder_permissions: permissions that folder has but file doesn't
+        changed_permissions: permissions that have been changed between folder and file
+        additional_file_permissions: permissions that file has but folder doesn't
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -309,6 +365,15 @@ def get_file_folder_sharing_difference(
 def get_snapshot_difference(
     base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
 ):
+    """
+    operation: get files that are different between two file snapshots
+    :param base_snapshot_name: name of base file snapshot
+    :param compare_snapshot_name: name of comparing file snapshot
+    :param authorize: user authentication
+    :return:
+        changed_files: files that permission have changed
+        added_files: files that do not exist in base file snapshot
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -327,46 +392,43 @@ def get_snapshot_difference(
             content="unable to retrieve ",
         )
 
-    changes, compare_more_files = difference
-    data = {"changed_files": changes, "compare_additional_files": compare_more_files}
-
-    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=difference)
 
 
-@router.get("/files/differences/sharing/multiple", tags=["snapshot"])
-def get_snapshot_different_of_file(
-    file_id: str,
-    base_snapshot_name: str,
-    compare_snapshot_name: str,
-    authorize: AuthJWT = Depends(),
-):
-    authorize.jwt_required()
-    access_token = authorize.get_jwt_subject()
-
-    user_id = service.get_user_id_from_token(access_token)
-    if user_id is None:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
-        )
-
-    difference = service.get_sharing_difference_of_two_files_different_snapshots(
-        user_id, base_snapshot_name, compare_snapshot_name, file_id
-    )
-    if difference is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve ",
-        )
-
-    if difference is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve ",
-        )
-    base_more_permissions, changes, compare_more_permissions = difference
-    data = {
-        "additional_base_file_snapshot_permissions": base_more_permissions,
-        "changed_permissions": changes,
-        "additional_compare_file_snapshot_permissions": compare_more_permissions,
-    }
-    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+# @router.get("/files/differences/sharing/multiple", tags=["snapshot"])
+# def get_snapshot_different_of_file(
+#         file_id: str,
+#         base_snapshot_name: str,
+#         compare_snapshot_name: str,
+#         authorize: AuthJWT = Depends(),
+# ):
+#     authorize.jwt_required()
+#     access_token = authorize.get_jwt_subject()
+#
+#     user_id = service.get_user_id_from_token(access_token)
+#     if user_id is None:
+#         return JSONResponse(
+#             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+#         )
+#
+#     difference = service.get_sharing_difference_of_two_files_different_snapshots(
+#         user_id, base_snapshot_name, compare_snapshot_name, file_id
+#     )
+#     if difference is None:
+#         return JSONResponse(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             content="unable to retrieve ",
+#         )
+#
+#     if difference is None:
+#         return JSONResponse(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             content="unable to retrieve ",
+#         )
+#     base_more_permissions, changes, compare_more_permissions = difference
+#     data = {
+#         "additional_base_file_snapshot_permissions": base_more_permissions,
+#         "changed_permissions": changes,
+#         "additional_compare_file_snapshot_permissions": compare_more_permissions,
+#     }
+#     return JSONResponse(status_code=status.HTTP_200_OK, content=data)

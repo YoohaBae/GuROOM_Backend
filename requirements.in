@@ -14,3 +14,5 @@ h11==0.12.0
 pymongo[srv]
 fastapi-jwt-auth
 deepdiff
+python-multipart
+beautifulsoup4

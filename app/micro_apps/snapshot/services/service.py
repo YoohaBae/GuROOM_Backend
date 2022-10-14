@@ -1,5 +1,6 @@
 import logging
 import json
+from bs4 import BeautifulSoup
 from app.utils.util import DateTimeEncoder
 from app.micro_apps.auth.services.google_auth import GoogleAuth
 from app.micro_apps.auth.services.database import DataBase as UserDataBase
@@ -397,3 +398,45 @@ def separate_permission_to_inherit_and_direct(permissions):
         else:
             direct.append(permission)
     return inherit, direct
+
+
+async def scratch_group_memberships_from_file(file):
+    MEMBERSHIP_ROW_CLASS = "cXEmmc B9Uude hFgAsc J6Lkdb"
+    MEMBERSHIP_NAME_CLASS = "LnLepd"
+    MEMBERSHIP_ROLE_CLASS = "y7VPke"
+    MEMBERSHIP_JOIN_DATE_CLASS = "y7VPke"
+    memberships = []
+    html = await file.read(-1)
+    soup = BeautifulSoup(html, "html.parser")
+    membership_html_rows = soup.find_all("div", {"class": MEMBERSHIP_ROW_CLASS})
+    for membership_html in membership_html_rows:
+        membership_html_member = membership_html.find_all("span", {"class": "eois5"})
+        [
+            membership_html_name,
+            membership_html_role,
+            membership_html_join_date,
+        ] = membership_html_member
+        name = membership_html_name.find(
+            "div", {"class": MEMBERSHIP_NAME_CLASS}
+        ).contents[0]
+        role = membership_html_role.find(
+            "div", {"class": MEMBERSHIP_ROLE_CLASS}
+        ).contents[0]
+        join_date = membership_html_join_date.find(
+            "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
+        ).contents[0]
+        membership = {"member": name, "role": role, "join_date": join_date}
+        memberships.append(membership)
+    return memberships
+
+
+def create_group_snapshot(user_id, group_name, group_email, create_time, memberships):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        snapshot_db.create_group_memberships_snapshot(
+            group_name, group_email, create_time, memberships
+        )
+        return True
+    except Exception as error:
+        logger.error(error)
+        return False

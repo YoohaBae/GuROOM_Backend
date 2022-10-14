@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import copy
 from app.services.mongodb import MongoDB
-from .models.snapshot import FileSnapshot
+from .models.snapshot import FileSnapshot, GroupMembershipsSnapshot
 from .models.files import File, Permission
 
 
@@ -231,3 +231,19 @@ class DataBase:
             "$set": {"inherited": inherited, "inherited_from": inherited_from}
         }
         self._db.update_document(permission_collection_name, update_query, query)
+
+    def create_group_memberships_snapshot(
+        self, group_name, group_email, create_time, memberships
+    ):
+        group_memberships_snapshot_collection_name = (
+            f"{self.user_id}.group_membership_snapshots"
+        )
+        snapshot = GroupMembershipsSnapshot(
+            group_name=group_name,
+            group_email=group_email,
+            create_time=create_time,
+            memberships=memberships,
+        )
+        self._db.insert_document(
+            group_memberships_snapshot_collection_name, snapshot.dict()
+        )

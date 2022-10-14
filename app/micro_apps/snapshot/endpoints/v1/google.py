@@ -4,7 +4,7 @@
 
 import logging
 import os
-from fastapi import APIRouter, status, Depends, Body
+from fastapi import APIRouter, status, Depends, Body, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.micro_apps.snapshot.services import service
@@ -26,7 +26,7 @@ logging.Formatter(
 )
 
 
-@router.post("/files", tags=["snapshots"], status_code=status.HTTP_201_CREATED)
+@router.post("/files", tags=["file_snapshot"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
     body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
@@ -92,7 +92,7 @@ def take_file_snapshot(
     )
 
 
-@router.delete("/files", tags=["snapshots"])
+@router.delete("/files", tags=["file_snapshot"])
 def delete_file_snapshot(
     body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
@@ -122,7 +122,7 @@ def delete_file_snapshot(
     return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot deleted")
 
 
-@router.put("/files", tags=["snapshots"])
+@router.put("/files", tags=["file_snapshot"])
 def edit_file_snapshot_name(
     body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
@@ -153,7 +153,7 @@ def edit_file_snapshot_name(
     return JSONResponse(status_code=status.HTTP_200_OK, content="snapshot name updated")
 
 
-@router.get("/files/names", tags=["snapshots"])
+@router.get("/files/names", tags=["file_snapshot"])
 def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     """
     operation: gets list of file snapshots
@@ -178,7 +178,7 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     return JSONResponse(status_code=status.HTTP_200_OK, content=names)
 
 
-@router.get("/files/drives", tags=["snapshots"])
+@router.get("/files/drives", tags=["file_snapshot"])
 def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
     """
     operation: gets name and id of shared drive
@@ -204,7 +204,7 @@ def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
     return JSONResponse(status_code=status.HTTP_200_OK, content=shared_drives)
 
 
-@router.get("/files", tags=["snapshots"])
+@router.get("/files", tags=["file_snapshot"])
 def get_file_snapshots(
     snapshot_name: str,
     offset: int = None,
@@ -270,7 +270,7 @@ def get_file_snapshots(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-@router.get("/files/search", tags=["snapshot"])
+@router.get("/files/search", tags=["file_snapshot"])
 def search_files(
     snapshot_name: str,
     query: str,
@@ -320,7 +320,7 @@ def search_files(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-@router.get("/files/differences/sharing", tags=["snapshot"])
+@router.get("/files/differences/sharing", tags=["file_snapshot"])
 def get_file_folder_sharing_difference(
     snapshot_name: str, file_id: str, authorize: AuthJWT = Depends()
 ):
@@ -361,7 +361,7 @@ def get_file_folder_sharing_difference(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-@router.get("/files/differences", tags=["snapshot"])
+@router.get("/files/differences", tags=["file_snapshot"])
 def get_snapshot_difference(
     base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
 ):
@@ -389,46 +389,43 @@ def get_snapshot_difference(
     if difference is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve ",
+            content="unable to perform file snapshot analysis",
         )
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=difference)
 
 
-# @router.get("/files/differences/sharing/multiple", tags=["snapshot"])
-# def get_snapshot_different_of_file(
-#         file_id: str,
-#         base_snapshot_name: str,
-#         compare_snapshot_name: str,
-#         authorize: AuthJWT = Depends(),
-# ):
-#     authorize.jwt_required()
-#     access_token = authorize.get_jwt_subject()
-#
-#     user_id = service.get_user_id_from_token(access_token)
-#     if user_id is None:
-#         return JSONResponse(
-#             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
-#         )
-#
-#     difference = service.get_sharing_difference_of_two_files_different_snapshots(
-#         user_id, base_snapshot_name, compare_snapshot_name, file_id
-#     )
-#     if difference is None:
-#         return JSONResponse(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             content="unable to retrieve ",
-#         )
-#
-#     if difference is None:
-#         return JSONResponse(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             content="unable to retrieve ",
-#         )
-#     base_more_permissions, changes, compare_more_permissions = difference
-#     data = {
-#         "additional_base_file_snapshot_permissions": base_more_permissions,
-#         "changed_permissions": changes,
-#         "additional_compare_file_snapshot_permissions": compare_more_permissions,
-#     }
-#     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+@router.post("/groups", tags=["group_snapshot"])
+async def create_group_membership_snapshot(
+    file: UploadFile,
+    group_name: str,
+    group_email: str,
+    create_time: str,
+    authorize: AuthJWT = Depends(),
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+    memberships = await service.scratch_group_memberships_from_file(file)
+    if memberships is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve memberships from html file",
+        )
+
+    created = service.create_group_snapshot(
+        user_id, group_name, group_email, create_time, memberships
+    )
+    if not created:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to create group snapshot",
+        )
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content="group snapshot created"
+    )

@@ -206,4 +206,5 @@ class Analysis:
                     "additional_compare_file_snapshot_permissions"
                 ] = compare_more_permissions
                 compare_snapshot_file["changed_permissions"] = changes
+                different_files.append(compare_snapshot_file)
         return different_files

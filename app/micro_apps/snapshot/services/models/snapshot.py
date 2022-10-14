@@ -24,5 +24,5 @@ class Membership(BaseModel):
 class GroupMembershipsSnapshot(BaseModel):
     group_name: str
     group_email: str
-    create_time: str
+    create_time: datetime
     memberships: List[Membership]

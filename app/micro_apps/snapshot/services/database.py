@@ -247,3 +247,13 @@ class DataBase:
         self._db.insert_document(
             group_memberships_snapshot_collection_name, snapshot.dict()
         )
+
+    def get_all_group_membership_snapshots(self):
+        group_memberships_snapshot_collection_name = (
+            f"{self.user_id}.group_membership_snapshots"
+        )
+        filter_query = {"_id": 0}
+        groups = self._db.find_documents(
+            group_memberships_snapshot_collection_name, filter_query=filter_query
+        )
+        return groups

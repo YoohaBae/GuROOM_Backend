@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
-from re import findall, sub
-import copy
+from re import sub
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -23,8 +22,8 @@ def fix_key_in_dict_of_roots(dict_of_roots):
 
 
 def remove_root(text: str):
-    new_text = text.replace('root', '')
-    new_text = sub("[\[\]'\"]", "", new_text)
+    new_text = text.replace("root", "")
+    new_text = sub("[\[\]'\"]", "", new_text)  # noqa: W605
     return new_text
 
 

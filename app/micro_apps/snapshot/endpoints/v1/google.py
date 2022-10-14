@@ -42,21 +42,30 @@ def take_file_snapshot(
         )
 
     # get root drive id
-    root_id = service.get_root_id(access_token)
+    root_id = service.get_root_id_from_api(access_token)
     if not root_id:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve root id",
         )
 
-    files = service.get_all_files(access_token)
+    shared_drives = service.get_all_shared_drives_from_api(access_token)
+    if shared_drives is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve shared drives",
+        )
+
+    files = service.get_all_files_from_api(access_token)
     if files is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve files",
         )
 
-    created = service.save_all_files(user_id, snapshot_name, files, root_id)
+    created = service.create_file_snapshot(
+        user_id, snapshot_name, files, root_id, shared_drives
+    )
     if not created:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -146,14 +155,35 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     return JSONResponse(status_code=status.HTTP_200_OK, content=names)
 
 
+@router.get("/files/drives", tags=["snapshots"])
+def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    shared_drives = service.get_shared_drives(user_id, snapshot_name)
+    if shared_drives is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of file snapshot names",
+        )
+    return JSONResponse(status_code=status.HTTP_200_OK, content=shared_drives)
+
+
 @router.get("/files", tags=["snapshots"])
 def get_file_snapshots(
     snapshot_name: str,
     offset: int = None,
     limit: int = None,
-    folder_id: str = None,
-    shared_drive: bool = False,
     my_drive: bool = False,
+    shared_with_me: bool = False,
+    shared_drive: bool = True,
+    folder_id: str = None,
     authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
@@ -167,8 +197,14 @@ def get_file_snapshots(
 
     if my_drive:
         files = service.get_files_of_my_drive(user_id, snapshot_name, offset, limit)
+    elif shared_with_me:
+        files = service.get_files_of_shared_with_me(
+            user_id, snapshot_name, offset, limit
+        )
     elif shared_drive:
-        files = service.get_files_of_shared_drive(user_id, snapshot_name, offset, limit)
+        files = service.get_files_of_shared_drive(
+            user_id, snapshot_name, folder_id, offset, limit
+        )
     else:
         files = service.get_files_of_folder(
             user_id, snapshot_name, folder_id, offset, limit

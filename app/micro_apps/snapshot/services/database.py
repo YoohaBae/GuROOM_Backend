@@ -13,10 +13,13 @@ class DataBase:
         self._db = MongoDB(url, db_name)
         self.user_id = user_id
 
-    def create_file_snapshot(self, snapshot_name, data, root_id):
+    def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
         snapshot = FileSnapshot(
-            name=snapshot_name, created=datetime.utcnow(), root_id=root_id
+            name=snapshot_name,
+            created=datetime.utcnow(),
+            root_id=root_id,
+            shared_drives=shared_drives,
         )
         self._db.insert_document(file_snapshot_collection_name, snapshot.dict())
 
@@ -187,3 +190,44 @@ class DataBase:
             "parents"
         ][0]
         return parent_id
+
+    def get_shared_drives(self, snapshot_name):
+        file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
+        query = {"name": snapshot_name}
+        filter_query = {"_id": 0, "shared_drives": 1}
+        shared_drives = self._db.find_document(
+            file_snapshot_collection_name, query, filter_query
+        )
+        return shared_drives["shared_drives"]
+
+    def get_path_of_file(self, snapshot_name, file_id):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"id": file_id}
+        filter_query = {"_id": 0, "path": 1}
+        path_of_file = self._db.find_document(file_collection_name, query, filter_query)
+
+        if path_of_file is not None:
+            return path_of_file["path"]
+
+        file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
+        query = {"name": snapshot_name}
+        filter_query = {"_id": 0, "shared_drives": 1}
+        shared_drives = self._db.find_document(
+            file_snapshot_collection_name, query, filter_query
+        )
+        for shared_drive in shared_drives["shared_drives"]:
+            if shared_drive["id"] == file_id:
+                return "/" + shared_drive["name"]
+
+        if path_of_file is None:
+            raise ValueError("path of file cannot be calculated")
+
+    def update_inherited_and_inherited_from(
+        self, snapshot_name, file_id, permission_id, inherited, inherited_from
+    ):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        query = {"id": permission_id, "file_id": file_id}
+        update_query = {
+            "$set": {"inherited": inherited, "inherited_from": inherited_from}
+        }
+        self._db.update_document(permission_collection_name, update_query, query)

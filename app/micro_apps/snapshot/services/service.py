@@ -28,7 +28,7 @@ def get_user_id_from_token(access_token):
         return None
 
 
-def get_root_id(access_token):
+def get_root_id_from_api(access_token):
     google_drive = GoogleDrive()
     try:
         root_id = google_drive.get_root_file_id(access_token)
@@ -38,7 +38,25 @@ def get_root_id(access_token):
         return None
 
 
-def get_all_files(access_token):
+def get_all_shared_drives_from_api(access_token):
+    google_drive = GoogleDrive()
+    try:
+        drives, next_page_token = google_drive.get_shared_drives(access_token)
+
+        if drives:
+            # take snapshot
+            while next_page_token is not None:
+                new_drives, next_page_token = google_drive.get_shared_drives(
+                    access_token, next_page_token
+                )
+                drives += new_drives
+        return drives
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def get_all_files_from_api(access_token):
     google_drive = GoogleDrive()
     try:
         files, next_page_token = google_drive.get_files(access_token)
@@ -46,20 +64,37 @@ def get_all_files(access_token):
         if files:
             # take snapshot
             while next_page_token is not None:
-                new_files, next_page_token = google_drive.get_next_files(
+                new_files, next_page_token = google_drive.get_files(
                     access_token, next_page_token
                 )
                 files += new_files
+        for file in files:
+            shared_drive_permissions_for_file = []
+            if (
+                "driveId" in file
+                and file["driveId"] is not None
+                and "permissionIds" in file
+                and "permissionIds" != []
+            ):
+                permission_ids = file["permissionIds"]
+                for pid in permission_ids:
+                    permission = (
+                        google_drive.get_permission_detail_of_shared_drive_file(
+                            access_token, file["id"], pid
+                        )
+                    )
+                    shared_drive_permissions_for_file.append(permission)
+                file["permissions"] = shared_drive_permissions_for_file
         return files
     except Exception as error:
         logger.error(error)
         return None
 
 
-def save_all_files(user_id, snapshot_name, files, root_id):
+def create_file_snapshot(user_id, snapshot_name, files, root_id, shared_drives):
     snapshot_db = SnapshotDataBase(user_id)
     try:
-        snapshot_db.create_file_snapshot(snapshot_name, files, root_id)
+        snapshot_db.create_file_snapshot(snapshot_name, files, root_id, shared_drives)
         return True
     except Exception as error:
         logger.error(error)
@@ -125,16 +160,34 @@ def get_files_of_my_drive(user_id, snapshot_name, offset=None, limit=None):
         return None
 
 
-def get_files_of_shared_drive(user_id, snapshot_name, offset=None, limit=None):
+def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         # get all files with no parent attribute
         no_parent = snapshot_db.get_file_under_folder(snapshot_name)
         # get all files that do not have a path attribute -> has a parent but that parent is not in snapshot
         no_path = snapshot_db.get_files_with_no_path(snapshot_name)
-        data = no_path + no_parent
+        yes_path = []
+        for no_path_file in no_path:
+            no_path_file["path"] = "/SharedWithMe"
+            yes_path.append(no_path_file)
+        data = yes_path + no_parent
         # slice data
-        data = data[offset : (offset + limit)]  # noqa: E203
+        if offset and limit:
+            data = data[offset : (offset + limit)]  # noqa: E203
+        if len(data) == 0:
+            return []
+        files = json.loads(json.dumps(data, cls=DateTimeEncoder))
+        return files
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def get_files_of_shared_drive(user_id, snapshot_name, drive_id, offset, limit):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, drive_id)
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -181,20 +234,6 @@ def get_permission_of_files(user_id, snapshot_name, files):
     except Exception as error:
         logger.error(error)
         return None
-
-
-# def get_redundant_file_permissions(user_id, snapshot_name):
-#     snapshot_db = SnapshotDataBase(user_id)
-#     try:
-#         all_permissions = snapshot_db.get_all_permission_of_snapshot(snapshot_name)
-#         permission_grouped = group_permission_by_file_id(all_permissions)
-#         for file_id in permission_grouped.keys():
-#             inherit, direct = separate_permission_to_inherit_and_direct(permission_grouped[file_id])
-#             get_permission_id_with_redundancy = None
-#         return None
-#     except Exception as error:
-#         logger.error(error)
-#         return None
 
 
 def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
@@ -283,6 +322,16 @@ def get_difference_of_two_snapshots(user_id, base_snapshot_name, compare_snapsho
         # get changed files: files that information has changed
         # format = {"<file_id>": {"base": <file_data>, "compare": <file_data>}
         return changes, compare_more_files
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def get_shared_drives(user_id, snapshot_name):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        shared_drives = snapshot_db.get_shared_drives(snapshot_name)
+        return shared_drives
     except Exception as error:
         logger.error(error)
         return None

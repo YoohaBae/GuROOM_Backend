@@ -30,7 +30,7 @@ class RestrictUser(BaseModel):
 class PermissionDetail(BaseModel):
     permissionType: str
     role: str
-    inheritedFrom: str
+    inheritedFrom: Optional[str]
     inherited: bool
 
 

@@ -251,7 +251,7 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
             if (
                 len(parents) == 0
                 or parents[0] == root_id
-                or parents[0] == shared_drive_ids
+                or parents[0] in shared_drive_ids
             ):
                 continue
 

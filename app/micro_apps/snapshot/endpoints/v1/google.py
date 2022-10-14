@@ -272,7 +272,7 @@ def search_files(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-@router.get("/files/differences/sharing", tags=["snapshot"])
+@router.get("/files/differences/sharing/single", tags=["snapshot"])
 def get_file_folder_sharing_difference(
     snapshot_name: str,
     file_id: str,
@@ -330,4 +330,43 @@ def get_snapshot_difference(
     changes, compare_more_files = difference
     data = {"changed_files": changes, "compare_additional_files": compare_more_files}
 
+    return JSONResponse(status_code=status.HTTP_200_OK, content=data)
+
+
+@router.get("/files/differences/sharing/multiple", tags=["snapshot"])
+def get_snapshot_different_of_file(
+    file_id: str,
+    base_snapshot_name: str,
+    compare_snapshot_name: str,
+    authorize: AuthJWT = Depends(),
+):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    difference = service.get_sharing_difference_of_two_files_different_snapshots(
+        user_id, base_snapshot_name, compare_snapshot_name, file_id
+    )
+    if difference is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve ",
+        )
+
+    if difference is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve ",
+        )
+    base_more_permissions, changes, compare_more_permissions = difference
+    data = {
+        "additional_base_file_snapshot_permissions": base_more_permissions,
+        "changed_permissions": changes,
+        "additional_compare_file_snapshot_permissions": compare_more_permissions,
+    }
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)

@@ -102,9 +102,9 @@ def create_file_snapshot(user_id, snapshot_name, files, root_id, shared_drives):
 
 
 def perform_inherit_direct_permission_analysis(user_id, snapshot_name):
-    analysis = Analysis(user_id, snapshot_name)
+    analysis = Analysis(user_id)
     try:
-        analysis.calculate_permission_and_path()
+        analysis.calculate_permission_and_path(snapshot_name)
         return True
     except Exception as error:
         logger.error(error)
@@ -242,11 +242,17 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
         all_files = snapshot_db.get_all_files_of_snapshot(snapshot_name)
         different_files = []
         root_id = snapshot_db.get_root_id(snapshot_name)
+        shared_drives = snapshot_db.get_shared_drives(snapshot_name)
+        shared_drive_ids = [x["id"] for x in shared_drives]
         for file in all_files:
             file_id = file["id"]
             parents = file["parents"]
 
-            if len(parents) == 0 or parents[0] == root_id:
+            if (
+                len(parents) == 0
+                or parents[0] == root_id
+                or parents[0] == shared_drive_ids
+            ):
                 continue
 
             folder_id = parents[0]
@@ -294,13 +300,38 @@ def get_sharing_difference_of_two_files(
         compare_file_permissions = snapshot_db.get_all_permission_of_file(
             snapshot_name, compare_file_id
         )
-        analysis = Analysis(user_id, snapshot_name)
+        analysis = Analysis(user_id)
         (
             base_more_permissions,
             changes,
             compare_more_permissions,
         ) = analysis.get_sharing_differences(
             base_file_permissions, compare_file_permissions
+        )
+        return base_more_permissions, changes, compare_more_permissions
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def get_sharing_difference_of_two_files_different_snapshots(
+    user_id, base_snapshot_name, compare_snapshot_name, file_id
+):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        base_snapshot_file_permissions = snapshot_db.get_all_permission_of_file(
+            base_snapshot_name, file_id
+        )
+        compare_snapshot_file_permissions = snapshot_db.get_all_permission_of_file(
+            compare_snapshot_name, file_id
+        )
+        analysis = Analysis(user_id)
+        (
+            base_more_permissions,
+            changes,
+            compare_more_permissions,
+        ) = analysis.get_sharing_differences(
+            base_snapshot_file_permissions, compare_snapshot_file_permissions
         )
         return base_more_permissions, changes, compare_more_permissions
     except Exception as error:
@@ -316,7 +347,7 @@ def get_difference_of_two_snapshots(user_id, base_snapshot_name, compare_snapsho
             compare_snapshot_name
         )
         # get new files: files that exist in compare_snapshot_files and not base_snapshot_files
-        analysis = Analysis(user_id, None)
+        analysis = Analysis(user_id)
         changes, compare_more_files = analysis.compare_two_file_snapshots(
             base_snapshot_files, compare_snapshot_files
         )

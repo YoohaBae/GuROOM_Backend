@@ -1,5 +1,10 @@
+import itertools
+
 from .database import DataBase
-from app.utils.util import ListOfDictsComparor
+from app.utils.util import fix_key_in_dict_of_roots, remove_key_from_list_of_dict, ListOfDictsComparor
+from deepdiff import DeepDiff
+from pprint import pprint
+from itertools import groupby
 
 collection_name = "file_snapshots"
 
@@ -44,8 +49,8 @@ class Analysis:
         )
         for permission in all_permissions_of_snapshot:
             if (
-                "permissionDetails" in permission
-                and len(permission["permissionDetails"]) == 1
+                    "permissionDetails" in permission
+                    and len(permission["permissionDetails"]) == 1
             ):
                 inherited_from_id = permission["permissionDetails"][0]["inheritedFrom"]
                 inherited = permission["permissionDetails"][0]["inherited"]
@@ -88,25 +93,54 @@ class Analysis:
                 self.dfs_shared(visited, child_path, child_file_id)
 
     def get_sharing_differences(self, base_permissions, compare_permissions):
+        delete_keys = ["file_id", "inherited_from", "inherited"]
+        remove_key_from_list_of_dict(delete_keys, base_permissions)
+        remove_key_from_list_of_dict(delete_keys, compare_permissions)
+
+        # the id list of base permissions
+        base_permission_ids = [x["id"] for x in base_permissions]
+
+        # the id list of compare permissions
+        compare_permission_ids = [x["id"] for x in compare_permissions]
+
         comparor = ListOfDictsComparor()
-        base_permission_ids = [permission["id"] for permission in base_permissions]
-        compare_permission_ids = [
-            permission["id"] for permission in compare_permissions
-        ]
-        base_permission_more_ids = comparor.difference(
-            base_permission_ids, compare_permission_ids
-        )
-        compare_permission_more_ids = comparor.difference(
-            compare_permission_ids, base_permission_ids
-        )
-        intersection_permission_ids = comparor.intersection(
-            base_permission_ids, compare_permission_ids
-        )
-        print(base_permissions)
-        print(compare_permissions)
-        print(base_permission_more_ids)
-        print(compare_permission_more_ids)
-        print(intersection_permission_ids)
+
+        base_permission_more_ids = comparor.difference(base_permission_ids, compare_permission_ids)
+        compare_permission_more_ids = comparor.difference(compare_permission_ids, base_permission_ids)
+        remaining_permission_ids = comparor.intersection(base_permission_ids, compare_permission_ids)
+        sharing_changes = self.get_sharing_changes(base_permissions, compare_permissions, remaining_permission_ids)
+
+        base_permission_more = [x for x in base_permissions if x["id"] in base_permission_more_ids]
+        compare_permission_more = [x for x in compare_permissions if
+                                   x["id"] in compare_permission_more_ids]
+        return base_permission_more, sharing_changes, compare_permission_more
+
+    def get_sharing_changes(self, base_permissions, compare_permissions, remaining_permission_ids):
+        changed_permissions = []
+        for remain_id in remaining_permission_ids:
+            equal_base_permission = [p for p in base_permissions if p["id"] == remain_id][0]
+            equal_compare_permission = [p for p in compare_permissions if p["id"] == remain_id][0]
+            change_deepdiff = DeepDiff(equal_base_permission, equal_compare_permission, verbose_level=2)
+            pprint(change_deepdiff)
+            if change_deepdiff == {}:
+                continue
+            values_changed_dict, types_changed_dict = {}, {}
+            if "values_changed" in change_deepdiff:
+                values_changed_dict = change_deepdiff["values_changed"]
+            if "types_changed" in change_deepdiff:
+                types_changed_dict = change_deepdiff["types_changed"]
+
+            values_changed_dict = fix_key_in_dict_of_roots(values_changed_dict)
+            types_changed_dict = fix_key_in_dict_of_roots(types_changed_dict)
+
+            change_data = {
+                "from": equal_base_permission,
+                "to": equal_compare_permission,
+                "value_changed": values_changed_dict,
+                "type_changed": types_changed_dict
+            }
+            changed_permissions.append(change_data)
+        return changed_permissions
 
     def compare_two_file_snapshots(self, base_snapshot_files, compare_snapshot_files):
         pass

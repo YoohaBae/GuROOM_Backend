@@ -277,6 +277,7 @@ def get_file_folder_sharing_difference(user_id, snapshot_name, file_id):
         folder_more, changes, file_more = get_sharing_difference_of_two_files(
             user_id, snapshot_name, folder_id, file_id
         )
+        return folder_more, changes, file_more
     except Exception as error:
         logger.error(error)
         return None

@@ -4,6 +4,7 @@
 
 import logging
 import os
+from datetime import datetime
 from fastapi import APIRouter, status, Depends, Body, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
@@ -398,9 +399,9 @@ def get_snapshot_difference(
 @router.post("/groups", tags=["group_snapshot"])
 async def create_group_membership_snapshot(
     file: UploadFile,
-    group_name: str,
-    group_email: str,
-    create_time: str,
+    group_name: str = Body(),
+    group_email: str = Body(),
+    create_time: datetime = Body(),
     authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
@@ -411,6 +412,7 @@ async def create_group_membership_snapshot(
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
+
     memberships = await service.scratch_group_memberships_from_file(file)
     if memberships is None:
         return JSONResponse(
@@ -424,8 +426,28 @@ async def create_group_membership_snapshot(
     if not created:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to create group snapshot",
+            content="unable to create group membership snapshot",
         )
     return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content="group snapshot created"
+        status_code=status.HTTP_201_CREATED, content="group membership snapshot created"
     )
+
+
+@router.get("/groups", tags=["group_snapshot"])
+def get_group_membership_snapshots(authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    groups = service.get_recent_group_membership_snapshots(user_id)
+    if not groups:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to create group membership snapshot",
+        )
+    return JSONResponse(status_code=status.HTTP_200_OK, content=groups)

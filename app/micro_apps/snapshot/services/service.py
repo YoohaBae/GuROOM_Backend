@@ -1,5 +1,6 @@
 import logging
 import json
+from collections import defaultdict
 from bs4 import BeautifulSoup
 from app.utils.util import DateTimeEncoder
 from app.micro_apps.auth.services.google_auth import GoogleAuth
@@ -437,6 +438,35 @@ def create_group_snapshot(user_id, group_name, group_email, create_time, members
             group_name, group_email, create_time, memberships
         )
         return True
+    except Exception as error:
+        logger.error(error)
+        return False
+
+
+def get_recent_group_membership_snapshots(user_id):
+    snapshot_db = SnapshotDataBase(user_id)
+
+    try:
+        all_groups = snapshot_db.get_all_group_membership_snapshots()
+
+        def def_value():
+            return []
+
+        grouped_groups = defaultdict(def_value)
+        for group in all_groups:
+            grouped_groups[group["group_name"]].append(group)
+        result_groups = []
+        for key in grouped_groups.keys():
+            if len(grouped_groups[key]) > 1:
+                recent = grouped_groups[key][0]
+                for group in grouped_groups[key]:
+                    if recent["create_time"] < group["create_time"]:
+                        recent = group
+                result_groups.append(recent)
+            else:
+                result_groups.append(grouped_groups[key][0])
+        json_result_groups = json.loads(json.dumps(result_groups, cls=DateTimeEncoder))
+        return json_result_groups
     except Exception as error:
         logger.error(error)
         return False

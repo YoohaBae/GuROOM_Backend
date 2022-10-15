@@ -29,7 +29,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["file_snapshot"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation takes file snapshot
@@ -95,7 +95,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["file_snapshot"])
 def delete_file_snapshot(
-        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation: deletes file snapshot
@@ -398,11 +398,11 @@ def get_snapshot_difference(
 
 @router.post("/groups", tags=["group_snapshot"])
 async def create_group_membership_snapshot(
-        file: UploadFile = File(),
-        group_name: str = Form(...),
-        group_email: str = Form(...),
-        create_time: datetime = Form(...),
-        authorize: AuthJWT = Depends(),
+    file: UploadFile = File(),
+    group_name: str = Form(...),
+    group_email: str = Form(...),
+    create_time: datetime = Form(...),
+    authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()

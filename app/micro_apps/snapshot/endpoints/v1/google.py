@@ -5,7 +5,7 @@
 import logging
 import os
 from datetime import datetime
-from fastapi import APIRouter, status, Depends, Body, UploadFile
+from fastapi import APIRouter, status, Depends, Body, UploadFile, Form
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from app.micro_apps.snapshot.services import service
@@ -399,9 +399,9 @@ def get_snapshot_difference(
 @router.post("/groups", tags=["group_snapshot"])
 async def create_group_membership_snapshot(
     file: UploadFile,
-    group_name: str = Body(),
-    group_email: str = Body(),
-    create_time: datetime = Body(),
+    group_name: str = Form(),
+    group_email: str = Form(),
+    create_time: datetime = Form(),
     authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()

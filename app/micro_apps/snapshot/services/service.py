@@ -449,6 +449,9 @@ def get_recent_group_membership_snapshots(user_id):
     try:
         all_groups = snapshot_db.get_all_group_membership_snapshots()
 
+        if all_groups == []:
+            return []
+
         def def_value():
             return []
 

@@ -205,7 +205,6 @@ class DataBase:
         query = {"id": file_id}
         filter_query = {"_id": 0, "path": 1}
         path_of_file = self._db.find_document(file_collection_name, query, filter_query)
-
         if path_of_file is not None:
             return path_of_file["path"]
 

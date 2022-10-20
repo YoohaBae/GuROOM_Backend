@@ -3,7 +3,7 @@ from app.services.mongodb import MongoDB
 
 
 class DataBase:
-    def __init__(self):
+    def __init__(self):  # pragma: no cover
         url = os.getenv("MONGO_URL")
         db_name = os.getenv("MONGO_DB_NAME")
         self._db = MongoDB(url, db_name)

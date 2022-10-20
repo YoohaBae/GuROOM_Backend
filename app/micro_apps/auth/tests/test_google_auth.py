@@ -12,7 +12,8 @@ with open(absolute_path_to_data + "/environment_variables.json") as json_file:
 @mock.patch.dict(os.environ, environment_variables)
 def test_get_authorization_url():
     mock_database = GoogleAuth()
-    mock_database.get_authorization_url()
+    url = mock_database.get_authorization_url()
+    assert url
 
 
 @mock.patch.dict(os.environ, environment_variables)
@@ -40,8 +41,17 @@ def test_invalid_refresh_token():
 
 
 @mock.patch.dict(os.environ, environment_variables)
-def test_get_user():
+def test_invalid_get_user():
     mock_token = "invalid token"
     mock_database = GoogleAuth()
     retrieved = mock_database.get_user(mock_token)
     assert not retrieved
+
+
+@mock.patch.dict(os.environ, environment_variables)
+def test_valid_get_user():
+    refresh_token = os.getenv("REFRESH_TOKEN")
+    mock_database = GoogleAuth()
+    access_token = mock_database.refresh_token(refresh_token)["access_token"]
+    retrieved = mock_database.get_user(access_token)
+    assert retrieved

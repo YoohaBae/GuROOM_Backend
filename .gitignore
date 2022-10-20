@@ -4,3 +4,7 @@ credentials.json
 env/
 setenv.sh
 guroom/
+**/data
+.coverage
+.coveragerc
+.DS_Store

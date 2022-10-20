@@ -8,7 +8,6 @@ class DataBase:
         db_name = os.getenv("MONGO_DB_NAME")
         self._db = MongoDB(url, db_name)
         self.collection_name = "auth"
-        self.user_profile_collection_name = "user_profile"
 
     def save_user(self, email):
         user = {"email": email}

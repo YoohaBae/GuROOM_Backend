@@ -3,7 +3,7 @@ Google Drive Auth
 """
 import logging
 import requests
-from .drive import Drive
+from app.services.drive import Drive
 
 logging.Formatter(
     "[%(asctime)s] p%(process)s {%(pathname)s:"

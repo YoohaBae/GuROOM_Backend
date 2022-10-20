@@ -6,7 +6,7 @@ import logging
 import requests
 from urllib.parse import quote_plus
 
-from .auth import Auth
+from app.services.auth import Auth
 
 logging.Formatter(
     "[%(asctime)s] p%(process)s {%(pathname)s:"

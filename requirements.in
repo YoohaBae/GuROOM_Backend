@@ -16,3 +16,5 @@ fastapi-jwt-auth
 deepdiff
 python-multipart
 beautifulsoup4
+mock
+pytest-cov

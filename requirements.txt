@@ -24,6 +24,8 @@ click==8.1.3
     # via
     #   black
     #   uvicorn
+coverage[toml]==6.5.0
+    # via pytest-cov
 deepdiff==5.8.1
     # via -r requirements.in
 dnspython==2.2.1
@@ -74,6 +76,8 @@ itsdangerous==2.1.2
     # via -r requirements.in
 mccabe==0.7.0
     # via flake8
+mock==4.0.3
+    # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
 oauthlib==3.2.1
@@ -117,6 +121,10 @@ pyparsing==3.0.9
     #   httplib2
     #   packaging
 pytest==7.1.3
+    # via
+    #   -r requirements.in
+    #   pytest-cov
+pytest-cov==4.0.0
     # via -r requirements.in
 python-dotenv==0.21.0
     # via uvicorn
@@ -147,6 +155,7 @@ starlette==0.19.1
 tomli==2.0.1
     # via
     #   black
+    #   coverage
     #   pytest
 typing-extensions==4.3.0
     # via

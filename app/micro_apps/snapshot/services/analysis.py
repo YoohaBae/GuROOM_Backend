@@ -10,7 +10,7 @@ collection_name = "file_snapshots"
 
 
 class Analysis:
-    def __init__(self, user_id):
+    def __init__(self, user_id):  # pragma: no cover
         self.db = DataBase(user_id)
 
         self.shared_with_me_drive_path = "/SharedWithMe"

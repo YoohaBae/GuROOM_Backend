@@ -7,7 +7,7 @@ from .models.files import File, Permission
 
 
 class DataBase:
-    def __init__(self, user_id: str):
+    def __init__(self, user_id: str):  # pragma: no cover
         url = os.getenv("MONGO_URL")
         db_name = os.getenv("MONGO_DB_NAME")
         self._db = MongoDB(url, db_name)

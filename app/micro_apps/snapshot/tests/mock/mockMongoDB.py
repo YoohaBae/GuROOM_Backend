@@ -16,17 +16,11 @@ class MockMongoDB:
             f"{mock_user_id}.FILE_SNAPSHOT2.permissions",
         ]
 
-    def get_collection(self, collection_name: str):
-        return self.db[collection_name]
-
     def drop_collection(self, collection_name):
         return None
 
     def rename_collection(self, collection_name, new_collection_name):
         return None
-
-    # def get_all_documents(self, collection_name: str):
-    #     return list(self.db[collection_name].find())
 
     def insert_document(self, collection_name: str, data):
         pass

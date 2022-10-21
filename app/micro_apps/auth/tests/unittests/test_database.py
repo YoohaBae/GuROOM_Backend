@@ -1,6 +1,6 @@
 import mock
 from app.micro_apps.auth.services.database import DataBase
-from .mock.mockMongoDB import MockMongoDB
+from app.micro_apps.auth.tests.unittests.mock.mock_mongodb import MockMongoDB
 
 absolute_path_to_data = "./app/micro_apps/auth/tests/data"
 

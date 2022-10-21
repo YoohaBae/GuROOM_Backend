@@ -1,20 +1,9 @@
 import mock
 import json
 from datetime import datetime
-from ..services.analysis import DataBase
-from .mock.mockMongoDB import MockMongoDB
-from .data.database_result import (
-    file_snapshot_names_result,
-    file_with_no_folder_with_offset_result,
-    file_with_folder_with_offset_result,
-    file_with_no_folder_without_offset_result,
-    file_with_folder_without_offset_result,
-    get_all_permission_of_file_result,
-    files_with_no_path_result,
-    all_permissions_of_snapshot_result,
-    all_files_of_snapshot_result,
-    shared_drives_result,
-)
+from app.micro_apps.snapshot.services.analysis import DataBase
+from app.micro_apps.snapshot.tests.unittests.mock.mock_mongodb import MockMongoDB
+from app.micro_apps.snapshot.tests.data.database_result import DataBaseResult
 
 mock_user_id = "3243568dalewklgfhjfhsdjkl32ljk"
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
@@ -52,7 +41,7 @@ def test_get_root_id():
 def test_get_file_snapshot_names():
     mock_database = DataBase(mock_user_id)
     file_snapshot_names = mock_database.get_file_snapshot_names()
-    assert file_snapshot_names == file_snapshot_names_result
+    assert file_snapshot_names == DataBaseResult.file_snapshot_names_result
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -61,7 +50,7 @@ def test_get_file_with_no_folder_with_offset():
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_file_under_folder(mock_snapshot_name, 0, 2)
     assert len(files) <= 2
-    assert file_with_no_folder_with_offset_result == files
+    assert DataBaseResult.file_with_no_folder_with_offset_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -69,7 +58,7 @@ def test_get_file_with_no_folder_without_offset():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_file_under_folder(mock_snapshot_name)
-    assert file_with_no_folder_without_offset_result == files
+    assert DataBaseResult.file_with_no_folder_without_offset_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -81,7 +70,7 @@ def test_get_file_under_certain_folder_with_offset():
         mock_snapshot_name, 0, 2, mock_folder_id
     )
     assert len(files) <= 2
-    assert file_with_folder_with_offset_result == files
+    assert DataBaseResult.file_with_folder_with_offset_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -92,7 +81,7 @@ def test_get_file_under_certain_folder_without_offset():
     files = mock_database.get_file_under_folder(
         mock_snapshot_name, folder_id=mock_folder_id
     )
-    assert file_with_folder_without_offset_result == files
+    assert DataBaseResult.file_with_folder_without_offset_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -149,7 +138,7 @@ def test_get_all_permission_of_file():
     permissions = mock_database.get_all_permission_of_file(
         mock_snapshot_name, mock_file_id
     )
-    assert get_all_permission_of_file_result == permissions
+    assert DataBaseResult.get_all_permission_of_file_result == permissions
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -157,7 +146,7 @@ def test_get_files_with_no_path():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_files_with_no_path(mock_snapshot_name)
-    assert files_with_no_path_result == files
+    assert DataBaseResult.files_with_no_path_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -165,7 +154,7 @@ def test_get_all_permission_of_snapshot():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     permissions = mock_database.get_all_permission_of_snapshot(mock_snapshot_name)
-    assert all_permissions_of_snapshot_result == permissions
+    assert DataBaseResult.all_permissions_of_snapshot_result == permissions
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -173,7 +162,7 @@ def test_get_all_files_of_snapshot():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_all_files_of_snapshot(mock_snapshot_name)
-    assert all_files_of_snapshot_result == files
+    assert DataBaseResult.all_files_of_snapshot_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -191,7 +180,7 @@ def test_get_shared_drives():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     shared_drives = mock_database.get_shared_drives(mock_snapshot_name)
-    assert shared_drives_result == shared_drives
+    assert DataBaseResult.shared_drives_result == shared_drives
 
 
 @mock.patch.object(DataBase, "__init__", new_init)

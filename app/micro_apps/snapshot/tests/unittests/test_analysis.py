@@ -1,8 +1,8 @@
 import mock
 import json
-from .mock.mockDatabase import MockDB
-from ..services.analysis import Analysis
-from .data.analysis_result import (
+from app.micro_apps.snapshot.tests.unittests.mock.mock_database import MockDB
+from app.micro_apps.snapshot.services.analysis import Analysis
+from app.micro_apps.snapshot.tests.data.analysis_result import (
     base_permissions_more_result,
     sharing_changes_result,
     compare_permissions_more_result,

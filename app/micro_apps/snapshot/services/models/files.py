@@ -75,7 +75,7 @@ class File(BaseModel):
     modifiedTime: datetime
     sharedWithMeTime: Optional[datetime]
     sharingUser: Optional[SharingUser]
-    owners: Optional[List[Permission]] = []
+    owners: Optional[List[Owner]] = []
     driveId: Optional[str]
     shared: Optional[bool]
     ownedByMe: Optional[bool]

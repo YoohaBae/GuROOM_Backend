@@ -5,7 +5,7 @@ from app.micro_apps.snapshot.services.analysis import DataBase
 from app.micro_apps.snapshot.tests.unittests.mock.mock_mongodb import MockMongoDB
 from app.micro_apps.snapshot.tests.data.database_result import DataBaseResult
 
-mock_user_id = "3243568dalewklgfhjfhsdjkl32ljk"
+mock_user_id = "MOCK_USER_ID1"
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
 

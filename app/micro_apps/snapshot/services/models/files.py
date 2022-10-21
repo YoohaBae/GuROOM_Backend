@@ -12,10 +12,10 @@ class SharingUser(BaseModel):
 
 
 class Owner(BaseModel):
-    kind: str
-    displayName: str
-    me: bool
-    permissionId: str
+    kind: Optional[str]
+    displayName: Optional[str]
+    me: Optional[bool]
+    permissionId: Optional[str]
     emailAddress: Optional[str]
 
 
@@ -75,7 +75,7 @@ class File(BaseModel):
     modifiedTime: datetime
     sharedWithMeTime: Optional[datetime]
     sharingUser: Optional[SharingUser]
-    owners: Optional[List[Permission]] = []
+    owners: Optional[List[Owner]] = []
     driveId: Optional[str]
     shared: Optional[bool]
     ownedByMe: Optional[bool]

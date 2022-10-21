@@ -175,7 +175,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
             yes_path.append(no_path_file)
         data = yes_path + no_parent
         # slice data
-        if offset and limit:
+        if offset is not None and limit is not None:
             data = data[offset : (offset + limit)]  # noqa: E203
         if len(data) == 0:
             return []
@@ -186,7 +186,9 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
         return None
 
 
-def get_files_of_shared_drive(user_id, snapshot_name, drive_id, offset, limit):
+def get_files_of_shared_drive(
+    user_id, snapshot_name, drive_id, offset=None, limit=None
+):
     snapshot_db = SnapshotDataBase(user_id)
     try:
         data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, drive_id)
@@ -401,34 +403,41 @@ def separate_permission_to_inherit_and_direct(permissions):
     return inherit, direct
 
 
-async def scratch_group_memberships_from_file(file):
-    MEMBERSHIP_ROW_CLASS = "cXEmmc B9Uude hFgAsc J6Lkdb"
-    MEMBERSHIP_NAME_CLASS = "LnLepd"
-    MEMBERSHIP_ROLE_CLASS = "y7VPke"
-    MEMBERSHIP_JOIN_DATE_CLASS = "y7VPke"
-    memberships = []
-    html = await file.read(-1)
-    soup = BeautifulSoup(html, "html.parser")
-    membership_html_rows = soup.find_all("div", {"class": MEMBERSHIP_ROW_CLASS})
-    for membership_html in membership_html_rows:
-        membership_html_member = membership_html.find_all("span", {"class": "eois5"})
-        [
-            membership_html_name,
-            membership_html_role,
-            membership_html_join_date,
-        ] = membership_html_member
-        name = membership_html_name.find(
-            "div", {"class": MEMBERSHIP_NAME_CLASS}
-        ).contents[0]
-        role = membership_html_role.find(
-            "div", {"class": MEMBERSHIP_ROLE_CLASS}
-        ).contents[0]
-        join_date = membership_html_join_date.find(
-            "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
-        ).contents[0]
-        membership = {"member": name, "role": role, "join_date": join_date}
-        memberships.append(membership)
-    return memberships
+def scratch_group_memberships_from_file(file):
+    try:
+        MEMBERSHIP_ROW_CLASS = "cXEmmc B9Uude hFgAsc J6Lkdb"
+        MEMBERSHIP_NAME_CLASS = "LnLepd"
+        MEMBERSHIP_ROLE_CLASS = "y7VPke"
+        MEMBERSHIP_JOIN_DATE_CLASS = "y7VPke"
+        memberships = []
+        file.seek(0)
+        html = file.read()
+        soup = BeautifulSoup(html, "html.parser")
+        membership_html_rows = soup.find_all("div", {"class": MEMBERSHIP_ROW_CLASS})
+        for membership_html in membership_html_rows:
+            membership_html_member = membership_html.find_all(
+                "span", {"class": "eois5"}
+            )
+            [
+                membership_html_name,
+                membership_html_role,
+                membership_html_join_date,
+            ] = membership_html_member
+            name = membership_html_name.find(
+                "div", {"class": MEMBERSHIP_NAME_CLASS}
+            ).contents[0]
+            role = membership_html_role.find(
+                "div", {"class": MEMBERSHIP_ROLE_CLASS}
+            ).contents[0]
+            join_date = membership_html_join_date.find(
+                "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
+            ).contents[0]
+            membership = {"member": name, "role": role, "join_date": join_date}
+            memberships.append(membership)
+        return memberships
+    except Exception as error:
+        logger.error(error)
+        return None
 
 
 def create_group_snapshot(user_id, group_name, group_email, create_time, memberships):

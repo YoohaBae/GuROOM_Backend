@@ -10,6 +10,27 @@ class MockDB:
     def get_root_id(self, snapshot_name):
         return "ROOTID1"
 
+    def get_parent_id(self, snapshot_name, file_id):
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["id"] == file_id:
+                    return file["parents"][0]
+
+    def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives):
+        pass
+
+    def delete_file_snapshot(self, snapshot_name):
+        pass
+
+    def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
+        pass
+
+    def get_file_snapshot_names(self):
+        with open(absolute_path_to_data + "/file_snapshots.json") as json_file:
+            data = json.load(json_file)
+            return data
+
     def get_shared_drives(self, snapshot_name):
         with open(absolute_path_to_data + "/file_snapshots.json") as json_file:
             data = json.load(json_file)
@@ -30,6 +51,25 @@ class MockDB:
                 if folder_id in file["parents"]:
                     target_files.append(file)
         return target_files
+
+    def get_empty_file_under_folder(
+        self, snapshot_name, offset=None, limit=None, folder_id=None
+    ):
+        return []
+
+    def get_files_with_no_path(self, snapshot_name):
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            target_files = []
+            for file in data:
+                if file["path"] is None:
+                    target_files.append(file)
+            return target_files
+
+    def get_all_files_of_snapshot(self, snapshot_name):
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            return data
 
     def get_path_of_file(self, snapshot_name, file_id):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
@@ -100,3 +140,13 @@ class MockDB:
                     if permission["file_id"] == file_id:
                         target_permissions.append(permission)
                 return target_permissions
+
+    def create_group_memberships_snapshot(
+        self, group_name, group_email, create_time, memberships
+    ):
+        pass
+
+    def get_all_group_membership_snapshots(self):
+        with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
+            data = json.load(json_file)
+            return data

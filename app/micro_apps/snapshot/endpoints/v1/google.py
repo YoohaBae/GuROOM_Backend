@@ -397,7 +397,7 @@ def get_snapshot_difference(
 
 
 @router.post("/groups", tags=["group_snapshot"])
-async def create_group_membership_snapshot(
+def create_group_membership_snapshot(
     file: UploadFile = File(),
     group_name: str = Form(...),
     group_email: str = Form(...),
@@ -413,7 +413,7 @@ async def create_group_membership_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    memberships = await service.scratch_group_memberships_from_file(file)
+    memberships = service.scratch_group_memberships_from_file(file)
     if memberships is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -1,6 +1,6 @@
 import json
 
-mock_user_id = "3243568dalewklgfhjfhsdjkl32ljk"
+mock_user_id = "MOCK_USER_ID1"
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
 

@@ -55,7 +55,7 @@ class GoogleAuth(Auth):
         if status_code == 200:
             return token_request.json()
         else:
-            return False
+            return None
 
     def revoke_token(self, token):
         revoke_request = requests.post(

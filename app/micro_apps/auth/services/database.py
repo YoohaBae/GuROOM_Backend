@@ -16,7 +16,7 @@ class DataBase:
     def check_user_exists(self, email):
         query = {"email": email}
         data = self._db.find_document(self.collection_name, query)
-        if data:
+        if data is not None and data != {}:
             return True
         return False
 

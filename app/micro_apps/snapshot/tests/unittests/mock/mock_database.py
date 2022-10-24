@@ -7,31 +7,40 @@ class MockDB:
     def __init__(self, user_id):
         self.user_id = user_id
 
-    def get_root_id(self, snapshot_name):
+    @classmethod
+    def get_root_id(cls, snapshot_name):
         return "ROOTID1"
 
-    def get_parent_id(self, snapshot_name, file_id):
+    @classmethod
+    def get_parent_id(cls, snapshot_name, file_id):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
             for file in data:
                 if file["id"] == file_id:
                     return file["parents"][0]
 
-    def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives):
+    @classmethod
+    def create_file_snapshot(cls, snapshot_name, data, root_id, shared_drives):
         pass
 
-    def delete_file_snapshot(self, snapshot_name):
+    @classmethod
+    def delete_file_snapshot(cls, snapshot_name):
         pass
 
-    def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
+    @classmethod
+    def edit_file_snapshot_name(cls, snapshot_name, new_snapshot_name):
         pass
 
-    def get_file_snapshot_names(self):
+
+    @classmethod
+    def get_file_snapshot_names(cls):
         with open(absolute_path_to_data + "/file_snapshots.json") as json_file:
             data = json.load(json_file)
             return data
 
-    def get_shared_drives(self, snapshot_name):
+
+    @classmethod
+    def get_shared_drives(cls, snapshot_name):
         with open(absolute_path_to_data + "/file_snapshots.json") as json_file:
             data = json.load(json_file)
             target_snapshot = None
@@ -41,8 +50,9 @@ class MockDB:
                     break
         return target_snapshot["shared_drives"]
 
+    @classmethod
     def get_file_under_folder(
-        self, snapshot_name, offset=None, limit=None, folder_id=None
+        cls, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
@@ -52,12 +62,14 @@ class MockDB:
                     target_files.append(file)
         return target_files
 
+    @classmethod
     def get_empty_file_under_folder(
-        self, snapshot_name, offset=None, limit=None, folder_id=None
+        cls, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         return []
 
-    def get_files_with_no_path(self, snapshot_name):
+    @classmethod
+    def get_files_with_no_path(cls, snapshot_name):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
             target_files = []
@@ -66,12 +78,14 @@ class MockDB:
                     target_files.append(file)
             return target_files
 
-    def get_all_files_of_snapshot(self, snapshot_name):
+    @classmethod
+    def get_all_files_of_snapshot(cls, snapshot_name):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
             return data
 
-    def get_path_of_file(self, snapshot_name, file_id):
+    @classmethod
+    def get_path_of_file(cls, snapshot_name, file_id):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
             for file in data:
@@ -79,18 +93,21 @@ class MockDB:
                     return file["path"]
         return None
 
-    def get_all_permission_of_snapshot(self, snapshot_name):
+    @classmethod
+    def get_all_permission_of_snapshot(cls, snapshot_name):
         with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
             data = json.load(json_file)
             return data
 
+    @classmethod
     def update_inherited_and_inherited_from(
-        self, snapshot_name, file_id, permission_id, inherited, inherited_from
+        cls, snapshot_name, file_id, permission_id, inherited, inherited_from
     ):
         return None
 
+    @classmethod
     def update_path_and_permissions(
-        self, snapshot_name, folder_path, folder_permission, file_id
+        cls, snapshot_name, folder_path, folder_permission, file_id
     ):
         file_name = None
         new_permissions = []
@@ -108,7 +125,8 @@ class MockDB:
         new_path = folder_path + "/" + file_name
         return new_path, new_permissions
 
-    def update_path(self, snapshot_name, folder_path, file_id):
+    @classmethod
+    def update_path(cls, snapshot_name, folder_path, file_id):
         file_name = None
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
@@ -119,7 +137,8 @@ class MockDB:
             new_path = folder_path + "/" + file_name
             return new_path
 
-    def get_all_permission_of_file(self, snapshot_name, file_id):
+    @classmethod
+    def get_all_permission_of_file(cls, snapshot_name, file_id):
         if snapshot_name == "FILE_SNAPSHOT1":
             with open(
                 absolute_path_to_data + "/snapshot1_permissions.json"
@@ -141,12 +160,14 @@ class MockDB:
                         target_permissions.append(permission)
                 return target_permissions
 
+    @classmethod
     def create_group_memberships_snapshot(
-        self, group_name, group_email, create_time, memberships
+        cls, group_name, group_email, create_time, memberships
     ):
         pass
 
-    def get_all_group_membership_snapshots(self):
+    @classmethod
+    def get_all_group_membership_snapshots(cls):
         with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
             data = json.load(json_file)
             return data

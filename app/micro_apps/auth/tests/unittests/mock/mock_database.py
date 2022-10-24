@@ -3,7 +3,7 @@ import json
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
 
-class MockUserDataBase:
+class MockDataBase:
     def __init__(self):
         self._db = None
         self.collection_name = "auth"
@@ -15,3 +15,15 @@ class MockUserDataBase:
             for user in data:
                 if user["email"] == email:
                     return user
+
+    @classmethod
+    def check_user_exists_when_exists(cls, email):
+        return True
+
+    @classmethod
+    def check_user_exists_when_not_exists(cls, email):
+        return False
+
+    @classmethod
+    def save_user(cls, email):
+        pass

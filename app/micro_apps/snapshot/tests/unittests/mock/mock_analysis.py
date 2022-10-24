@@ -8,21 +8,25 @@ class MockAnalysis:
         self.shared_with_me_drive_path = "/SharedWithMe"
         self.my_drive_path = "/MyDrive"
 
-    def calculate_permission_and_path(self, snapshot_name):
+    @classmethod
+    def calculate_permission_and_path(cls, snapshot_name):
         pass
 
-    def get_empty_sharing_differences(self, base_permissions, compare_permissions):
+    @classmethod
+    def get_empty_sharing_differences(cls, base_permissions, compare_permissions):
         return [], [], []
 
-    def get_sharing_differences(self, base_permissions, compare_permissions):
+    @classmethod
+    def get_sharing_differences(cls, base_permissions, compare_permissions):
         return [{"id": "PERMISSIONID1"}], [], [{"id": "PERMISSIONID5"}]
 
+    @classmethod
     def compare_two_file_snapshots(
-        self,
-        base_snapshot_name,
-        compare_snapshot_name,
-        base_snapshot_files,
-        compare_snapshot_files,
+            cls,
+            base_snapshot_name,
+            compare_snapshot_name,
+            base_snapshot_files,
+            compare_snapshot_files,
     ):
         return [
             {

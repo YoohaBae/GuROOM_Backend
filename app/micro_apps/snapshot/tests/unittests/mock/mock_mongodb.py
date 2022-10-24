@@ -8,7 +8,8 @@ class MockMongoDB:
     def __init__(self, url, db_name):
         self.db = None
 
-    def get_collection_names(self):
+    @classmethod
+    def get_collection_names(cls):
         return [
             f"{mock_user_id}.FILE_SNAPSHOT1.files",
             f"{mock_user_id}.FILE_SNAPSHOT1.permissions",
@@ -16,25 +17,32 @@ class MockMongoDB:
             f"{mock_user_id}.FILE_SNAPSHOT2.permissions",
         ]
 
-    def drop_collection(self, collection_name):
+    @classmethod
+    def drop_collection(cls, collection_name):
         return None
 
-    def rename_collection(self, collection_name, new_collection_name):
+    @classmethod
+    def rename_collection(cls, collection_name, new_collection_name):
         return None
 
-    def insert_document(self, collection_name: str, data):
+    @classmethod
+    def insert_document(cls, collection_name: str, data):
         pass
 
-    def insert_documents(self, collection_name: str, data):
+    @classmethod
+    def insert_documents(cls, collection_name: str, data):
         pass
 
-    def delete_document(self, collection_name: str, query=None):
+    @classmethod
+    def delete_document(cls, collection_name: str, query=None):
         pass
 
-    def delete_documents(self, collection_name: str, query=None):
+    @classmethod
+    def delete_documents(cls, collection_name: str, query=None):
         pass
 
-    def find_document(self, collection_name: str, query=None, filter_query=None):
+    @classmethod
+    def find_document(cls, collection_name: str, query=None, filter_query=None):
         if query is None:
             query = {}
         if "file_snapshots" in collection_name:
@@ -50,7 +58,8 @@ class MockMongoDB:
                             return file
         return None
 
-    def find_documents(self, collection_name: str, query=None, filter_query=None):
+    @classmethod
+    def find_documents(cls, collection_name: str, query=None, filter_query=None):
         if query is None:
             query = {}
         if "file_snapshots" in collection_name:
@@ -79,7 +88,7 @@ class MockMongoDB:
                     return result_file
         if "permissions" in collection_name:
             with open(
-                absolute_path_to_data + "/snapshot1_permissions.json"
+                    absolute_path_to_data + "/snapshot1_permissions.json"
             ) as json_file:
                 data = json.load(json_file)
                 target_permissions = []
@@ -96,8 +105,10 @@ class MockMongoDB:
                 return data
         return []
 
-    def update_document(self, collection_name: str, update_query, query=None):
+    @classmethod
+    def update_document(cls, collection_name: str, update_query, query=None):
         pass
 
-    def update_documents(self, collection_name: str, update_query, query=None):
+    @classmethod
+    def update_documents(cls, collection_name: str, update_query, query=None):
         pass

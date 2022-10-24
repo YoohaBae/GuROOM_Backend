@@ -29,7 +29,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["file_snapshot"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation takes file snapshot
@@ -95,7 +95,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["file_snapshot"])
 def delete_file_snapshot(
-        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation: deletes file snapshot
@@ -125,7 +125,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["file_snapshot"])
 def edit_file_snapshot_name(
-        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation: edits file snapshots
@@ -207,14 +207,14 @@ def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
 
 @router.get("/files", tags=["file_snapshot"])
 def get_file_snapshot(
-        snapshot_name: str,
-        offset: int = None,
-        limit: int = None,
-        my_drive: bool = False,
-        shared_with_me: bool = False,
-        shared_drive: bool = True,
-        folder_id: str = None,
-        authorize: AuthJWT = Depends(),
+    snapshot_name: str,
+    offset: int = None,
+    limit: int = None,
+    my_drive: bool = False,
+    shared_with_me: bool = False,
+    shared_drive: bool = True,
+    folder_id: str = None,
+    authorize: AuthJWT = Depends(),
 ):
     """
     operation: get all files under certain folder or drive
@@ -273,9 +273,9 @@ def get_file_snapshot(
 
 @router.get("/files/search", tags=["file_snapshot"])
 def search_files(
-        snapshot_name: str,
-        query: str,
-        authorize: AuthJWT = Depends(),
+    snapshot_name: str,
+    query: str,
+    authorize: AuthJWT = Depends(),
 ):
     """
     operation: perform search on a file snapshot
@@ -323,7 +323,7 @@ def search_files(
 
 @router.get("/files/differences", tags=["file_snapshot"])
 def get_snapshot_difference(
-        base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
+    base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
 ):
     """
     operation: get files that are different between two file snapshots
@@ -357,7 +357,7 @@ def get_snapshot_difference(
 
 @router.get("/files/differences/sharing", tags=["file_snapshot"])
 def get_file_folder_sharing_difference(
-        snapshot_name: str, file_id: str, authorize: AuthJWT = Depends()
+    snapshot_name: str, file_id: str, authorize: AuthJWT = Depends()
 ):
     """
     operation: get the permission difference between a file and folder
@@ -398,7 +398,7 @@ def get_file_folder_sharing_difference(
 
 @router.get("/files/members", tags=["file_snapshot"])
 def get_unique_members_of_file_snapshot(
-        snapshot_name: str, is_groups: bool, authorize: AuthJWT = Depends()
+    snapshot_name: str, is_groups: bool, authorize: AuthJWT = Depends()
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -409,11 +409,14 @@ def get_unique_members_of_file_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    members = service.get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups)
+    members = service.get_unique_members_of_file_snapshot(
+        user_id, snapshot_name, is_groups
+    )
 
     if members is None:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="unable to retrieve members"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve members",
         )
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=members)
@@ -421,11 +424,11 @@ def get_unique_members_of_file_snapshot(
 
 @router.post("/groups", tags=["group_snapshot"])
 async def create_group_membership_snapshot(
-        file: UploadFile = File(),
-        group_name: str = Form(...),
-        group_email: str = Form(...),
-        create_time: datetime = Form(...),
-        authorize: AuthJWT = Depends(),
+    file: UploadFile = File(),
+    group_name: str = Form(...),
+    group_email: str = Form(...),
+    create_time: datetime = Form(...),
+    authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()

@@ -625,7 +625,6 @@ async def test_invalid_user_id_create_group_membership_snapshot():
         assert response.status_code == 404
 
 
-
 @pytest.mark.asyncio
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
@@ -633,7 +632,11 @@ async def test_invalid_user_id_create_group_membership_snapshot():
 @mock.patch.object(
     service, "get_user_id_from_token", MockService.get_user_id_from_token
 )
-@mock.patch.object(service, "scratch_group_memberships_from_file", MockService.get_invalid_scratch_group_memberships_from_file)
+@mock.patch.object(
+    service,
+    "scratch_group_memberships_from_file",
+    MockService.get_invalid_scratch_group_memberships_from_file,
+)
 async def test_invalid_memberships_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {

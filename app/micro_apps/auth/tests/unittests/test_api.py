@@ -1,4 +1,3 @@
-import os
 import mock
 from fastapi.testclient import TestClient
 from app.micro_apps.auth.endpoints.v1.google import AuthJWT, service
@@ -28,9 +27,7 @@ def test_invalid_create_google_auth():
 @mock.patch.object(AuthJWT, "set_refresh_cookies", MockAuthJWT.set_refresh_cookies)
 @mock.patch.object(service, "get_google_token", MockService.get_google_token)
 def test_valid_login():
-    body = {
-        "code": "MOCK_CODE1"
-    }
+    body = {"code": "MOCK_CODE1"}
     response = client.post("/apps/auth/v1/google/login", json=body)
     assert response.status_code == 201
 
@@ -42,9 +39,7 @@ def test_valid_login():
 @mock.patch.object(AuthJWT, "set_refresh_cookies", MockAuthJWT.set_refresh_cookies)
 @mock.patch.object(service, "get_google_token", MockService.get_none)
 def test_invalid_login():
-    body = {
-        "code": "MOCK_CODE1"
-    }
+    body = {"code": "MOCK_CODE1"}
     response = client.post("/apps/auth/v1/google/login", json=body)
     assert response.status_code == 500
 
@@ -89,18 +84,24 @@ def test_invalid_get_user_from_google():
 
 
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
-@mock.patch.object(AuthJWT, "jwt_refresh_token_required", MockAuthJWT.jwt_refresh_token_required)
+@mock.patch.object(
+    AuthJWT, "jwt_refresh_token_required", MockAuthJWT.jwt_refresh_token_required
+)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(AuthJWT, "unset_access_cookies", MockAuthJWT.unset_access_cookies)
 @mock.patch.object(AuthJWT, "create_access_token", MockAuthJWT.create_access_token)
-@mock.patch.object(service, "refresh_google_access_token", MockService.refresh_google_access_token)
+@mock.patch.object(
+    service, "refresh_google_access_token", MockService.refresh_google_access_token
+)
 def test_valid_refresh_token():
     response = client.post("/apps/auth/v1/google/refresh")
     assert response.status_code == 200
 
 
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
-@mock.patch.object(AuthJWT, "jwt_refresh_token_required", MockAuthJWT.jwt_refresh_token_required)
+@mock.patch.object(
+    AuthJWT, "jwt_refresh_token_required", MockAuthJWT.jwt_refresh_token_required
+)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(AuthJWT, "unset_access_cookies", MockAuthJWT.unset_access_cookies)
 @mock.patch.object(AuthJWT, "create_access_token", MockAuthJWT.create_access_token)

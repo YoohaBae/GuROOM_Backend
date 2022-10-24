@@ -29,7 +29,9 @@ class MockService:
         return None
 
     @classmethod
-    def create_file_snapshot(cls, user_id, snapshot_name, files, root_id, shared_drives):
+    def create_file_snapshot(
+        cls, user_id, snapshot_name, files, root_id, shared_drives
+    ):
         return True
 
     @classmethod
@@ -73,7 +75,9 @@ class MockService:
             return data
 
     @classmethod
-    def get_files_of_shared_drive(cls, user_id, snapshot_name, folder_id, offset, limit):
+    def get_files_of_shared_drive(
+        cls, user_id, snapshot_name, folder_id, offset, limit
+    ):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
             return data
@@ -95,7 +99,9 @@ class MockService:
         return [], [], []
 
     @classmethod
-    def get_difference_of_two_snapshots(cls, user_id, base_snapshot_name, compare_snapshot_name):
+    def get_difference_of_two_snapshots(
+        cls, user_id, base_snapshot_name, compare_snapshot_name
+    ):
         return []
 
     @classmethod
@@ -105,7 +111,9 @@ class MockService:
             return data[0]["memberships"]
 
     @classmethod
-    def create_group_snapshot(cls, user_id, group_name, group_email, create_time, memberships):
+    def create_group_snapshot(
+        cls, user_id, group_name, group_email, create_time, memberships
+    ):
         return True
 
     @classmethod

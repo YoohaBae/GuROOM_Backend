@@ -2,7 +2,6 @@
     prefix: /apps/auth/v1/google
 """
 
-import logging
 import os
 from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
@@ -86,7 +85,10 @@ def get_user(authorize: AuthJWT = Depends()):
     exists = service.check_user_existence(user["email"])
     if exists is None:
         # unable to locate user
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="unable to create user")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to create user",
+        )
     elif exists:
         # user exists in our database
         return JSONResponse(status_code=status.HTTP_200_OK, content=user)
@@ -104,7 +106,8 @@ def refresh_token(authorize: AuthJWT = Depends()):
     new_token = service.refresh_google_access_token(refresh_token)
     if new_token is None:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="failed to refresh access token"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="failed to refresh access token",
         )
 
     new_access_token = new_token["access_token"]

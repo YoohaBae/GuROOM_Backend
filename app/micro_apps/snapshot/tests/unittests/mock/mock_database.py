@@ -31,13 +31,11 @@ class MockDB:
     def edit_file_snapshot_name(cls, snapshot_name, new_snapshot_name):
         pass
 
-
     @classmethod
     def get_file_snapshot_names(cls):
         with open(absolute_path_to_data + "/file_snapshots.json") as json_file:
             data = json.load(json_file)
             return data
-
 
     @classmethod
     def get_shared_drives(cls, snapshot_name):

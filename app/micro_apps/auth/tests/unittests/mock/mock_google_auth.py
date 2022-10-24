@@ -17,8 +17,10 @@ class MockGoogleAuth:
 
     @classmethod
     def get_token(cls, code):
-        return {"access_token": "MOCK_ACCESS_TOKEN1",
-                "refresh_token": "MOCK_REFRESH_TOKEN1"}
+        return {
+            "access_token": "MOCK_ACCESS_TOKEN1",
+            "refresh_token": "MOCK_REFRESH_TOKEN1",
+        }
 
     @classmethod
     def get_authorization_url(cls):

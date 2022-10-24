@@ -30,6 +30,17 @@ def get_user_id_from_token(access_token):
         return None
 
 
+def get_user_email_from_token(access_token):
+    google_auth = GoogleAuth()
+
+    try:
+        user = google_auth.get_user(access_token)
+        return user["email"]
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
 def get_root_id_from_api(access_token):
     google_drive = GoogleDrive()
     try:
@@ -73,10 +84,10 @@ def get_all_files_from_api(access_token):
         for file in files:
             shared_drive_permissions_for_file = []
             if (
-                "driveId" in file
-                and file["driveId"] is not None
-                and "permissionIds" in file
-                and "permissionIds" != []
+                    "driveId" in file
+                    and file["driveId"] is not None
+                    and "permissionIds" in file
+                    and "permissionIds" != []
             ):
                 permission_ids = file["permissionIds"]
                 for pid in permission_ids:
@@ -176,7 +187,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
         data = yes_path + no_parent
         # slice data
         if offset is not None and limit is not None:
-            data = data[offset : (offset + limit)]  # noqa: E203
+            data = data[offset: (offset + limit)]  # noqa: E203
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -187,7 +198,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
 
 
 def get_files_of_shared_drive(
-    user_id, snapshot_name, drive_id, offset=None, limit=None
+        user_id, snapshot_name, drive_id, offset=None, limit=None
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -252,9 +263,9 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
             file_id = file["id"]
             parents = file["parents"]
             if (
-                len(parents) == 0
-                or parents[0] == root_id
-                or parents[0] in shared_drive_ids
+                    len(parents) == 0
+                    or parents[0] == root_id
+                    or parents[0] in shared_drive_ids
             ):
                 continue
 
@@ -277,9 +288,9 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
                 compare_more_permissions,
             ) = analysis.get_sharing_differences(file_permissions, folder_permissions)
             if (
-                len(base_more_permissions) != 0
-                or len(changes) != 0
-                or len(compare_more_permissions) != 0
+                    len(base_more_permissions) != 0
+                    or len(changes) != 0
+                    or len(compare_more_permissions) != 0
             ):
                 different_files.append(file)
         different_files = json.loads(json.dumps(different_files, cls=DateTimeEncoder))
@@ -303,7 +314,7 @@ def get_file_folder_sharing_difference(user_id, snapshot_name, file_id):
 
 
 def get_sharing_difference_of_two_files(
-    user_id, snapshot_name, base_file_id, compare_file_id
+        user_id, snapshot_name, base_file_id, compare_file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -328,7 +339,7 @@ def get_sharing_difference_of_two_files(
 
 
 def get_sharing_difference_of_two_files_different_snapshots(
-    user_id, base_snapshot_name, compare_snapshot_name, file_id
+        user_id, base_snapshot_name, compare_snapshot_name, file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -518,14 +529,15 @@ def get_recent_group_membership_snapshots(user_id):
         return False
 
 
-def process_query_search(user_id, snapshot_name, query: str):
+def process_query_search(user_id, email, snapshot_name, query: str):
+    user_db = UserDataBase()
     try:
+        user_db.update_recent_queries(email, query)
         if "is:file_folder_diff" in query:
             different_files = get_files_with_diff_permission_from_folder(
                 user_id,
                 snapshot_name,
             )
-            print(different_files)
             return different_files
     except Exception as error:
         logger.error(error)
@@ -554,6 +566,16 @@ def get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups):
             {member["email"]: member for member in all_members}.values()
         )
         return unique_group_members
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def get_recent_queries(email):
+    user_db = UserDataBase()
+    try:
+        recent_queries = user_db.get_recent_queries(email)
+        return recent_queries
     except Exception as error:
         logger.error(error)
         return None

@@ -88,7 +88,7 @@ class MockMongoDB:
                     return result_file
         if "permissions" in collection_name:
             with open(
-                    absolute_path_to_data + "/snapshot1_permissions.json"
+                absolute_path_to_data + "/snapshot1_permissions.json"
             ) as json_file:
                 data = json.load(json_file)
                 target_permissions = []

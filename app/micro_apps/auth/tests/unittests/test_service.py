@@ -5,7 +5,9 @@ from .mock.mock_database import MockDataBase
 
 
 @mock.patch.object(service.GoogleAuth, "__init__", MockGoogleAuth.__init__)
-@mock.patch.object(service.GoogleAuth, "get_authorization_url", MockGoogleAuth.get_authorization_url)
+@mock.patch.object(
+    service.GoogleAuth, "get_authorization_url", MockGoogleAuth.get_authorization_url
+)
 def test_valid_get_google_auth_url():
     url = service.get_google_auth_url()
     assert url
@@ -51,7 +53,9 @@ def test_invalid_get_google_user(google_auth_exception):
 
 
 @mock.patch.object(service.DataBase, "__init__", MockDataBase.__init__)
-@mock.patch.object(service.DataBase, "check_user_exists", MockDataBase.check_user_exists_when_exists)
+@mock.patch.object(
+    service.DataBase, "check_user_exists", MockDataBase.check_user_exists_when_exists
+)
 @mock.patch.object(service.DataBase, "save_user", MockDataBase.save_user)
 def test_valid_check_user_existence_when_exists():
     email = "MOCK_EMAIL1"
@@ -60,7 +64,11 @@ def test_valid_check_user_existence_when_exists():
 
 
 @mock.patch.object(service.DataBase, "__init__", MockDataBase.__init__)
-@mock.patch.object(service.DataBase, "check_user_exists", MockDataBase.check_user_exists_when_not_exists)
+@mock.patch.object(
+    service.DataBase,
+    "check_user_exists",
+    MockDataBase.check_user_exists_when_not_exists,
+)
 @mock.patch.object(service.DataBase, "save_user", MockDataBase.save_user)
 def test_valid_check_user_existence_when_not_exists():
     email = "MOCK_EMAIL1"

@@ -117,7 +117,7 @@ class MockRequests:
 
     @classmethod
     def mocked_requests_valid_get_permission_detail_of_shared_drive_file(
-            cls, *args, **kwargs
+        cls, *args, **kwargs
     ):
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -133,7 +133,7 @@ class MockRequests:
 
     @classmethod
     def mocked_requests_invalid_get_permission_detail_of_shared_drive_file(
-            cls, *args, **kwargs
+        cls, *args, **kwargs
     ):
         class MockResponse:
             def __init__(self, json_data, status_code):

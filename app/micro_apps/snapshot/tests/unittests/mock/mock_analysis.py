@@ -22,11 +22,11 @@ class MockAnalysis:
 
     @classmethod
     def compare_two_file_snapshots(
-            cls,
-            base_snapshot_name,
-            compare_snapshot_name,
-            base_snapshot_files,
-            compare_snapshot_files,
+        cls,
+        base_snapshot_name,
+        compare_snapshot_name,
+        base_snapshot_files,
+        compare_snapshot_files,
     ):
         return [
             {

@@ -1,5 +1,6 @@
 class MockRequests:
-    def mocked_requests_valid_get_root_id(*args, **kwargs):
+    @classmethod
+    def mocked_requests_valid_get_root_id(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -10,7 +11,8 @@ class MockRequests:
 
         return MockResponse({"id": "ROOTID1"}, 200)
 
-    def mocked_requests_invalid_get_root_id(*args, **kwargs):
+    @classmethod
+    def mocked_requests_invalid_get_root_id(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -21,7 +23,8 @@ class MockRequests:
 
         return MockResponse(None, 500)
 
-    def mocked_requests_valid_get_files(*args, **kwargs):
+    @classmethod
+    def mocked_requests_valid_get_files(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -34,7 +37,8 @@ class MockRequests:
             {"files": [{"name": "FILE1", "id": "FILEID1"}], "nextPageToken": None}, 200
         )
 
-    def mocked_requests_valid_get_files_next_page(*args, **kwargs):
+    @classmethod
+    def mocked_requests_valid_get_files_next_page(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -51,7 +55,8 @@ class MockRequests:
             200,
         )
 
-    def mocked_requests_invalid_get_files(*args, **kwargs):
+    @classmethod
+    def mocked_requests_invalid_get_files(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -62,7 +67,8 @@ class MockRequests:
 
         return MockResponse({"nextPageToken": None}, 500)
 
-    def mocked_requests_valid_get_shared_drives(*args, **kwargs):
+    @classmethod
+    def mocked_requests_valid_get_shared_drives(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -79,7 +85,8 @@ class MockRequests:
             200,
         )
 
-    def mocked_requests_valid_get_shared_drives_next_page(*args, **kwargs):
+    @classmethod
+    def mocked_requests_valid_get_shared_drives_next_page(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -96,7 +103,8 @@ class MockRequests:
             200,
         )
 
-    def mocked_requests_invalid_get_shared_drives(*args, **kwargs):
+    @classmethod
+    def mocked_requests_invalid_get_shared_drives(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -107,8 +115,9 @@ class MockRequests:
 
         return MockResponse({"nextPageToken": None}, 500)
 
+    @classmethod
     def mocked_requests_valid_get_permission_detail_of_shared_drive_file(
-        *args, **kwargs
+            cls, *args, **kwargs
     ):
         class MockResponse:
             def __init__(self, json_data, status_code):
@@ -122,8 +131,9 @@ class MockRequests:
             {"permissionDetails": [{"id": "PERMISSIONID1", "role": "reader"}]}, 200
         )
 
+    @classmethod
     def mocked_requests_invalid_get_permission_detail_of_shared_drive_file(
-        *args, **kwargs
+            cls, *args, **kwargs
     ):
         class MockResponse:
             def __init__(self, json_data, status_code):

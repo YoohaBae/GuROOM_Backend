@@ -1,11 +1,8 @@
 import logging
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
-mock_user_id = "MOCK_USER_ID1"
-
 
 class MockGoogleAuth:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self._logger = logging.getLogger(__name__)
         self.SCOPES = [
             "openid",
@@ -14,5 +11,15 @@ class MockGoogleAuth:
             "https://www.googleapis.com/auth/userinfo.profile",
         ]
 
-    def get_user(self, access_token):
+    @classmethod
+    def get_user(cls, access_token):
         return {"email": "yoobae@cs.stonybrook.edu"}
+
+    @classmethod
+    def get_token(cls, code):
+        return {"access_token": "MOCK_ACCESS_TOKEN1",
+                "refresh_token": "MOCK_REFRESH_TOKEN1"}
+
+    @classmethod
+    def get_authorization_url(cls):
+        return "MOCK_AUTH_URL"

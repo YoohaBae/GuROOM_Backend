@@ -50,7 +50,7 @@ def take_file_snapshot(
 
     # get root drive id
     root_id = service.get_root_id_from_api(access_token)
-    if not root_id:
+    if root_id is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve root id",
@@ -206,7 +206,7 @@ def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
 
 
 @router.get("/files", tags=["file_snapshot"])
-def get_file_snapshots(
+def get_file_snapshot(
     snapshot_name: str,
     offset: int = None,
     limit: int = None,
@@ -434,7 +434,7 @@ def create_group_membership_snapshot(
 
 
 @router.get("/groups", tags=["group_snapshot"])
-def get_group_membership_snapshots(authorize: AuthJWT = Depends()):
+def get_group_membership_snapshot(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 

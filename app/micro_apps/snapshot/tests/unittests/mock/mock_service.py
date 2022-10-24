@@ -1,4 +1,5 @@
 import json
+import asyncio
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
@@ -108,7 +109,15 @@ class MockService:
     def scratch_group_memberships_from_file(cls, file):
         with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
             data = json.load(json_file)
-            return data[0]["memberships"]
+            function = asyncio.Future()
+            function.set_result(data[0]["memberships"])
+            return function
+
+    @classmethod
+    def get_invalid_scratch_group_memberships_from_file(cls, file):
+        function = asyncio.Future()
+        function.set_result(None)
+        return function
 
     @classmethod
     def create_group_snapshot(

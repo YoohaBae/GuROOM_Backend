@@ -55,7 +55,7 @@ class DataBase:
         return snapshot_names
 
     def get_file_under_folder(
-        self, snapshot_name, offset=None, limit=None, folder_id=None
+            self, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
 
@@ -67,7 +67,7 @@ class DataBase:
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
         if offset is not None and limit is not None:
-            return files[offset : (offset + limit)]  # noqa: E203
+            return files[offset: (offset + limit)]  # noqa: E203
         return files
 
     def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
@@ -108,7 +108,7 @@ class DataBase:
                 self._db.drop_collection(collection)
 
     def update_path_and_permissions(
-        self, snapshot_name, folder_path, folder_permission, file_id
+            self, snapshot_name, folder_path, folder_permission, file_id
     ):
         new_path = self.update_path(snapshot_name, folder_path, file_id)
         new_permissions = self.update_permissions_to_inherit_direct(
@@ -117,7 +117,7 @@ class DataBase:
         return new_path, new_permissions
 
     def update_permissions_to_inherit_direct(
-        self, snapshot_name, parent_permissions, parent_path, file_id
+            self, snapshot_name, parent_permissions, parent_path, file_id
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         for parent_permission in parent_permissions:
@@ -222,7 +222,7 @@ class DataBase:
             raise ValueError("path of file cannot be calculated")
 
     def update_inherited_and_inherited_from(
-        self, snapshot_name, file_id, permission_id, inherited, inherited_from
+            self, snapshot_name, file_id, permission_id, inherited, inherited_from
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         query = {"id": permission_id, "file_id": file_id}
@@ -232,7 +232,7 @@ class DataBase:
         self._db.update_document(permission_collection_name, update_query, query)
 
     def create_group_memberships_snapshot(
-        self, group_name, group_email, create_time, memberships
+            self, group_name, group_email, create_time, memberships
     ):
         group_memberships_snapshot_collection_name = (
             f"{self.user_id}.group_membership_snapshots"
@@ -256,3 +256,24 @@ class DataBase:
             group_memberships_snapshot_collection_name, filter_query=filter_query
         )
         return groups
+
+    def get_all_members_from_permissions(self, user_id, snapshot_name):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        filter_query = {"_id": 0, "emailAddress": 1, "displayName": 1, "domain": 1}
+        raw_members = self._db.find_documents(
+            permission_collection_name, filter_query=filter_query
+        )
+        formatted_members = []
+        for member in raw_members:
+            if member["displayName"] is None:
+                member["displayName"] = member["emailAddress"]
+            elif member["emailAddress"] is None and member["domain"] is None:
+                continue
+            elif member["emailAddress"] is None and member["domain"]:
+                member["emailAddress"] = member["domain"]
+            formatted_member = {
+                "email": member["emailAddress"],
+                "name": member["displayName"]
+            }
+            formatted_members.append(formatted_member)
+        return formatted_members

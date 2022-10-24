@@ -73,10 +73,10 @@ def get_all_files_from_api(access_token):
         for file in files:
             shared_drive_permissions_for_file = []
             if (
-                "driveId" in file
-                and file["driveId"] is not None
-                and "permissionIds" in file
-                and "permissionIds" != []
+                    "driveId" in file
+                    and file["driveId"] is not None
+                    and "permissionIds" in file
+                    and "permissionIds" != []
             ):
                 permission_ids = file["permissionIds"]
                 for pid in permission_ids:
@@ -176,7 +176,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
         data = yes_path + no_parent
         # slice data
         if offset is not None and limit is not None:
-            data = data[offset : (offset + limit)]  # noqa: E203
+            data = data[offset: (offset + limit)]  # noqa: E203
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -187,7 +187,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
 
 
 def get_files_of_shared_drive(
-    user_id, snapshot_name, drive_id, offset=None, limit=None
+        user_id, snapshot_name, drive_id, offset=None, limit=None
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -251,11 +251,10 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
         for file in all_files:
             file_id = file["id"]
             parents = file["parents"]
-
             if (
-                len(parents) == 0
-                or parents[0] == root_id
-                or parents[0] in shared_drive_ids
+                    len(parents) == 0
+                    or parents[0] == root_id
+                    or parents[0] in shared_drive_ids
             ):
                 continue
 
@@ -278,9 +277,9 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
                 compare_more_permissions,
             ) = analysis.get_sharing_differences(file_permissions, folder_permissions)
             if (
-                len(base_more_permissions) != 0
-                or len(changes) != 0
-                or len(compare_more_permissions) != 0
+                    len(base_more_permissions) != 0
+                    or len(changes) != 0
+                    or len(compare_more_permissions) != 0
             ):
                 different_files.append(file)
         different_files = json.loads(json.dumps(different_files, cls=DateTimeEncoder))
@@ -304,7 +303,7 @@ def get_file_folder_sharing_difference(user_id, snapshot_name, file_id):
 
 
 def get_sharing_difference_of_two_files(
-    user_id, snapshot_name, base_file_id, compare_file_id
+        user_id, snapshot_name, base_file_id, compare_file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -329,7 +328,7 @@ def get_sharing_difference_of_two_files(
 
 
 def get_sharing_difference_of_two_files_different_snapshots(
-    user_id, base_snapshot_name, compare_snapshot_name, file_id
+        user_id, base_snapshot_name, compare_snapshot_name, file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -403,37 +402,62 @@ def separate_permission_to_inherit_and_direct(permissions):
     return inherit, direct
 
 
-def scratch_group_memberships_from_file(file):
+async def scratch_group_memberships_from_file(file):
     try:
         MEMBERSHIP_ROW_CLASS = "cXEmmc B9Uude hFgAsc J6Lkdb"
         MEMBERSHIP_NAME_CLASS = "LnLepd"
+        MEMBERSHIP_EMAIL_CLASS = "p480bb Sq3iG"
         MEMBERSHIP_ROLE_CLASS = "y7VPke"
         MEMBERSHIP_JOIN_DATE_CLASS = "y7VPke"
         memberships = []
-        file.seek(0)
-        html = file.read()
+        await file.seek(0)
+        html = await file.read()
         soup = BeautifulSoup(html, "html.parser")
         membership_html_rows = soup.find_all("div", {"class": MEMBERSHIP_ROW_CLASS})
         for membership_html in membership_html_rows:
             membership_html_member = membership_html.find_all(
                 "span", {"class": "eois5"}
             )
-            [
-                membership_html_name,
-                membership_html_role,
-                membership_html_join_date,
-            ] = membership_html_member
-            name = membership_html_name.find(
-                "div", {"class": MEMBERSHIP_NAME_CLASS}
-            ).contents[0]
-            role = membership_html_role.find(
-                "div", {"class": MEMBERSHIP_ROLE_CLASS}
-            ).contents[0]
-            join_date = membership_html_join_date.find(
-                "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
-            ).contents[0]
-            membership = {"member": name, "role": role, "join_date": join_date}
-            memberships.append(membership)
+            if len(membership_html_member) == 3:
+                [
+                    membership_html_name,
+                    membership_html_role,
+                    membership_html_join_date,
+                ] = membership_html_member
+                name = membership_html_name.find(
+                    "div", {"class": MEMBERSHIP_NAME_CLASS}
+                ).contents[0]
+                role = membership_html_role.find(
+                    "div", {"class": MEMBERSHIP_ROLE_CLASS}
+                ).contents[0]
+                join_date = membership_html_join_date.find(
+                    "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
+                ).contents[0]
+                if "@" in name:
+                    email = name
+                    membership = {"member": name, "email": email, "role": role, "join_date": join_date}
+                    memberships.append(membership)
+            else:
+                [
+                    membership_html_name,
+                    membership_html_email,
+                    membership_html_role,
+                    membership_html_join_date,
+                ] = membership_html_member
+                name = membership_html_name.find(
+                    "div", {"class": MEMBERSHIP_NAME_CLASS}
+                ).contents[0]
+                email = membership_html_email.find(
+                    "a", {"class": MEMBERSHIP_EMAIL_CLASS}
+                ).contents[0]
+                role = membership_html_role.find(
+                    "div", {"class": MEMBERSHIP_ROLE_CLASS}
+                ).contents[0]
+                join_date = membership_html_join_date.find(
+                    "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
+                ).contents[0]
+                membership = {"member": name, "email": email, "role": role, "join_date": join_date}
+                memberships.append(membership)
         return memberships
     except Exception as error:
         logger.error(error)
@@ -482,3 +506,38 @@ def get_recent_group_membership_snapshots(user_id):
     except Exception as error:
         logger.error(error)
         return False
+
+
+def process_query_search(user_id, snapshot_name, query: str):
+    try:
+        if "is:file_folder_diff" in query:
+            different_files = get_files_with_diff_permission_from_folder(
+                user_id,
+                snapshot_name,
+            )
+            print(different_files)
+            return different_files
+    except Exception as error:
+        logger.error(error)
+        return None
+
+
+def validate_query(query):
+    return True
+
+
+def get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups):
+    snapshot_db = SnapshotDataBase(user_id)
+    try:
+        all_members = []
+        if is_groups:
+            recent_group_membership_snapshots = get_recent_group_membership_snapshots(user_id)
+            for group in recent_group_membership_snapshots:
+                all_members.extend(group["memberships"])
+        permission_members = snapshot_db.get_all_members_from_permissions(user_id, snapshot_name)
+        all_members.extend(permission_members)
+        unique_group_members = list({member['email']: member for member in all_members}.values())
+        return unique_group_members
+    except Exception as error:
+        logger.error(error)
+        return None

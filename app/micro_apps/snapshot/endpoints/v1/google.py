@@ -29,7 +29,7 @@ logging.Formatter(
 
 @router.post("/files", tags=["file_snapshot"], status_code=status.HTTP_201_CREATED)
 def take_file_snapshot(
-    body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PostFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation takes file snapshot
@@ -95,7 +95,7 @@ def take_file_snapshot(
 
 @router.delete("/files", tags=["file_snapshot"])
 def delete_file_snapshot(
-    body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: DeleteFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation: deletes file snapshot
@@ -125,7 +125,7 @@ def delete_file_snapshot(
 
 @router.put("/files", tags=["file_snapshot"])
 def edit_file_snapshot_name(
-    body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
+        body: PutFileSnapshotBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation: edits file snapshots
@@ -207,14 +207,14 @@ def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
 
 @router.get("/files", tags=["file_snapshot"])
 def get_file_snapshot(
-    snapshot_name: str,
-    offset: int = None,
-    limit: int = None,
-    my_drive: bool = False,
-    shared_with_me: bool = False,
-    shared_drive: bool = True,
-    folder_id: str = None,
-    authorize: AuthJWT = Depends(),
+        snapshot_name: str,
+        offset: int = None,
+        limit: int = None,
+        my_drive: bool = False,
+        shared_with_me: bool = False,
+        shared_drive: bool = True,
+        folder_id: str = None,
+        authorize: AuthJWT = Depends(),
 ):
     """
     operation: get all files under certain folder or drive
@@ -273,9 +273,9 @@ def get_file_snapshot(
 
 @router.get("/files/search", tags=["file_snapshot"])
 def search_files(
-    snapshot_name: str,
-    query: str,
-    authorize: AuthJWT = Depends(),
+        snapshot_name: str,
+        query: str,
+        authorize: AuthJWT = Depends(),
 ):
     """
     operation: perform search on a file snapshot
@@ -293,37 +293,71 @@ def search_files(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    queries = query.split(" ")
+    valid = service.validate_query(query)
 
-    result_files = []
-
-    if "is:file_folder_diff" in queries:
-        different_files = service.get_files_with_diff_permission_from_folder(
-            user_id,
-            snapshot_name,
+    if not valid:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=valid,
         )
-        if different_files is None:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content="failed to perform file_folder_diff search",
-            )
-        result_files = different_files
 
-    permissions = service.get_permission_of_files(user_id, snapshot_name, result_files)
+    files = service.process_query_search(user_id, snapshot_name, query)
+
+    if files is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of files of query",
+        )
+
+    permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
     if permissions is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of permissions under folder",
         )
-    data = {"files": result_files, "permissions": permissions}
+    data = {"files": files, "permissions": permissions}
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
+@router.get("/files/differences", tags=["file_snapshot"])
+def get_snapshot_difference(
+        base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
+):
+    """
+    operation: get files that are different between two file snapshots
+    :param base_snapshot_name: name of base file snapshot
+    :param compare_snapshot_name: name of comparing file snapshot
+    :param authorize: user authentication
+    :return:
+        changed_files: files that permission have changed
+        added_files: files that do not exist in base file snapshot
+    """
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    difference = service.get_difference_of_two_snapshots(
+        user_id, base_snapshot_name, compare_snapshot_name
+    )
+    if difference is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to perform file snapshot analysis",
+        )
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=difference)
+
+
 @router.get("/files/differences/sharing", tags=["file_snapshot"])
 def get_file_folder_sharing_difference(
-    snapshot_name: str, file_id: str, authorize: AuthJWT = Depends()
+        snapshot_name: str, file_id: str, authorize: AuthJWT = Depends()
 ):
     """
     operation: get the permission difference between a file and folder
@@ -362,19 +396,10 @@ def get_file_folder_sharing_difference(
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 
 
-@router.get("/files/differences", tags=["file_snapshot"])
-def get_snapshot_difference(
-    base_snapshot_name: str, compare_snapshot_name: str, authorize: AuthJWT = Depends()
+@router.get("/files/members", tags=["file_snapshot"])
+def get_unique_members_of_file_snapshot(
+        snapshot_name: str, is_groups: bool, authorize: AuthJWT = Depends()
 ):
-    """
-    operation: get files that are different between two file snapshots
-    :param base_snapshot_name: name of base file snapshot
-    :param compare_snapshot_name: name of comparing file snapshot
-    :param authorize: user authentication
-    :return:
-        changed_files: files that permission have changed
-        added_files: files that do not exist in base file snapshot
-    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -384,25 +409,23 @@ def get_snapshot_difference(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    difference = service.get_difference_of_two_snapshots(
-        user_id, base_snapshot_name, compare_snapshot_name
-    )
-    if difference is None:
+    members = service.get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups)
+
+    if members is None:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to perform file snapshot analysis",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content="unable to retrieve members"
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content=difference)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=members)
 
 
 @router.post("/groups", tags=["group_snapshot"])
-def create_group_membership_snapshot(
-    file: UploadFile = File(),
-    group_name: str = Form(...),
-    group_email: str = Form(...),
-    create_time: datetime = Form(...),
-    authorize: AuthJWT = Depends(),
+async def create_group_membership_snapshot(
+        file: UploadFile = File(),
+        group_name: str = Form(...),
+        group_email: str = Form(...),
+        create_time: datetime = Form(...),
+        authorize: AuthJWT = Depends(),
 ):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
@@ -413,7 +436,7 @@ def create_group_membership_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    memberships = service.scratch_group_memberships_from_file(file)
+    memberships = await service.scratch_group_memberships_from_file(file)
     if memberships is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

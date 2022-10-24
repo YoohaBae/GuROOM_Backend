@@ -1,4 +1,5 @@
 import mock
+import pytest
 from fastapi.testclient import TestClient
 from app.micro_apps.snapshot.endpoints.v1.google import AuthJWT, service
 from app.main import app
@@ -576,6 +577,7 @@ def test_invalid_snapshot_difference():
     assert response.status_code == 500
 
 
+@pytest.mark.asyncio
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
@@ -588,7 +590,7 @@ def test_invalid_snapshot_difference():
     MockService.scratch_group_memberships_from_file,
 )
 @mock.patch.object(service, "create_group_snapshot", MockService.create_group_snapshot)
-def test_valid_create_group_membership_snapshot():
+async def test_valid_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
             "group_name": "cse416",
@@ -603,11 +605,12 @@ def test_valid_create_group_membership_snapshot():
         assert response.status_code == 201
 
 
+@pytest.mark.asyncio
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(service, "get_user_id_from_token", MockService.get_none)
-def test_invalid_user_id_create_group_membership_snapshot():
+async def test_invalid_user_id_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
             "group_name": "cse416",
@@ -622,14 +625,16 @@ def test_invalid_user_id_create_group_membership_snapshot():
         assert response.status_code == 404
 
 
+
+@pytest.mark.asyncio
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
     service, "get_user_id_from_token", MockService.get_user_id_from_token
 )
-@mock.patch.object(service, "scratch_group_memberships_from_file", MockService.get_none)
-def test_invalid_memberships_create_group_membership_snapshot():
+@mock.patch.object(service, "scratch_group_memberships_from_file", MockService.get_invalid_scratch_group_memberships_from_file)
+async def test_invalid_memberships_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
             "group_name": "cse416",
@@ -644,6 +649,7 @@ def test_invalid_memberships_create_group_membership_snapshot():
         assert response.status_code == 500
 
 
+@pytest.mark.asyncio
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
@@ -656,7 +662,7 @@ def test_invalid_memberships_create_group_membership_snapshot():
     MockService.scratch_group_memberships_from_file,
 )
 @mock.patch.object(service, "create_group_snapshot", MockService.get_false)
-def test_invalid_create_group_membership_snapshot():
+async def test_invalid_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
             "group_name": "cse416",

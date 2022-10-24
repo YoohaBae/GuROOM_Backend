@@ -17,6 +17,7 @@ class FileSnapshot(BaseModel):
 
 class Membership(BaseModel):
     member: str
+    email: str
     role: str
     join_date: str
 

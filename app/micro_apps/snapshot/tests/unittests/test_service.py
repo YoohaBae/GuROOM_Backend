@@ -1,7 +1,6 @@
 import datetime
 import pytest
 import mock
-import json
 from app.micro_apps.snapshot.services import service
 from .mock.mock_google_auth import MockGoogleAuth
 from .mock.mock_user_database import MockUserDataBase

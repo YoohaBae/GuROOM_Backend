@@ -85,10 +85,10 @@ def get_all_files_from_api(access_token):
         for file in files:
             shared_drive_permissions_for_file = []
             if (
-                    "driveId" in file
-                    and file["driveId"] is not None
-                    and "permissionIds" in file
-                    and "permissionIds" != []
+                "driveId" in file
+                and file["driveId"] is not None
+                and "permissionIds" in file
+                and "permissionIds" != []
             ):
                 permission_ids = file["permissionIds"]
                 for pid in permission_ids:
@@ -188,7 +188,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
         data = yes_path + no_parent
         # slice data
         if offset is not None and limit is not None:
-            data = data[offset: (offset + limit)]  # noqa: E203
+            data = data[offset : (offset + limit)]  # noqa: E203
         if len(data) == 0:
             return []
         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -199,7 +199,7 @@ def get_files_of_shared_with_me(user_id, snapshot_name, offset=None, limit=None)
 
 
 def get_files_of_shared_drive(
-        user_id, snapshot_name, drive_id, offset=None, limit=None
+    user_id, snapshot_name, drive_id, offset=None, limit=None
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -264,9 +264,9 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
             file_id = file["id"]
             parents = file["parents"]
             if (
-                    len(parents) == 0
-                    or parents[0] == root_id
-                    or parents[0] in shared_drive_ids
+                len(parents) == 0
+                or parents[0] == root_id
+                or parents[0] in shared_drive_ids
             ):
                 continue
 
@@ -289,9 +289,9 @@ def get_files_with_diff_permission_from_folder(user_id, snapshot_name):
                 compare_more_permissions,
             ) = analysis.get_sharing_differences(file_permissions, folder_permissions)
             if (
-                    len(base_more_permissions) != 0
-                    or len(changes) != 0
-                    or len(compare_more_permissions) != 0
+                len(base_more_permissions) != 0
+                or len(changes) != 0
+                or len(compare_more_permissions) != 0
             ):
                 different_files.append(file)
         different_files = json.loads(json.dumps(different_files, cls=DateTimeEncoder))
@@ -315,7 +315,7 @@ def get_file_folder_sharing_difference(user_id, snapshot_name, file_id):
 
 
 def get_sharing_difference_of_two_files(
-        user_id, snapshot_name, base_file_id, compare_file_id
+    user_id, snapshot_name, base_file_id, compare_file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:
@@ -340,7 +340,7 @@ def get_sharing_difference_of_two_files(
 
 
 def get_sharing_difference_of_two_files_different_snapshots(
-        user_id, base_snapshot_name, compare_snapshot_name, file_id
+    user_id, base_snapshot_name, compare_snapshot_name, file_id
 ):
     snapshot_db = SnapshotDataBase(user_id)
     try:

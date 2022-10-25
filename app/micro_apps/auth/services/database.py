@@ -24,23 +24,32 @@ class DataBase:
     def get_user(self, email):
         query = {"email": email}
         filter_query = {"recent_queries": 0}
-        data = self._db.find_document(self.collection_name, query, filter_query=filter_query)
+        data = self._db.find_document(
+            self.collection_name, query, filter_query=filter_query
+        )
         return data
 
     def get_recent_queries(self, email):
         query = {"email": email}
         filter_query = {"recent_queries": 1}
-        data = self._db.find_document(self.collection_name, query, filter_query=filter_query)
+        data = self._db.find_document(
+            self.collection_name, query, filter_query=filter_query
+        )
         return data["recent_queries"]
 
     def update_or_push_recent_queries(self, email, recent_query_obj):
         # TODO: if same query exist in previous array pop that element and push to most recent query
-        query = {"email": email, "recent_queries": {"$elemMatch": {"query": recent_query_obj["query"]}}}
+        query = {
+            "email": email,
+            "recent_queries": {"$elemMatch": {"query": recent_query_obj["query"]}},
+        }
         exists = self._db.find_document(self.collection_name, query)
         if exists is not None and exists != {}:
             # update datetime of existing query
             query = {"email": email, "recent_queries.query": recent_query_obj["query"]}
-            update_query = {"$set": {"recent_queries.$.search_time": datetime.datetime.utcnow()}}
+            update_query = {
+                "$set": {"recent_queries.$.search_time": datetime.datetime.utcnow()}
+            }
         else:
             # push new recent query
             query = {"email": email}

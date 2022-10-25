@@ -1,3 +1,4 @@
+import datetime
 import os
 from app.services.mongodb import MongoDB
 
@@ -32,8 +33,16 @@ class DataBase:
         data = self._db.find_document(self.collection_name, query, filter_query=filter_query)
         return data["recent_queries"]
 
-    def update_recent_queries(self, email, recent_query):
+    def update_or_push_recent_queries(self, email, recent_query_obj):
         # TODO: if same query exist in previous array pop that element and push to most recent query
-        query = {"email": email, "recent_queries": {"$ne": recent_query}}
-        update_query = {"$push": {"recent_queries": recent_query}}
+        query = {"email": email, "recent_queries": {"$elemMatch": {"query": recent_query_obj["query"]}}}
+        exists = self._db.find_document(self.collection_name, query)
+        if exists is not None and exists != {}:
+            # update datetime of existing query
+            query = {"email": email, "recent_queries.query": recent_query_obj["query"]}
+            update_query = {"$set": {"recent_queries.$.search_time": datetime.datetime.utcnow()}}
+        else:
+            # push new recent query
+            query = {"email": email}
+            update_query = {"$push": {"recent_queries": recent_query_obj}}
         self._db.update_document(self.collection_name, update_query, query)

@@ -327,22 +327,23 @@ def search_files(
             content=valid,
         )
 
+    data = "temp"
     files = service.process_query_search(user_id, email, snapshot_name, query)
-
-    if files is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve list of files of query",
-        )
-
-    permissions = service.get_permission_of_files(user_id, snapshot_name, files)
-
-    if permissions is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve list of permissions under folder",
-        )
-    data = {"files": files, "permissions": permissions}
+    #
+    # if files is None:
+    #     return JSONResponse(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         content="unable to retrieve list of files of query",
+    #     )
+    #
+    # permissions = service.get_permission_of_files(user_id, snapshot_name, files)
+    #
+    # if permissions is None:
+    #     return JSONResponse(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         content="unable to retrieve list of permissions under folder",
+    #     )
+    # data = {"files": files, "permissions": permissions}
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 

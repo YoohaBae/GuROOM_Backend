@@ -1,3 +1,4 @@
+import datetime
 import logging
 import json
 from collections import defaultdict
@@ -532,7 +533,8 @@ def get_recent_group_membership_snapshots(user_id):
 def process_query_search(user_id, email, snapshot_name, query: str):
     user_db = UserDataBase()
     try:
-        user_db.update_recent_queries(email, query)
+        query_obj = {"search_time": datetime.datetime.utcnow(), "query": query}
+        user_db.update_or_push_recent_queries(email, query_obj)
         if "is:file_folder_diff" in query:
             different_files = get_files_with_diff_permission_from_folder(
                 user_id,
@@ -574,7 +576,10 @@ def get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups):
 def get_recent_queries(email):
     user_db = UserDataBase()
     try:
-        recent_queries = user_db.get_recent_queries(email)
+        data = user_db.get_recent_queries(email)
+        data.sort(key=lambda x: x["search_time"])
+        data = data[-10:]
+        recent_queries = json.loads(json.dumps(data, cls=DateTimeEncoder))
         return recent_queries
     except Exception as error:
         logger.error(error)

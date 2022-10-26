@@ -19,3 +19,4 @@ beautifulsoup4
 mock
 pytest-cov
 pytest-asyncio
+pyparsing

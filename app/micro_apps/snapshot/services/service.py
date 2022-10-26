@@ -536,12 +536,16 @@ def process_query_search(user_id, email, snapshot_name, query: str):
     try:
         query_obj = {"search_time": datetime.datetime.utcnow(), "query": query}
         user_db.update_or_push_recent_queries(email, query_obj)
-        if "is:file_folder_diff" in query:
+        if "is:file_folder_diff" == query:
             different_files = get_files_with_diff_permission_from_folder(
                 user_id,
                 snapshot_name,
             )
             return different_files
+        else:
+            query_builder = QueryBuilder(user_id, email, snapshot_name)
+            files = query_builder.get_files_of_query(query)
+            return files
     except Exception as error:
         logger.error(error)
         return None
@@ -549,8 +553,14 @@ def process_query_search(user_id, email, snapshot_name, query: str):
 
 def validate_query(user_id, user_email, snapshot_name, query):
     try:
-        query_builder = QueryBuilder(user_id, user_email, snapshot_name)
-        query_builder.create_tree_and_validate(query)
+        if "is:file_folder_diff" in query:
+            if "is:file_folder_diff" != query:
+                raise ValueError(
+                    "Invalid Query: file folder differences cannot be searched with other queries"
+                )
+        else:
+            query_builder = QueryBuilder(user_id, user_email, snapshot_name)
+            query_builder.create_tree_and_validate(query)
     except Exception as error:
         message = error.args[0]
         return message

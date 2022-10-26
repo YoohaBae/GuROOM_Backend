@@ -178,6 +178,7 @@ class QueryBuilder:
     def get_files_of_query(self, query):
         tree = self.create_tree_from_query(query)
         print(tree)
+        return tree
 
     def create_tree_and_validate(self, query):
         tree = self.create_tree_from_query(query)

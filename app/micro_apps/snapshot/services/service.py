@@ -9,6 +9,7 @@ from app.micro_apps.auth.services.database import DataBase as UserDataBase
 from app.micro_apps.snapshot.services.google_drive import GoogleDrive
 from app.micro_apps.snapshot.services.analysis import Analysis
 from app.micro_apps.snapshot.services.database import DataBase as SnapshotDataBase
+from app.micro_apps.snapshot.services.query_builder import QueryBuilder
 
 format = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 
@@ -546,7 +547,13 @@ def process_query_search(user_id, email, snapshot_name, query: str):
         return None
 
 
-def validate_query(query):
+def validate_query(user_id, user_email, snapshot_name, query):
+    try:
+        query_builder = QueryBuilder(user_id, user_email, snapshot_name)
+        query_builder.create_tree_and_validate(query)
+    except Exception as error:
+        message = error.args[0]
+        return message
     return True
 
 

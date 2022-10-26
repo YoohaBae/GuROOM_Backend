@@ -11,6 +11,21 @@ class DateTimeEncoder(json.JSONEncoder):
             return super().default(z)
 
 
+class BinaryTree:
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+
+    def printTree(self, tree, level=0):
+        if type(tree) == list:
+            print("  " * 4 * level + "->" + tree[0] + tree[1] + tree[2])
+        elif tree is not None:
+            self.printTree(tree.left, level + 1)
+            print("  " * 4 * level + "->" + tree.data)
+            self.printTree(tree.right, level + 1)
+
+
 def fix_key_in_dict_of_roots(dict_of_roots):
     if dict_of_roots == {}:
         return {}

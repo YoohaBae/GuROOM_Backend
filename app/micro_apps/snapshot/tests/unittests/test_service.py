@@ -21,16 +21,16 @@ def mock_get_sharing_difference_of_two_files(
 
 
 @mock.patch.object(service.GoogleAuth, "__init__", MockGoogleAuth.__init__)
-@mock.patch.object(service.UserDataBase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
 @mock.patch.object(service.GoogleAuth, "get_user", MockGoogleAuth.get_user)
-@mock.patch.object(service.UserDataBase, "get_user", MockUserDataBase.get_user)
+@mock.patch.object(service.GoogleAuthDatabase, "get_user", MockUserDataBase.get_user)
 def test_valid_get_user_id_from_token():
     user_id = service.get_user_id_from_token(mock_access_token)
     assert user_id == "MOCK_USER_ID1"
 
 
 @mock.patch.object(service.GoogleAuth, "__init__", MockGoogleAuth.__init__)
-@mock.patch.object(service.UserDataBase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
 @mock.patch.object(service.GoogleAuth, "get_user", side_effect=Exception)
 def test_invalid_get_user_id_from_token(google_auth_exception):
     user_id = service.get_user_id_from_token(mock_access_token)

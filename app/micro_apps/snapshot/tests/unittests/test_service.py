@@ -26,7 +26,7 @@ def mock_get_sharing_difference_of_two_files(
 @mock.patch.object(service.GoogleAuthDatabase, "get_user", MockUserDataBase.get_user)
 def test_valid_get_user_id_from_token():
     user_id = service.get_user_id_from_token(mock_access_token)
-    assert user_id == "MOCK_USER_ID1"
+    assert user_id == "MOCK_USER_ID2"
 
 
 @mock.patch.object(service.GoogleAuth, "__init__", MockGoogleAuth.__init__)

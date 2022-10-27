@@ -8,7 +8,7 @@ absolute_path_to_data = "./app/micro_apps/auth/tests/data"
 def new_init(self):
     db_name = None
     url = None
-    self._db = MockMongoDB(url, db_name)
+    self._db = MockMongoDB(url, db_name, "google")
     self.collection_name = "auth"
 
 
@@ -40,6 +40,7 @@ def test_get_user():
     mock_database = GoogleAuthDatabase()
     mock_email = "yoobae@cs.stonybrook.edu"
     user_result = {
+        "_id": "MOCK_USER_ID1",
         "email": "yoobae@cs.stonybrook.edu",
         "recent_queries": [],
         "type": "google",

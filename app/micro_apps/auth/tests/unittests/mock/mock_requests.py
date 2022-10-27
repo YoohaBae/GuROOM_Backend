@@ -72,7 +72,13 @@ class MockRequests:
                 return self.json_data
 
         return MockResponse(
-            {"email": "yoobae@cs.stonybrook.edu", "name": "Yooha Bae"}, 200
+            {
+                "email": "yoobae@cs.stonybrook.edu",
+                "name": "Yooha Bae",
+                "given_name": "Yooha",
+                "family_name": "Bae",
+            },
+            200,
         )
 
     @classmethod

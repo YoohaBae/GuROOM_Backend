@@ -1,4 +1,5 @@
 import logging
+from app.micro_apps.auth.services.models.user import User
 
 
 class MockGoogleAuth:
@@ -13,7 +14,13 @@ class MockGoogleAuth:
 
     @classmethod
     def get_user(cls, access_token):
-        return {"email": "yoobae@cs.stonybrook.edu"}
+        data = {
+            "email": "yooha.bae@stonybrook.edu",
+            "name": "Yooha Bae",
+            "given_name": "Yooha",
+            "family_name": "Bae",
+        }
+        return User(**data)
 
     @classmethod
     def get_token(cls, code):

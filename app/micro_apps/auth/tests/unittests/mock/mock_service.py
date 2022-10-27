@@ -1,3 +1,6 @@
+from app.micro_apps.auth.services.models.user import User
+
+
 class MockService:
     @classmethod
     def get_auth_url(cls):
@@ -12,7 +15,13 @@ class MockService:
 
     @classmethod
     def get_user(cls, access_token):
-        return {"email": "yooha.bae@stonybrook.edu"}
+        data = {
+            "email": "yooha.bae@stonybrook.edu",
+            "name": "Yooha Bae",
+            "given_name": "Yooha",
+            "family_name": "Bae",
+        }
+        return User(**data)
 
     @classmethod
     def get_none(cls, *args, **kwargs):

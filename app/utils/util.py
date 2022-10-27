@@ -50,9 +50,20 @@ def remove_key_from_list_of_dict(keys, d_list):
 
 
 class ListOfDictsComparor:
-    def intersection(self, l1, l2):
+    @classmethod
+    def intersection(cls, l1, l2):
         return [x for x in l1 if x in l2]
 
-    def difference(self, l1, l2):
+    @classmethod
+    def difference(cls, l1, l2):
         # l1 - l2
         return [x for x in l1 if x not in l2]
+
+    @classmethod
+    def union(cls, l1, l2):
+        result = []
+        l1.extend(l2)
+        for element in l1:
+            if element not in result:
+                result.append(element)
+        return result

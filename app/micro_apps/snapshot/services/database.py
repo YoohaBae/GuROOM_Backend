@@ -1,9 +1,12 @@
 import os
 from datetime import datetime
 import copy
+from collections import defaultdict
+from app.utils.util import ListOfDictsComparor
 from app.services.mongodb import MongoDB
 from .models.snapshot import FileSnapshot, GroupMembershipsSnapshot
 from .models.files import File, Permission
+from .models.google_types import folder_mime_type
 
 
 class DataBase:
@@ -257,6 +260,29 @@ class DataBase:
         )
         return groups
 
+    def get_recent_group_membership_snapshots(self):
+        all_groups = self.get_all_group_membership_snapshots()
+        if all_groups == []:
+            return []
+
+        def def_value():
+            return []
+
+        grouped_groups = defaultdict(def_value)
+        for group in all_groups:
+            grouped_groups[group["group_name"]].append(group)
+        result_groups = []
+        for key in grouped_groups.keys():
+            if len(grouped_groups[key]) > 1:
+                recent = grouped_groups[key][0]
+                for group in grouped_groups[key]:
+                    if recent["create_time"] < group["create_time"]:
+                        recent = group
+                result_groups.append(recent)
+            else:
+                result_groups.append(grouped_groups[key][0])
+        return result_groups
+
     def get_all_members_from_permissions(self, user_id, snapshot_name):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         filter_query = {"_id": 0, "emailAddress": 1, "displayName": 1, "domain": 1}
@@ -277,3 +303,67 @@ class DataBase:
             }
             formatted_members.append(formatted_member)
         return formatted_members
+
+    def get_files_with_path_regex(self, snapshot_name, path):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"path": {"$regex": path}}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
+    def get_files_that_match_file_name_regex(self, snapshot_name, file_name):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"name": {"$regex": file_name}}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
+    def get_files_with_certain_role(self, snapshot_name, role_name, email):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        query = {"role": role_name, "emailAddress": email}
+        filter_query = {"_id": 0, "file_id": 1}
+        files = self._db.find_documents(permission_collection_name, query, filter_query)
+        file_ids = [f["file_id"] for f in files]
+        unique_file_ids = [*set(file_ids)]
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"id": {"$in": unique_file_ids}}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
+    def get_files_with_certain_role_including_groups(
+        self, snapshot_name, role_name, email
+    ):
+        group_emails = self.get_group_emails_of_user_email(email)
+        if group_emails is []:
+            files = self.get_files_with_certain_role(snapshot_name, role_name, email)
+            return files
+        else:
+            files = self.get_files_with_certain_role(snapshot_name, role_name, email)
+            group_files = []
+            for group_email in group_emails:
+                group_files = ListOfDictsComparor.union(
+                    group_files,
+                    self.get_files_with_certain_role(
+                        snapshot_name, role_name, group_email
+                    ),
+                )
+            files = ListOfDictsComparor.union(files, group_files)
+            return files
+
+    def get_group_emails_of_user_email(self, email):
+        recent_groups = self.get_recent_group_membership_snapshots()
+        group_emails = []
+        for group in recent_groups:
+            for member in group["memberships"]:
+                if member["email"] == email:
+                    group_emails.append(group["group_email"])
+                    break
+        return group_emails
+
+    def get_folders_with_regex(self, snapshot_name, folder_name):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"name": {"$regex": folder_name}, "mimeType": folder_mime_type}
+        filter_query = {"_id": 0, "id": 1, "name": 1, "path": 1}
+        folders = self._db.find_documents(file_collection_name, query, filter_query)
+        return folders

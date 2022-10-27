@@ -1,6 +1,6 @@
 import re
 from .service import SnapshotDataBase
-from app.utils.util import BinaryTree
+from app.utils.util import BinaryTree, ListOfDictsComparor
 import pyparsing as pp
 
 
@@ -12,11 +12,13 @@ class QueryBuilder:
         self.boolean_operators = None
         self.operators = None
         self.initialize_grammar_factory()
+        self.all_files = self._db.get_all_files_of_snapshot(self.snapshot_name)
+        self.is_groups = True
 
     def create_tree_from_query(self, query):
         operator = pp.Regex(":").setName("operator")
         key = pp.Regex(r"([a-zA-Z0-9_\-\.@]+)")
-        value = pp.Regex(r"\"([a-zA-Z0-9_\-\.@ +]+)\"|([a-zA-Z0-9_\-\.@]+)")
+        value = pp.Regex(r"\"([a-zA-Z0-9_\-\.@^$]\/ +]+)\"|([a-zA-Z0-9_\-\.@^$\/]+)")
         condition = pp.Group(key + operator + value)
 
         expr = pp.infix_notation(
@@ -61,12 +63,12 @@ class QueryBuilder:
         operators = [
             "drive",
             "owner",
-            "creator",
-            "from",
-            "to",
+            # "creator",
+            # "from",
+            # "to",
             "readable",
             "writable",
-            "sharable",
+            # "sharable",
             "name",
             "inFolder",
             "folder",
@@ -139,11 +141,11 @@ class QueryBuilder:
         elif operator in [
             "owner",
             "creator",
-            "from",
-            "to",
+            # "from",
+            # "to",
             "readable",
             "writable",
-            "sharable",
+            # "sharable",
         ]:
             self.validate_user(operator, value)
         elif operator in ["name", "folder", "inFolder"]:
@@ -177,8 +179,93 @@ class QueryBuilder:
 
     def get_files_of_query(self, query):
         tree = self.create_tree_from_query(query)
-        print(tree)
-        return tree
+        files = self.get_files_from_tree(tree)
+        return files
+
+    def get_files_from_tree(self, tree):
+        node = tree.data
+        left_files = []
+        right_files = []
+        if type(node) == list:
+            operator = node[0]
+            value = node[2]
+            return self.get_file_of_operator(operator, value)
+        if type(node) == str:
+            boolean_operator = node
+            if tree.left is not None:
+                left_files = self.get_files_from_tree(tree.left)
+            if tree.right is not None:
+                right_files = self.get_files_from_tree(tree.right)
+            if boolean_operator == "and":
+                if left_files and right_files:
+                    return ListOfDictsComparor.intersection(left_files, right_files)
+            elif boolean_operator == "or":
+                if left_files and right_files:
+                    return ListOfDictsComparor.union(left_files, right_files)
+            elif boolean_operator == "-":
+                return ListOfDictsComparor.difference(self.all_files, left_files)
+
+    def get_file_of_operator(self, operator, value):
+        files = []
+        if operator == "drive":
+            regex_path = rf"^\/{value}"
+            files = self._db.get_files_with_path_regex(self.snapshot_name, regex_path)
+        elif operator in ["owner", "readable", "writable"]:
+            if operator == "readable":
+                operator = "reader"
+            elif operator == "writable":
+                operator = "writer"
+            if self.is_groups:
+                # get files including the group emails the email is in
+                files = self._db.get_files_with_certain_role_including_groups(
+                    self.snapshot_name, operator, value
+                )
+            else:
+                files = self._db.get_files_with_certain_role(
+                    self.snapshot_name, operator, value
+                )
+        elif operator == "name":
+            regex_expr = re.compile(value)
+            files = self._db.get_files_that_match_file_name_regex(
+                self.snapshot_name, regex_expr
+            )
+        elif operator == "inFolder":
+            folder_ids_and_names = self._db.get_folders_with_regex(
+                self.snapshot_name, value
+            )
+            files = []
+            for folder in folder_ids_and_names:
+                folder_id = folder["id"]
+                files = ListOfDictsComparor.union(
+                    files,
+                    self._db.get_file_under_folder(
+                        self.snapshot_name, folder_id=folder_id
+                    ),
+                )
+        elif operator == "folder":
+            folder_ids_and_names = self._db.get_folders_with_regex(
+                self.snapshot_name, value
+            )
+            files = []
+            for folder in folder_ids_and_names:
+                folder_path = rf"^{folder['path']}/{folder['name']}$"
+                files = ListOfDictsComparor.union(
+                    files,
+                    self._db.get_files_with_path_regex(self.snapshot_name, folder_path),
+                )
+        elif operator == "path":
+            regex_path = rf"^{value}"
+            files = self._db.get_files_with_path_regex(self.snapshot_name, regex_path)
+        elif operator == "sharing":
+            if value == "none":
+                pass
+            elif value == "individual":
+                pass
+            elif value == "domain":
+                pass
+        else:
+            raise ValueError("Invalid Operator")
+        return files
 
     def create_tree_and_validate(self, query):
         tree = self.create_tree_from_query(query)

@@ -1,7 +1,6 @@
 import datetime
 import logging
 import json
-from collections import defaultdict
 from bs4 import BeautifulSoup
 from app.utils.util import DateTimeEncoder
 from app.micro_apps.auth.services.google_auth import GoogleAuth
@@ -501,50 +500,34 @@ def create_group_snapshot(user_id, group_name, group_email, create_time, members
 
 def get_recent_group_membership_snapshots(user_id):
     snapshot_db = SnapshotDataBase(user_id)
-
     try:
-        all_groups = snapshot_db.get_all_group_membership_snapshots()
-
-        if all_groups == []:
-            return []
-
-        def def_value():
-            return []
-
-        grouped_groups = defaultdict(def_value)
-        for group in all_groups:
-            grouped_groups[group["group_name"]].append(group)
-        result_groups = []
-        for key in grouped_groups.keys():
-            if len(grouped_groups[key]) > 1:
-                recent = grouped_groups[key][0]
-                for group in grouped_groups[key]:
-                    if recent["create_time"] < group["create_time"]:
-                        recent = group
-                result_groups.append(recent)
-            else:
-                result_groups.append(grouped_groups[key][0])
-        json_result_groups = json.loads(json.dumps(result_groups, cls=DateTimeEncoder))
+        recent_groups = snapshot_db.get_recent_group_membership_snapshots()
+        json_result_groups = json.loads(json.dumps(recent_groups, cls=DateTimeEncoder))
         return json_result_groups
     except Exception as error:
         logger.error(error)
         return False
 
 
-def process_query_search(user_id, email, snapshot_name, query: str):
+def process_query_search(user_id, email, snapshot_name, query: str, is_groups=True):
     user_db = UserDataBase()
     try:
         query_obj = {"search_time": datetime.datetime.utcnow(), "query": query}
         user_db.update_or_push_recent_queries(email, query_obj)
+        # retrieve file folder sharing different files
         if "is:file_folder_diff" == query:
-            different_files = get_files_with_diff_permission_from_folder(
+            data = get_files_with_diff_permission_from_folder(
                 user_id,
                 snapshot_name,
             )
+            different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
             return different_files
+        # query other files
         else:
             query_builder = QueryBuilder(user_id, email, snapshot_name)
-            files = query_builder.get_files_of_query(query)
+            query_builder.is_groups = is_groups
+            data = query_builder.get_files_of_query(query)
+            files = json.loads(json.dumps(data, cls=DateTimeEncoder))
             return files
     except Exception as error:
         logger.error(error)

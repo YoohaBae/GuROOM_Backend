@@ -23,7 +23,7 @@ def get_user_id_from_token(access_token):
 
     try:
         user = google_auth.get_user(access_token)
-        user_obj = user_db.get_user(user["email"])
+        user_obj = user_db.get_user(user.email)
         user_id = str(user_obj["_id"])
         return user_id
     except Exception as error:
@@ -36,7 +36,7 @@ def get_user_email_from_token(access_token):
 
     try:
         user = google_auth.get_user(access_token)
-        return user["email"]
+        return user.email
     except Exception as error:
         logger.error(error)
         return None

@@ -13,9 +13,21 @@ class Auth:
         self.SECRET = os.getenv("JWT_SECRET_KEY")
         self.ALGORITHM = "HS256"
         self._logger = logging.getLogger(__name__)
+        self.client_id = None
+        self.redirect_uri = None
+        self.client_secret = None
 
-    def get_user(self, creds):
+    def get_authorization_url(self):
         pass
 
-    def add_user_to_database(self, user_info):
+    def get_token(self, code):
+        pass
+
+    def revoke_token(self, token):
+        pass
+
+    def refresh_token(self, refresh_token):
+        pass
+
+    def get_user(self, token):
         pass

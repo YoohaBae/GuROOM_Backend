@@ -106,15 +106,13 @@ class Analysis:
         # the id list of compare permissions
         compare_permission_ids = [x["id"] for x in compare_permissions]
 
-        comparor = ListOfDictsComparor()
-
-        base_permission_more_ids = comparor.difference(
+        base_permission_more_ids = ListOfDictsComparor.difference(
             base_permission_ids, compare_permission_ids
         )
-        compare_permission_more_ids = comparor.difference(
+        compare_permission_more_ids = ListOfDictsComparor.difference(
             compare_permission_ids, base_permission_ids
         )
-        remaining_permission_ids = comparor.intersection(
+        remaining_permission_ids = ListOfDictsComparor.intersection(
             base_permission_ids, compare_permission_ids
         )
         sharing_changes = self.get_sharing_changes(

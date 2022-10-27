@@ -320,6 +320,11 @@ def search_files(
             status_code=status.HTTP_404_NOT_FOUND,
             content="unable to retrieve user email",
         )
+    is_groups = True
+    if "groups:off" in query:
+        # if groups:off exist -> remove it from the query
+        query = query.replace("groups:off ", "")
+        is_groups = False
     valid = service.validate_query(user_id, email, snapshot_name, query)
 
     if type(valid) == str:
@@ -328,24 +333,24 @@ def search_files(
             content=valid,
         )
 
-    # files = service.process_query_search(user_id, email, snapshot_name, query)
-    #
-    # if files is None:
-    #     return JSONResponse(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         content="unable to retrieve list of files of query",
-    #     )
-    #
-    # permissions = service.get_permission_of_files(user_id, snapshot_name, files)
-    #
-    # if permissions is None:
-    #     return JSONResponse(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         content="unable to retrieve list of permissions under folder",
-    #     )
-    # data = {"files": files, "permissions": permissions}
+    files = service.process_query_search(
+        user_id, email, snapshot_name, query, is_groups
+    )
 
-    data = None
+    if files is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of files of query",
+        )
+
+    permissions = service.get_permission_of_files(user_id, snapshot_name, files)
+
+    if permissions is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve list of permissions under folder",
+        )
+    data = {"files": files, "permissions": permissions}
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=data)
 

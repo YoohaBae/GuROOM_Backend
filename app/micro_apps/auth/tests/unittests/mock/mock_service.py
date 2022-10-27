@@ -1,17 +1,17 @@
 class MockService:
     @classmethod
-    def get_google_auth_url(cls):
+    def get_auth_url(cls):
         return "URL"
 
     @classmethod
-    def get_google_token(cls, code):
+    def get_token(cls, code):
         return {
             "access_token": "MOCK_ACCESS_TOKEN1",
             "refresh_token": "MOCK_REFRESH_TOKEN1",
         }
 
     @classmethod
-    def get_google_user(cls, access_token):
+    def get_user(cls, access_token):
         return {"email": "yooha.bae@stonybrook.edu"}
 
     @classmethod
@@ -27,12 +27,12 @@ class MockService:
         return True
 
     @classmethod
-    def refresh_google_access_token(cls, refresh_token):
+    def refresh_access_token(cls, refresh_token):
         return {
             "access_token": "MOCK_NEW_ACCESS_TOKEN1",
             "refresh_token": refresh_token,
         }
 
     @classmethod
-    def revoke_google_token(cls, access_token):
+    def revoke_token(cls, access_token):
         return True

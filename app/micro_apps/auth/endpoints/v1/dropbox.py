@@ -1,5 +1,5 @@
 """
-    prefix: /apps/auth/v1/google
+    prefix: /apps/auth/v1/dropbox
 """
 
 import os
@@ -8,14 +8,14 @@ from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 
 from app.micro_apps.auth.endpoints.models.user import User
-from app.micro_apps.auth.services.google.service import GoogleAuthService
+from app.micro_apps.auth.services.dropbox.service import DropboxAuthService
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 router = APIRouter()
 router.secret_key = os.getenv("SECRET_KEY")
 
-service = GoogleAuthService()
+service = DropboxAuthService()
 
 
 @router.get(

@@ -1,7 +1,7 @@
 import mock
 import os
 import json
-from app.micro_apps.auth.services.google_auth import GoogleAuth
+from app.micro_apps.auth.services.google.google_auth import GoogleAuth
 from .mock.mock_requests import MockRequests
 
 absolute_path_to_data = "./app/micro_apps/auth/tests/data"

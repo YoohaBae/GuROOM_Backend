@@ -2,23 +2,15 @@
 Google Drive Auth
 """
 import os
-import logging
 import requests
 from urllib.parse import quote_plus
 
 from app.services.auth import Auth
 
-logging.Formatter(
-    "[%(asctime)s] p%(process)s {%(pathname)s:"
-    "%(lineno)d} %(levelname)s - %(message)s",
-    "%m-%d %H:%M:%S",
-)
-
 
 class GoogleAuth(Auth):
     def __init__(self):
         super().__init__()
-        self._logger = logging.getLogger(__name__)
         self.SCOPES = [
             "openid",
             "https://www.googleapis.com/auth/drive",

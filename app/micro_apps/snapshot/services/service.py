@@ -3,8 +3,8 @@ import logging
 import json
 from bs4 import BeautifulSoup
 from app.utils.util import DateTimeEncoder
-from app.micro_apps.auth.services.google_auth import GoogleAuth
-from app.micro_apps.auth.services.database import DataBase as UserDataBase
+from app.micro_apps.auth.services.google.google_auth import GoogleAuth
+from app.micro_apps.auth.services.google.database import GoogleAuthDatabase
 from app.micro_apps.snapshot.services.google_drive import GoogleDrive
 from app.micro_apps.snapshot.services.analysis import Analysis
 from app.micro_apps.snapshot.services.database import DataBase as SnapshotDataBase
@@ -19,7 +19,7 @@ logger = logging.getLogger()
 
 def get_user_id_from_token(access_token):
     google_auth = GoogleAuth()
-    user_db = UserDataBase()
+    user_db = GoogleAuthDatabase()
 
     try:
         user = google_auth.get_user(access_token)
@@ -510,7 +510,7 @@ def get_recent_group_membership_snapshots(user_id):
 
 
 def process_query_search(user_id, email, snapshot_name, query: str, is_groups=True):
-    user_db = UserDataBase()
+    user_db = GoogleAuthDatabase()
     try:
         query_obj = {"search_time": datetime.datetime.utcnow(), "query": query}
         user_db.update_or_push_recent_queries(email, query_obj)
@@ -574,7 +574,7 @@ def get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups):
 
 
 def get_recent_queries(email):
-    user_db = UserDataBase()
+    user_db = GoogleAuthDatabase()
     try:
         data = user_db.get_recent_queries(email)
         data.sort(key=lambda x: x["search_time"])

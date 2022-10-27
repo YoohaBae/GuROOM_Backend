@@ -82,8 +82,7 @@ def get_user(authorize: AuthJWT = Depends()):
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="user not found"
         )
-
-    exists = service.check_user_existence(user["email"])
+    exists = service.check_user_existence(user.email)
     if exists is None:
         # unable to locate user
         return JSONResponse(
@@ -92,10 +91,10 @@ def get_user(authorize: AuthJWT = Depends()):
         )
     elif exists:
         # user exists in our database
-        return JSONResponse(status_code=status.HTTP_200_OK, content=user)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=user.dict())
     else:
         # new user
-        return JSONResponse(status_code=status.HTTP_201_CREATED, content=user)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=user.dict())
 
 
 @router.post("/refresh")

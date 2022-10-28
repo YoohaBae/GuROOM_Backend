@@ -19,7 +19,7 @@ class GoogleAuth(Auth):
             "https://www.googleapis.com/auth/userinfo.profile",
         ]
         self.client_id = str(os.getenv("GOOGLE_CLIENT_ID"))
-        self.redirect_uri = str(os.getenv("REDIRECT_URI"))
+        self.redirect_uri = str(os.getenv("GOOGLE_REDIRECT_URI"))
         self.client_secret = str(os.getenv("GOOGLE_CLIENT_SECRET"))
 
     def get_authorization_url(self):

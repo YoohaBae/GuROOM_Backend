@@ -12,7 +12,7 @@ with open(absolute_path_to_auth_data + "/environment_variables.json") as json_fi
 
 @mock.patch.dict(os.environ, environment_variables)
 def test_valid_get_root_file_id():
-    refresh_token = os.getenv("REFRESH_TOKEN")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
     mock_google_auth = GoogleAuth()
     access_token = mock_google_auth.refresh_token(refresh_token)["access_token"]
     mock_google_drive = GoogleDrive()
@@ -29,7 +29,7 @@ def test_invalid_get_root_file_id():
 
 @mock.patch.dict(os.environ, environment_variables)
 def test_valid_get_files():
-    refresh_token = os.getenv("REFRESH_TOKEN")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
     mock_google_auth = GoogleAuth()
     access_token = mock_google_auth.refresh_token(refresh_token)["access_token"]
     mock_google_drive = GoogleDrive()
@@ -52,7 +52,7 @@ def test_invalid_get_files():
 
 @mock.patch.dict(os.environ, environment_variables)
 def test_valid_get_shared_drives():
-    refresh_token = os.getenv("REFRESH_TOKEN")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
     mock_google_auth = GoogleAuth()
     access_token = mock_google_auth.refresh_token(refresh_token)["access_token"]
     mock_google_drive = GoogleDrive()

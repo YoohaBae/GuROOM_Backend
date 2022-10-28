@@ -1,5 +1,4 @@
 import json
-from app.micro_apps.auth.services.models.user import User
 
 mock_user_id = "MOCK_USER_ID1"
 absolute_path_to_data = "./app/micro_apps/auth/tests/data"

@@ -12,7 +12,7 @@ class DropboxAuth(Auth):
     def __init__(self):
         super().__init__()
         self.client_id = str(os.getenv("DROPBOX_CLIENT_ID"))
-        self.redirect_uri = str(os.getenv("REDIRECT_URI"))
+        self.redirect_uri = str(os.getenv("DROPBOX_REDIRECT_URI"))
         self.client_secret = str(os.getenv("DROPBOX_CLIENT_SECRET"))
 
     def get_authorization_url(self):

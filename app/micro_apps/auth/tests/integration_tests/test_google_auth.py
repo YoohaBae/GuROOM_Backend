@@ -50,7 +50,7 @@ def test_invalid_get_user():
 
 @mock.patch.dict(os.environ, environment_variables)
 def test_valid_get_user():
-    refresh_token = os.getenv("REFRESH_TOKEN")
+    refresh_token = os.getenv("GOOGLE_REFRESH_TOKEN")
     mock_google_auth = GoogleAuth()
     access_token = mock_google_auth.refresh_token(refresh_token)["access_token"]
     retrieved = mock_google_auth.get_user(access_token)

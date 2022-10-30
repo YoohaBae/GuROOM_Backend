@@ -72,6 +72,40 @@ class MockMongoDB:
                 result_file = []
                 if query == {}:
                     return data
+                if "shared" in query:
+                    for file in data:
+                        if file["shared"] is None:
+                            result_file.append(file)
+                    return result_file
+                if "sharingUser.emailAddress" in query:
+                    for file in data:
+                        if file["sharingUser"] is not None:
+                            if "emailAddress" in file["sharingUser"]:
+                                if (
+                                    file["sharingUser"]["emailAddress"]
+                                    == query["sharingUser.emailAddress"]
+                                ):
+                                    result_file.append(file)
+                    return result_file
+                if "id" in query:
+                    for file in data:
+                        if file["id"] in query["id"]["$in"]:
+                            result_file.append(file)
+                    return result_file
+                if "name" in query and "$regex" in query["name"]:
+                    if "mimeType" in query:
+                        for file in data:
+                            if (
+                                query["name"]["$regex"] in file["name"]
+                                and query["mimeType"] == file["mimeType"]
+                            ):
+                                result_file.append(file)
+                        return result_file
+                    else:
+                        for file in data:
+                            if query["name"]["$regex"] in file["name"]:
+                                result_file.append(file)
+                        return result_file
                 if "parents" in query:
                     for file in data:
                         if "$size" in query["parents"]:
@@ -82,10 +116,25 @@ class MockMongoDB:
                                 result_file.append(file)
                     return result_file
                 if "path" in query:
-                    for file in data:
-                        if query["path"] == file["path"]:
-                            result_file.append(file)
-                    return result_file
+                    if query["path"] is None:
+                        with open(
+                            absolute_path_to_data + "/snapshot1_files_with_no_path.json"
+                        ) as json_file2:
+                            data = json.load(json_file2)
+                            for file in data:
+                                if query["path"] == file["path"]:
+                                    result_file.append(file)
+                            return result_file
+                    elif query["path"] and "$regex" in query["path"]:
+                        for file in data:
+                            if query["path"]["$regex"] in file["path"]:
+                                result_file.append(file)
+                        return result_file
+                    else:
+                        for file in data:
+                            if query["path"] == file["path"]:
+                                result_file.append(file)
+                        return result_file
         if "permissions" in collection_name:
             with open(
                 absolute_path_to_data + "/snapshot1_permissions.json"
@@ -94,8 +143,42 @@ class MockMongoDB:
                 target_permissions = []
                 if query == {}:
                     return data
-                for permission in data:
-                    if "file_id" in query:
+                if "type" in query:
+                    for permission in data:
+                        if permission["type"] == query["type"]:
+                            target_permissions.append(permission)
+                    return target_permissions
+                if "role" in query:
+                    if "$ne" in query["role"]:
+                        if "inherited" in query:
+                            for permission in data:
+                                if (
+                                    permission["role"] != "owner"
+                                    and query["emailAddress"]
+                                    == permission["emailAddress"]
+                                    and permission["inherited"] is False
+                                ):
+                                    target_permissions.append(permission)
+                        else:
+                            for permission in data:
+                                if permission["role"] != "owner":
+                                    if permission["emailAddress"] is not None:
+                                        if (
+                                            query["emailAddress"]["$regex"]
+                                            in permission["emailAddress"]
+                                        ):
+                                            target_permissions.append(permission)
+                        return target_permissions
+                    else:
+                        for permission in data:
+                            if (
+                                query["role"] == permission["role"]
+                                and query["emailAddress"] == permission["emailAddress"]
+                            ):
+                                target_permissions.append(permission)
+                        return target_permissions
+                if "file_id" in query:
+                    for permission in data:
                         if permission["file_id"] == query["file_id"]:
                             target_permissions.append(permission)
                 return target_permissions

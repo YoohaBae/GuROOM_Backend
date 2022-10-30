@@ -81,7 +81,6 @@ def test_valid_get_user(get):
     mock_token = "ACCESS_TOKEN"
     mock_google_auth = GoogleAuth()
     user = mock_google_auth.get_user(mock_token)
-    print(user)
     assert user
 
 

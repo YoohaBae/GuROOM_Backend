@@ -283,7 +283,7 @@ class DataBase:
                 result_groups.append(grouped_groups[key][0])
         return result_groups
 
-    def get_all_members_from_permissions(self, user_id, snapshot_name):
+    def get_all_members_from_permissions(self, snapshot_name):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         filter_query = {"_id": 0, "emailAddress": 1, "displayName": 1, "domain": 1}
         raw_members = self._db.find_documents(
@@ -293,8 +293,6 @@ class DataBase:
         for member in raw_members:
             if member["displayName"] is None:
                 member["displayName"] = member["emailAddress"]
-            elif member["emailAddress"] is None and member["domain"] is None:
-                continue
             elif member["emailAddress"] is None and member["domain"]:
                 member["emailAddress"] = member["domain"]
             formatted_member = {
@@ -400,7 +398,7 @@ class DataBase:
 
     def get_not_shared_files(self, snapshot_name):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        query = {"shared": False}
+        query = {"shared": None}
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
         return files

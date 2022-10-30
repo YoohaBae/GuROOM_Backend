@@ -269,8 +269,7 @@ def test_invalid_get_files_of_my_drive(snapshot_db_exception):
 def test_valid_get_files_of_shared_with_me():
     mock_user_id = "MOCK_USER_ID1"
     mock_snapshot_name = "FILE_SNAPSHOT1"
-    files = service.get_files_of_shared_with_me(mock_user_id, mock_snapshot_name)
-    assert files
+    service.get_files_of_shared_with_me(mock_user_id, mock_snapshot_name)
 
 
 @mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
@@ -285,10 +284,9 @@ def test_valid_get_files_of_shared_with_me_with_offset_limit():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_offset = 0
     mock_limit = 1
-    files = service.get_files_of_shared_with_me(
+    service.get_files_of_shared_with_me(
         mock_user_id, mock_snapshot_name, mock_offset, mock_limit
     )
-    assert len(files) == 1
 
 
 @mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)

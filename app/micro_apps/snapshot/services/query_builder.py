@@ -229,7 +229,9 @@ class QueryBuilder:
             files = self._db.get_files_with_sharing_user(self.snapshot_name, email)
         elif operator == "to":
             email = self.validate_user(operator, value)
-            file_ids = self._db.get_directly_shared_permissions_file_ids(self.snapshot_name, email)
+            file_ids = self._db.get_directly_shared_permissions_file_ids(
+                self.snapshot_name, email
+            )
             unique_file_ids = [*set(file_ids)]
             files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
         elif operator == "name":
@@ -270,15 +272,21 @@ class QueryBuilder:
             elif value == "anyone":
                 file_ids = self._db.get_file_ids_shared_with_anyone(self.snapshot_name)
                 unique_file_ids = [*set(file_ids)]
-                files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
+                files = self._db.get_files_of_file_ids(
+                    self.snapshot_name, unique_file_ids
+                )
             elif value == "individual":
                 pass
             elif value == "domain":
                 domain = re.search(r"@[\w.]+", self.user_email).group()
                 print(domain)
-                file_ids = self._db.get_file_ids_shared_with_users_from_domain(self.snapshot_name, domain)
+                file_ids = self._db.get_file_ids_shared_with_users_from_domain(
+                    self.snapshot_name, domain
+                )
                 unique_file_ids = [*set(file_ids)]
-                files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
+                files = self._db.get_files_of_file_ids(
+                    self.snapshot_name, unique_file_ids
+                )
         else:
             raise ValueError("Invalid Operator")
         return files

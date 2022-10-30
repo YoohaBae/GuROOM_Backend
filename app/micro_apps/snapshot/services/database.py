@@ -58,7 +58,7 @@ class DataBase:
         return snapshot_names
 
     def get_file_under_folder(
-        self, snapshot_name, offset=None, limit=None, folder_id=None
+            self, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
 
@@ -70,7 +70,7 @@ class DataBase:
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
         if offset is not None and limit is not None:
-            return files[offset : (offset + limit)]  # noqa: E203
+            return files[offset: (offset + limit)]  # noqa: E203
         return files
 
     def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
@@ -111,7 +111,7 @@ class DataBase:
                 self._db.drop_collection(collection)
 
     def update_path_and_permissions(
-        self, snapshot_name, folder_path, folder_permission, file_id
+            self, snapshot_name, folder_path, folder_permission, file_id
     ):
         new_path = self.update_path(snapshot_name, folder_path, file_id)
         new_permissions = self.update_permissions_to_inherit_direct(
@@ -120,7 +120,7 @@ class DataBase:
         return new_path, new_permissions
 
     def update_permissions_to_inherit_direct(
-        self, snapshot_name, parent_permissions, parent_path, file_id
+            self, snapshot_name, parent_permissions, parent_path, file_id
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         for parent_permission in parent_permissions:
@@ -225,7 +225,7 @@ class DataBase:
             raise ValueError("path of file cannot be calculated")
 
     def update_inherited_and_inherited_from(
-        self, snapshot_name, file_id, permission_id, inherited, inherited_from
+            self, snapshot_name, file_id, permission_id, inherited, inherited_from
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         query = {"id": permission_id, "file_id": file_id}
@@ -235,7 +235,7 @@ class DataBase:
         self._db.update_document(permission_collection_name, update_query, query)
 
     def create_group_memberships_snapshot(
-        self, group_name, group_email, create_time, memberships
+            self, group_name, group_email, create_time, memberships
     ):
         group_memberships_snapshot_collection_name = (
             f"{self.user_id}.group_membership_snapshots"
@@ -332,7 +332,7 @@ class DataBase:
         return files
 
     def get_files_with_certain_role_including_groups(
-        self, snapshot_name, role_name, email
+            self, snapshot_name, role_name, email
     ):
         group_emails = self.get_group_emails_of_user_email(email)
         if group_emails is []:
@@ -367,3 +367,48 @@ class DataBase:
         filter_query = {"_id": 0, "id": 1, "name": 1, "path": 1}
         folders = self._db.find_documents(file_collection_name, query, filter_query)
         return folders
+
+    def get_directly_shared_permissions_file_ids(self, snapshot_name, email):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        query = {"emailAddress": email, "inherited": False, "role": {"$ne": "owner"}}
+        filter_query = {"_id": 0, "file_id": 1}
+        files = self._db.find_documents(permission_collection_name, query, filter_query)
+        file_ids = [f["file_id"] for f in files]
+        return file_ids
+
+    def get_files_with_sharing_user(self, snapshot_name, email):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"sharingUser.emailAddress": email}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
+    def get_files_of_file_ids(self, snapshot_name, file_ids):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"id": {"$in": file_ids}}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
+    def get_file_ids_shared_with_users_from_domain(self, snapshot_name, domain):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        query = {"emailAddress": {"$regex": domain}, "role": {"$ne": "owner"}}
+        filter_query = {"_id": 0, "file_id": 1}
+        files = self._db.find_documents(permission_collection_name, query, filter_query)
+        file_ids = [f["file_id"] for f in files]
+        return file_ids
+
+    def get_not_shared_files(self, snapshot_name):
+        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        query = {"shared": False}
+        filter_query = {"_id": 0}
+        files = self._db.find_documents(file_collection_name, query, filter_query)
+        return files
+
+    def get_file_ids_shared_with_anyone(self, snapshot_name):
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        query = {"type": "anyone"}
+        filter_query = {"_id": 0, "file_id": 1}
+        files = self._db.find_documents(permission_collection_name, query, filter_query)
+        file_ids = [f["file_id"] for f in files]
+        return file_ids

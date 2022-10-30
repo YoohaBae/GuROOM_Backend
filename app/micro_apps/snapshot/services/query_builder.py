@@ -64,8 +64,8 @@ class QueryBuilder:
             "drive",
             "owner",
             # "creator",
-            # "from",
-            # "to",
+            "from",
+            "to",
             "readable",
             "writable",
             # "sharable",
@@ -102,9 +102,8 @@ class QueryBuilder:
             return self.user_email
         else:
             if not self.validate_email(user_email):
-                raise ValueError(
-                    f"Invalid Email: {user_email} for the '{operator}:' argument"
-                )
+                domain = re.search(r"@[\w.]+", self.user_email)
+                user_email = user_email + domain
             return user_email
 
     def validate_boolean_operator(self, bool_operator):
@@ -141,8 +140,8 @@ class QueryBuilder:
         elif operator in [
             "owner",
             "creator",
-            # "from",
-            # "to",
+            "from",
+            "to",
             "readable",
             "writable",
             # "sharable",
@@ -215,15 +214,24 @@ class QueryBuilder:
                 operator = "reader"
             elif operator == "writable":
                 operator = "writer"
+            email = self.validate_user(operator, value)
             if self.is_groups:
                 # get files including the group emails the email is in
                 files = self._db.get_files_with_certain_role_including_groups(
-                    self.snapshot_name, operator, value
+                    self.snapshot_name, operator, email
                 )
             else:
                 files = self._db.get_files_with_certain_role(
-                    self.snapshot_name, operator, value
+                    self.snapshot_name, operator, email
                 )
+        elif operator == "from":
+            email = self.validate_user(operator, value)
+            files = self._db.get_files_with_sharing_user(self.snapshot_name, email)
+        elif operator == "to":
+            email = self.validate_user(operator, value)
+            file_ids = self._db.get_directly_shared_permissions_file_ids(self.snapshot_name, email)
+            unique_file_ids = [*set(file_ids)]
+            files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
         elif operator == "name":
             regex_expr = re.compile(value)
             files = self._db.get_files_that_match_file_name_regex(
@@ -258,11 +266,19 @@ class QueryBuilder:
             files = self._db.get_files_with_path_regex(self.snapshot_name, regex_path)
         elif operator == "sharing":
             if value == "none":
-                pass
+                files = self._db.get_not_shared_files(self.snapshot_name)
+            elif value == "anyone":
+                file_ids = self._db.get_file_ids_shared_with_anyone(self.snapshot_name)
+                unique_file_ids = [*set(file_ids)]
+                files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
             elif value == "individual":
                 pass
             elif value == "domain":
-                pass
+                domain = re.search(r"@[\w.]+", self.user_email).group()
+                print(domain)
+                file_ids = self._db.get_file_ids_shared_with_users_from_domain(self.snapshot_name, domain)
+                unique_file_ids = [*set(file_ids)]
+                files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
         else:
             raise ValueError("Invalid Operator")
         return files

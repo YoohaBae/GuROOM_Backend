@@ -3,9 +3,7 @@ import json
 from app.micro_apps.snapshot.tests.unittests.mock.mock_database import MockDB
 from app.micro_apps.snapshot.services.analysis import Analysis
 from app.micro_apps.snapshot.tests.data.analysis_result import (
-    base_permissions_more_result,
     sharing_changes_result,
-    compare_permissions_more_result,
     compare_snapshot_result,
 )
 
@@ -89,9 +87,11 @@ def test_get_sharing_differences():
     ) = mock_analysis.get_sharing_differences(
         mock_base_permissions, mock_compare_permissions
     )
-    assert base_permissions_more == base_permissions_more_result
+    base_permissions_more_ids = [p["id"] for p in base_permissions_more]
+    compare_permissions_more_ids = [p["id"] for p in compare_permissions_more]
+    assert base_permissions_more_ids == ["PERMISSIONID1", "PERMISSIONID3"]
     assert sharing_changes == sharing_changes_result
-    assert compare_permissions_more == compare_permissions_more_result
+    assert compare_permissions_more_ids == ["PERMISSIONID7", "PERMISSIONID8"]
 
 
 # TODO: create FILE_SNAPSHOT2 data

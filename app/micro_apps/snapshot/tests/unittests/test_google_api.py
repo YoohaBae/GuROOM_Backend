@@ -717,3 +717,249 @@ def test_invalid_user_id_get_group_membership_snapshots():
 def test_invalid_get_group_membership_snapshots():
     response = client.get("/apps/snapshot/v1/google/groups")
     assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "get_recent_queries",
+    MockService.get_recent_queries,
+)
+def test_valid_get_recent_queries():
+    response = client.get("/apps/snapshot/v1/google/queries")
+    assert response.status_code == 200
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "get_recent_queries",
+    MockService.get_none,
+)
+def test_invalid_get_recent_queries():
+    response = client.get("/apps/snapshot/v1/google/queries")
+    assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(service, "get_user_email_from_token", MockService.get_none)
+def test_invalid_user_email_get_recent_queries():
+    response = client.get("/apps/snapshot/v1/google/queries")
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service,
+    "get_unique_members_of_file_snapshot",
+    MockService.get_unique_members_of_file_snapshot,
+)
+def test_valid_get_unique_members_of_file_snapshot():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "is_groups": False}
+    response = client.get("/apps/snapshot/v1/google/files/members", params=params)
+    assert response.status_code == 200
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service,
+    "get_unique_members_of_file_snapshot",
+    MockService.get_none,
+)
+def test_invalid_get_unique_members_of_file_snapshot():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "is_groups": False}
+    response = client.get("/apps/snapshot/v1/google/files/members", params=params)
+    assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(service, "get_user_id_from_token", MockService.get_none)
+def test_invalid_user_id_get_unique_members_of_file_snapshot():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "is_groups": False}
+    response = client.get("/apps/snapshot/v1/google/files/members", params=params)
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "validate_query",
+    MockService.validate_query,
+)
+@mock.patch.object(
+    service,
+    "process_query_search",
+    MockService.process_query_search,
+)
+@mock.patch.object(
+    service,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
+)
+def test_valid_groups_off_search_files():
+    params = {
+        "snapshot_name": "MOCK_FILE_SNAPSHOT1",
+        "query": "groups:off and drive:MyDrive",
+    }
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 200
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "validate_query",
+    MockService.validate_query,
+)
+@mock.patch.object(
+    service,
+    "process_query_search",
+    MockService.process_query_search,
+)
+@mock.patch.object(
+    service,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
+)
+def test_valid_groups_on_search_files():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 200
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(service, "get_user_id_from_token", MockService.get_none)
+def test_invalid_user_id_search_files():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(service, "get_user_email_from_token", MockService.get_none)
+def test_invalid_user_email_search_files():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "validate_query",
+    MockService.validate_query_invalid,
+)
+def test_invalid_query_search_files():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drvie:MyDrive"}
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 400
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "validate_query",
+    MockService.validate_query,
+)
+@mock.patch.object(
+    service,
+    "process_query_search",
+    MockService.get_none,
+)
+def test_invalid_process_query_search_files():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    service, "get_user_id_from_token", MockService.get_user_id_from_token
+)
+@mock.patch.object(
+    service, "get_user_email_from_token", MockService.get_user_email_from_token
+)
+@mock.patch.object(
+    service,
+    "validate_query",
+    MockService.validate_query,
+)
+@mock.patch.object(
+    service,
+    "process_query_search",
+    MockService.process_query_search,
+)
+@mock.patch.object(
+    service,
+    "get_permission_of_files",
+    MockService.get_none,
+)
+def test_invalid_permissions_search_files():
+    params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
+    response = client.get("/apps/snapshot/v1/google/files/search", params=params)
+    assert response.status_code == 500

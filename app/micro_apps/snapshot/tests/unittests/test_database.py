@@ -49,8 +49,9 @@ def test_get_file_with_no_folder_with_offset():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_file_under_folder(mock_snapshot_name, 0, 2)
+    file_ids = [f["id"] for f in files]
     assert len(files) <= 2
-    assert DataBaseResult.file_with_no_folder_with_offset_result == files
+    assert file_ids == ["FILEID1", "FILEID15"]
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -58,7 +59,15 @@ def test_get_file_with_no_folder_without_offset():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_file_under_folder(mock_snapshot_name)
-    assert DataBaseResult.file_with_no_folder_without_offset_result == files
+    file_ids = [f["id"] for f in files]
+    assert file_ids == [
+        "FILEID1",
+        "FILEID15",
+        "FILEID16",
+        "FILEID17",
+        "FILEID18",
+        "FILEID3",
+    ]
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -69,8 +78,9 @@ def test_get_file_under_certain_folder_with_offset():
     files = mock_database.get_file_under_folder(
         mock_snapshot_name, 0, 2, mock_folder_id
     )
+    file_ids = [f["id"] for f in files]
     assert len(files) <= 2
-    assert DataBaseResult.file_with_folder_with_offset_result == files
+    assert file_ids == ["FILEID4"]
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -81,7 +91,8 @@ def test_get_file_under_certain_folder_without_offset():
     files = mock_database.get_file_under_folder(
         mock_snapshot_name, folder_id=mock_folder_id
     )
-    assert DataBaseResult.file_with_folder_without_offset_result == files
+    file_ids = [f["id"] for f in files]
+    assert file_ids == ["FILEID4"]
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -138,7 +149,8 @@ def test_get_all_permission_of_file():
     permissions = mock_database.get_all_permission_of_file(
         mock_snapshot_name, mock_file_id
     )
-    assert DataBaseResult.get_all_permission_of_file_result == permissions
+    permission_ids = [p["id"] for p in permissions]
+    assert permission_ids == ["PERMISSIONID1", "PERMISSIONID2", "PERMISSIONID3"]
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -146,23 +158,35 @@ def test_get_files_with_no_path():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
     files = mock_database.get_files_with_no_path(mock_snapshot_name)
-    assert DataBaseResult.files_with_no_path_result == files
+    file_ids = [f["id"] for f in files]
+    assert file_ids == [
+        "FILEID1",
+        "FILEID15",
+        "FILEID16",
+        "FILEID17",
+        "FILEID18",
+        "FILEID3",
+    ]
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
 def test_get_all_permission_of_snapshot():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
+    with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+        all_permissions_of_snapshot_result = json.load(json_file)
     permissions = mock_database.get_all_permission_of_snapshot(mock_snapshot_name)
-    assert DataBaseResult.all_permissions_of_snapshot_result == permissions
+    assert all_permissions_of_snapshot_result == permissions
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
 def test_get_all_files_of_snapshot():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
+    with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+        all_files_of_snapshot_result = json.load(json_file)
     files = mock_database.get_all_files_of_snapshot(mock_snapshot_name)
-    assert DataBaseResult.all_files_of_snapshot_result == files
+    assert all_files_of_snapshot_result == files
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -179,8 +203,12 @@ def test_get_parent_id():
 def test_get_shared_drives():
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_database = DataBase(mock_user_id)
+    shared_drives_result = [
+        {"id": "SHAREDDRIVEID1", "name": "SUNY"},
+        {"id": "SHAREDDRIVEID2", "name": "WeByte"},
+    ]
     shared_drives = mock_database.get_shared_drives(mock_snapshot_name)
-    assert DataBaseResult.shared_drives_result == shared_drives
+    assert shared_drives_result == shared_drives
 
 
 @mock.patch.object(DataBase, "__init__", new_init)
@@ -241,5 +269,181 @@ def test_get_all_group_membership_snapshots():
         data = json.load(json_file)
         group_membership_snapshots_result = data
     group_membership_snapshots = mock_database.get_all_group_membership_snapshots()
-    print(group_membership_snapshots)
     assert group_membership_snapshots_result == group_membership_snapshots
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_all_members_from_permissions():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+
+    all_members = mock_database.get_all_members_from_permissions(mock_snapshot_name)
+    assert DataBaseResult.all_members_from_permissions_result == all_members
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_files_with_path_regex():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_path = "/FOLDER_1"
+    files = mock_database.get_files_with_path_regex(mock_snapshot_name, mock_path)
+    file_ids = [f["id"] for f in files]
+    assert file_ids == ["FILEID19", "FILEID11", "FILEID12"]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_files_that_match_file_name_regex():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_file_name = "Hi_Folder"
+    files = mock_database.get_files_that_match_file_name_regex(
+        mock_snapshot_name, mock_file_name
+    )
+    file_ids = [f["id"] for f in files]
+    assert file_ids == ["FILEID1"]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_files_with_certain_role():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_role_name = "writer"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    files = mock_database.get_files_with_certain_role(
+        mock_snapshot_name, mock_role_name, mock_email
+    )
+    file_ids = [f["id"] for f in files]
+    assert file_ids == ["FILEID1", "FILEID16", "FILEID17", "FILEID3", "FILEID4"]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_group_emails_of_user_email():
+    mock_database = DataBase(mock_user_id)
+    mock_email = "yoobae@cs.stonybrook.edu"
+    group_emails = mock_database.get_group_emails_of_user_email(mock_email)
+    assert group_emails == ["cse300@gmail.com"]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_files_with_certain_role_including_groups():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_role_name = "writer"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    files = mock_database.get_files_with_certain_role_including_groups(
+        mock_snapshot_name, mock_role_name, mock_email
+    )
+    file_ids = [f["id"] for f in files]
+    assert file_ids == [
+        "FILEID1",
+        "FILEID16",
+        "FILEID17",
+        "FILEID3",
+        "FILEID4",
+        "FILEID5",
+    ]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_folders_with_regex():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_folder_name = "Hi_Folder"
+    folders = mock_database.get_folders_with_regex(mock_snapshot_name, mock_folder_name)
+    folder_ids = [f["id"] for f in folders]
+    assert folder_ids == ["FILEID1"]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_directly_shared_permissions_file_ids():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    file_ids = mock_database.get_directly_shared_permissions_file_ids(
+        mock_snapshot_name, mock_email
+    )
+    assert file_ids == [
+        "FILEID1",
+        "FILEID2",
+        "FILEID6",
+        "FILEID7",
+        "FILEID8",
+        "FILEID14",
+        "FILEID16",
+        "FILEID17",
+        "FILEID3",
+        "FILEID4",
+    ]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_files_with_sharing_user():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoollee@cs.stonybrook.edu"
+    files = mock_database.get_files_with_sharing_user(mock_snapshot_name, mock_email)
+    file_ids = [f["id"] for f in files]
+    assert file_ids == ["FILEID1", "FILEID3"]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_files_of_file_ids():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_file_ids = ["FILEID1", "FILEID2"]
+    files = mock_database.get_files_of_file_ids(mock_snapshot_name, mock_file_ids)
+    file_ids = [f["id"] for f in files]
+    assert file_ids == mock_file_ids
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_file_ids_shared_with_users_from_domain():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_domain = "@cs.stonybrook.edu"
+    file_ids = mock_database.get_file_ids_shared_with_users_from_domain(
+        mock_snapshot_name, mock_domain
+    )
+    unique_file_ids = [*set(file_ids)]
+    unique_file_ids.sort()
+    assert unique_file_ids == [
+        "FILEID1",
+        "FILEID14",
+        "FILEID16",
+        "FILEID17",
+        "FILEID2",
+        "FILEID3",
+        "FILEID4",
+        "FILEID6",
+        "FILEID7",
+        "FILEID8",
+    ]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_not_shared_files():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    files = mock_database.get_not_shared_files(mock_snapshot_name)
+    file_ids = [f["id"] for f in files]
+    assert file_ids == [
+        "FILEID2",
+        "FILEID6",
+        "FILEID7",
+        "FILEID8",
+        "FILEID14",
+        "FILEID19",
+        "FILEID20",
+        "FILEID9",
+        "FILEID10",
+        "FILEID11",
+        "FILEID12",
+    ]
+
+
+@mock.patch.object(DataBase, "__init__", new_init)
+def test_get_file_ids_shared_with_anyone():
+    mock_database = DataBase(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    file_ids = mock_database.get_file_ids_shared_with_anyone(mock_snapshot_name)
+    assert file_ids == []

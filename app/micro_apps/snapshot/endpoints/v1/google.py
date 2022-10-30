@@ -323,7 +323,7 @@ def search_files(
     is_groups = True
     if "groups:off" in query:
         # if groups:off exist -> remove it from the query
-        query = query.replace("groups:off ", "")
+        query = query.replace("groups:off and ", "")
         is_groups = False
     valid = service.validate_query(user_id, email, snapshot_name, query)
 

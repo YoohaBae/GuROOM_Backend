@@ -10,6 +10,10 @@ class MockService:
         return "MOCK_USER_ID1"
 
     @classmethod
+    def get_user_email_from_token(cls, access_token):
+        return "MOCK_USER_EMAIL1"
+
+    @classmethod
     def get_root_id_from_api(cls, access_token):
         return "MOCK_ROOT_ID1"
 
@@ -128,5 +132,29 @@ class MockService:
     @classmethod
     def get_recent_group_membership_snapshots(cls, user_id):
         with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
+            data = json.load(json_file)
+            return data
+
+    @classmethod
+    def get_recent_queries(cls, access_token):
+        with open(absolute_path_to_data + "/auth.json") as json_file:
+            data = json.load(json_file)
+            return data[0]["recent_queries"]
+
+    @classmethod
+    def get_unique_members_of_file_snapshot(cls, user_id, snapshot_name, is_groups):
+        return []
+
+    @classmethod
+    def validate_query(cls, user_id, email, snapshot_name, query):
+        return True
+
+    @classmethod
+    def validate_query_invalid(cls, user_id, email, snapshot_name, query):
+        return "Invalid Boolean Operator: not is not one of: and, or, -"
+
+    @classmethod
+    def process_query_search(cls, user_id, email, snapshot_name, query, is_groups):
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
             data = json.load(json_file)
             return data

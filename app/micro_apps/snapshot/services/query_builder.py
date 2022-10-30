@@ -97,7 +97,7 @@ class QueryBuilder:
                 )
             return drive_name
 
-    def validate_user(self, operator, user_email):
+    def validate_user(self, user_email):
         if user_email == "me":
             return self.user_email
         else:
@@ -214,7 +214,7 @@ class QueryBuilder:
                 operator = "reader"
             elif operator == "writable":
                 operator = "writer"
-            email = self.validate_user(operator, value)
+            email = self.validate_user(value)
             if self.is_groups:
                 # get files including the group emails the email is in
                 files = self._db.get_files_with_certain_role_including_groups(
@@ -225,10 +225,10 @@ class QueryBuilder:
                     self.snapshot_name, operator, email
                 )
         elif operator == "from":
-            email = self.validate_user(operator, value)
+            email = self.validate_user(value)
             files = self._db.get_files_with_sharing_user(self.snapshot_name, email)
         elif operator == "to":
-            email = self.validate_user(operator, value)
+            email = self.validate_user(value)
             file_ids = self._db.get_directly_shared_permissions_file_ids(
                 self.snapshot_name, email
             )
@@ -279,7 +279,6 @@ class QueryBuilder:
                 pass
             elif value == "domain":
                 domain = re.search(r"@[\w.]+", self.user_email).group()
-                print(domain)
                 file_ids = self._db.get_file_ids_shared_with_users_from_domain(
                     self.snapshot_name, domain
                 )

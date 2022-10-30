@@ -538,6 +538,7 @@ def validate_query(user_id, user_email, snapshot_name, query):
     try:
         if "is:file_folder_diff" in query:
             if "is:file_folder_diff" != query:
+                print("here")
                 raise ValueError(
                     "Invalid Query: file folder differences cannot be searched with other queries"
                 )
@@ -560,9 +561,7 @@ def get_unique_members_of_file_snapshot(user_id, snapshot_name, is_groups):
             )
             for group in recent_group_membership_snapshots:
                 all_members.extend(group["memberships"])
-        permission_members = snapshot_db.get_all_members_from_permissions(
-            user_id, snapshot_name
-        )
+        permission_members = snapshot_db.get_all_members_from_permissions(snapshot_name)
         all_members.extend(permission_members)
         unique_group_members = list(
             {member["email"]: member for member in all_members}.values()

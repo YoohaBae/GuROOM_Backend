@@ -1,12 +1,14 @@
 import datetime
 import pytest
 import mock
+import json
 from app.micro_apps.snapshot.services import service
 from .mock.mock_google_auth import MockGoogleAuth
 from .mock.mock_user_database import MockUserDataBase
 from .mock.mock_google_drive import MockGoogleDrive
 from .mock.mock_database import MockDB
 from .mock.mock_analysis import MockAnalysis
+from .mock.mock_query_builder import MockQueryBuilder
 from ..data import service_input
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
@@ -18,6 +20,18 @@ def mock_get_sharing_difference_of_two_files(
     user_id, snapshot_name, base_file_id, compare_file_id
 ):
     return [{"id": "PERMISSIONID1"}], [], [{"id": "PERMISSIONID4"}]
+
+
+def mock_get_files_with_diff_permission_from_folder(user_id, snapshot_name):
+    with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+        data = json.load(json_file)
+        return data
+
+
+def mock_get_recent_group_membership_snapshots(user_id):
+    with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
+        data = json.load(json_file)
+        return data
 
 
 @mock.patch.object(service.GoogleAuth, "__init__", MockGoogleAuth.__init__)
@@ -685,16 +699,6 @@ def test_invalid_get_shared_drives(snapshot_db_exception):
     assert not shared_drives
 
 
-# @pytest.mark.asyncio
-# async def test_valid_scratch_group_memberships_from_file():
-#     file = open(absolute_path_to_data + "/Member_List_CS.html")
-#     memberships = await service.scratch_group_memberships_from_file(file)
-#     with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
-#         data = json.load(json_file)
-#         memberships_result = data[0]["memberships"]
-#     assert memberships == memberships_result
-
-
 @pytest.mark.asyncio
 async def test_invalid_scratch_group_memberships_from_file():
     file = None
@@ -766,3 +770,206 @@ def test_invalid_get_recent_group_membership_snapshots(snapshot_db_exception):
     mock_user_id = "MOCK_USER_ID1"
     recent_group_snapshots = service.get_recent_group_membership_snapshots(mock_user_id)
     assert not recent_group_snapshots
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.QueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    service.GoogleAuthDatabase,
+    "update_or_push_recent_queries",
+    MockDB.update_or_push_recent_queries,
+)
+@mock.patch.object(
+    service.QueryBuilder, "get_files_of_query", MockQueryBuilder.get_files_of_query
+)
+def test_valid_process_query_search():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "drive:MyDrive"
+    mock_is_groups = False
+    files = service.process_query_search(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
+    )
+    assert files
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(
+    service.GoogleAuthDatabase,
+    "update_or_push_recent_queries",
+    MockDB.update_or_push_recent_queries,
+)
+@mock.patch.object(
+    service,
+    "get_files_with_diff_permission_from_folder",
+    mock_get_files_with_diff_permission_from_folder,
+)
+def test_valid_is_file_folder_diff_process_query_search():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "is:file_folder_diff"
+    mock_is_groups = True
+    files = service.process_query_search(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
+    )
+    assert files
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.QueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    service.GoogleAuthDatabase, "update_or_push_recent_queries", side_effect=Exception
+)
+def test_invalid_process_query_search(google_auth_exception):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "drive:MyDrive"
+    mock_is_groups = False
+    files = service.process_query_search(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
+    )
+    assert not files
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.QueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    service.QueryBuilder,
+    "create_tree_and_validate",
+    MockQueryBuilder.create_tree_and_validate,
+)
+def test_valid_validate_query():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "drive:MyDrive"
+    validated = service.validate_query(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query
+    )
+    assert validated
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.QueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    service.QueryBuilder,
+    "create_tree_and_validate",
+    MockQueryBuilder.create_tree_and_validate,
+)
+def test_valid_is_file_folder_diff_validate_query():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "is:file_folder_diff"
+    validated = service.validate_query(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query
+    )
+    assert validated
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(service.QueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    service.QueryBuilder,
+    "create_tree_and_validate",
+    MockQueryBuilder.create_tree_and_validate,
+)
+def test_invalid_is_file_folder_diff_validate_query():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "is:file_folder_diff and drive:MyDrive"
+    validated = service.validate_query(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query
+    )
+    assert (
+        validated
+        == "Invalid Query: file folder differences cannot be searched with other queries"
+    )
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    service.SnapshotDataBase,
+    "get_all_members_from_permissions",
+    MockDB.get_all_members_from_permissions,
+)
+@mock.patch.object(
+    service,
+    "get_recent_group_membership_snapshots",
+    mock_get_recent_group_membership_snapshots,
+)
+def test_valid_is_groups_get_unique_members_of_file_snapshot():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_is_groups = True
+    unique_members = service.get_unique_members_of_file_snapshot(
+        mock_user_id, mock_snapshot_name, mock_is_groups
+    )
+    assert unique_members
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    service.SnapshotDataBase,
+    "get_all_members_from_permissions",
+    MockDB.get_all_members_from_permissions,
+)
+@mock.patch.object(
+    service,
+    "get_recent_group_membership_snapshots",
+    mock_get_recent_group_membership_snapshots,
+)
+def test_valid_get_unique_members_of_file_snapshot():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_is_groups = False
+    unique_members = service.get_unique_members_of_file_snapshot(
+        mock_user_id, mock_snapshot_name, mock_is_groups
+    )
+    assert unique_members
+
+
+@mock.patch.object(service.SnapshotDataBase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    service, "get_recent_group_membership_snapshots", side_effect=Exception
+)
+def test_invalid_get_unique_members_of_file_snapshot(service_exception):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_is_groups = False
+    unique_members = service.get_unique_members_of_file_snapshot(
+        mock_user_id, mock_snapshot_name, mock_is_groups
+    )
+    assert not unique_members
+
+
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(
+    service.GoogleAuthDatabase,
+    "get_recent_queries",
+    MockUserDataBase.get_recent_queries,
+)
+def test_valid_get_recent_queries():
+    mock_email = "yoobae@cs.stonybrook.edu"
+    recent_queries = service.get_recent_queries(mock_email)
+    assert recent_queries
+
+
+@mock.patch.object(service.GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(
+    service.GoogleAuthDatabase, "get_recent_queries", side_effect=Exception
+)
+def test_invalid_get_recent_queries(google_auth_exception):
+    mock_email = "yoobae@cs.stonybrook.edu"
+    recent_queries = service.get_recent_queries(mock_email)
+    assert not recent_queries

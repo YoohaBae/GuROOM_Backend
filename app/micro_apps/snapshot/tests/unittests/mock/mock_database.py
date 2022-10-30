@@ -1,4 +1,5 @@
 import json
+from app.micro_apps.snapshot.tests.data.database_result import DataBaseResult
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
@@ -169,3 +170,11 @@ class MockDB:
         with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
             data = json.load(json_file)
             return data
+
+    @classmethod
+    def update_or_push_recent_queries(cls, email, query_obj):
+        pass
+
+    @classmethod
+    def get_all_members_from_permissions(cls, snapshot_name):
+        return DataBaseResult.all_members_from_permissions_result

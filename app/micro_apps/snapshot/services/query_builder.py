@@ -102,7 +102,7 @@ class QueryBuilder:
             return self.user_email
         else:
             if not self.validate_email(user_email):
-                domain = re.search(r"@[\w.]+", self.user_email)
+                domain = re.search(r"@[\w.]+", self.user_email).group()
                 user_email = user_email + domain
             return user_email
 

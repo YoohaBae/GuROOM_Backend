@@ -62,7 +62,29 @@ class MockRequests:
         return MockResponse(None, 500)
 
     @classmethod
-    def mocked_requests_valid_get_user(cls, *args, **kwargs):
+    def mocked_requests_valid_dropbox_get_user(cls, *args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+        return MockResponse(
+            {
+                "email": "yoobae@cs.stonybrook.edu",
+                "name": {
+                    "display_name": "Yooha Bae",
+                    "given_name": "Yooha",
+                    "surname": "Bae",
+                },
+            },
+            200,
+        )
+
+    @classmethod
+    def mocked_requests_valid_google_get_user(cls, *args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data

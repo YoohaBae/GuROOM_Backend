@@ -22,3 +22,6 @@ class MockMongoDB:
                         and user["type"] == self.drive_type
                     ):
                         return user
+
+    def update_document(self, collection_name: str, update_query=None, query=None):
+        pass

@@ -1,7 +1,7 @@
 import logging
 
 
-class MockGoogleAuth:
+class MockAuth:
     def __init__(self, *args, **kwargs):
         self._logger = logging.getLogger(__name__)
         self.SCOPES = [

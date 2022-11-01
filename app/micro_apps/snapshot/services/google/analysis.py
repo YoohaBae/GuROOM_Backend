@@ -1,4 +1,5 @@
-from .database import DataBase
+from app.services.analysis import Analysis
+from app.micro_apps.snapshot.services.google.database import GoogleSnapshotDatabase
 from app.utils.util import (
     fix_key_in_dict_of_roots,
     remove_key_from_list_of_dict,
@@ -9,17 +10,17 @@ from deepdiff import DeepDiff
 collection_name = "file_snapshots"
 
 
-class Analysis:
+class GoogleAnalysis(Analysis):
     def __init__(self, user_id):  # pragma: no cover
-        self.db = DataBase(user_id)
-
+        super().__init__()
+        self._snapshot_db = GoogleSnapshotDatabase(user_id)
         self.shared_with_me_drive_path = "/SharedWithMe"
         self.my_drive_path = "/MyDrive"
 
     def calculate_permission_and_path(self, snapshot_name):
         shared_with_me_folder_id = None
-        my_drive_folder_id = self.db.get_root_id(snapshot_name)
-        shared_drives = self.db.get_shared_drives(snapshot_name)
+        my_drive_folder_id = self._snapshot_db.get_root_id(snapshot_name)
+        shared_drives = self._snapshot_db.get_shared_drives(snapshot_name)
 
         # dfs for my_drive
         visited_file_ids = []
@@ -47,7 +48,7 @@ class Analysis:
         self.update_inherited_shared(snapshot_name)
 
     def update_inherited_shared(self, snapshot_name):
-        all_permissions_of_snapshot = self.db.get_all_permission_of_snapshot(
+        all_permissions_of_snapshot = self._snapshot_db.get_all_permission_of_snapshot(
             snapshot_name
         )
         for permission in all_permissions_of_snapshot:
@@ -58,10 +59,10 @@ class Analysis:
                 inherited_from_id = permission["permissionDetails"][0]["inheritedFrom"]
                 inherited = permission["permissionDetails"][0]["inherited"]
                 if inherited_from_id is not None and inherited:
-                    inherited_from_path = self.db.get_path_of_file(
+                    inherited_from_path = self._snapshot_db.get_path_of_file(
                         snapshot_name, inherited_from_id
                     )
-                    self.db.update_inherited_and_inherited_from(
+                    self._snapshot_db.update_inherited_and_inherited_from(
                         snapshot_name,
                         permission["file_id"],
                         permission["id"],
@@ -73,11 +74,11 @@ class Analysis:
         self, visited, curr_folder_path, curr_permission, snapshot_name, file_id=None
     ):
         visited.append(file_id)
-        child_files = self.db.get_file_under_folder(snapshot_name, folder_id=file_id)
+        child_files = self._snapshot_db.get_file_under_folder(snapshot_name, folder_id=file_id)
         for child_file in child_files:
             child_file_id = child_file["id"]
             if child_file_id not in visited:
-                child_path, child_permissions = self.db.update_path_and_permissions(
+                child_path, child_permissions = self._snapshot_db.update_path_and_permissions(
                     snapshot_name, curr_folder_path, curr_permission, child_file_id
                 )
                 self.dfs(
@@ -86,11 +87,11 @@ class Analysis:
 
     def dfs_shared(self, visited, curr_folder_path, snapshot_name, file_id=None):
         visited.append(file_id)
-        child_files = self.db.get_file_under_folder(snapshot_name, folder_id=file_id)
+        child_files = self._snapshot_db.get_file_under_folder(snapshot_name, folder_id=file_id)
         for child_file in child_files:
             child_file_id = child_file["id"]
             if child_file_id not in visited:
-                child_path = self.db.update_path(
+                child_path = self._snapshot_db.update_path(
                     snapshot_name, curr_folder_path, child_file_id
                 )
                 self.dfs_shared(visited, child_path, snapshot_name, child_file_id)
@@ -128,7 +129,7 @@ class Analysis:
         return base_permission_more, sharing_changes, compare_permission_more
 
     def get_sharing_changes(
-        self, base_permissions, compare_permissions, remaining_permission_ids
+            self, base_permissions, compare_permissions, remaining_permission_ids
     ):
         changed_permissions = []
         for remain_id in remaining_permission_ids:
@@ -162,11 +163,11 @@ class Analysis:
         return changed_permissions
 
     def compare_two_file_snapshots(
-        self,
-        base_snapshot_name,
-        compare_snapshot_name,
-        base_snapshot_files,
-        compare_snapshot_files,
+            self,
+            base_snapshot_name,
+            compare_snapshot_name,
+            base_snapshot_files,
+            compare_snapshot_files,
     ):
         different_files = []
         base_snapshot_files_ids = [x["id"] for x in base_snapshot_files]
@@ -177,14 +178,14 @@ class Analysis:
                 compare_snapshot_file["additional_base_file_snapshot_permissions"] = []
                 compare_snapshot_file[
                     "additional_compare_file_snapshot_permissions"
-                ] = self.db.get_all_permission_of_file(compare_snapshot_name, file_id)
+                ] = self._snapshot_db.get_all_permission_of_file(compare_snapshot_name, file_id)
                 compare_snapshot_file["changed_permissions"] = []
                 different_files.append(compare_snapshot_file)
                 continue
-            base_permissions = self.db.get_all_permission_of_file(
+            base_permissions = self._snapshot_db.get_all_permission_of_file(
                 base_snapshot_name, file_id
             )
-            compare_permissions = self.db.get_all_permission_of_file(
+            compare_permissions = self._snapshot_db.get_all_permission_of_file(
                 compare_snapshot_name, file_id
             )
             (
@@ -193,9 +194,9 @@ class Analysis:
                 compare_more_permissions,
             ) = self.get_sharing_differences(base_permissions, compare_permissions)
             if (
-                len(base_more_permissions) != 0
-                or len(changes) != 0
-                or len(compare_more_permissions) != 0
+                    len(base_more_permissions) != 0
+                    or len(changes) != 0
+                    or len(compare_more_permissions) != 0
             ):
                 compare_snapshot_file[
                     "additional_base_file_snapshot_permissions"

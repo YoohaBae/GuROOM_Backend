@@ -6,7 +6,7 @@ absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
 class MockService:
     @classmethod
-    def get_user_id_from_token(cls, access_token):
+    def get_user_id_from_access_token(cls, access_token):
         return "MOCK_USER_ID1"
 
     @classmethod

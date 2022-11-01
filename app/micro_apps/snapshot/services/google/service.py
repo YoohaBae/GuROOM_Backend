@@ -2,13 +2,13 @@ import json
 from bs4 import BeautifulSoup
 from datetime import datetime
 from app.utils.util import DateTimeEncoder
+from app.services.snapshot_service import SnapshotService
 from app.micro_apps.auth.services.google.google_auth import GoogleAuth
 from app.micro_apps.auth.services.google.database import GoogleAuthDatabase
 from app.micro_apps.snapshot.services.google.google_drive import GoogleDrive
 from app.micro_apps.snapshot.services.google.analysis import GoogleAnalysis
 from app.micro_apps.snapshot.services.google.database import GoogleSnapshotDatabase
 from app.micro_apps.snapshot.services.google.query_builder import GoogleQueryBuilder
-from app.services.snapshot_service import SnapshotService
 
 
 class GoogleSnapshotService(SnapshotService):
@@ -79,10 +79,10 @@ class GoogleSnapshotService(SnapshotService):
             for file in files:
                 shared_drive_permissions_for_file = []
                 if (
-                        "driveId" in file
-                        and file["driveId"] is not None
-                        and "permissionIds" in file
-                        and "permissionIds" != []
+                    "driveId" in file
+                    and file["driveId"] is not None
+                    and "permissionIds" in file
+                    and "permissionIds" != []
                 ):
                     permission_ids = file["permissionIds"]
                     for pid in permission_ids:
@@ -98,10 +98,14 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def create_file_snapshot(self, user_id, snapshot_name, files, root_id, shared_drives):
+    def create_file_snapshot(
+        self, user_id, snapshot_name, files, root_id, shared_drives
+    ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
-            snapshot_db.create_file_snapshot(snapshot_name, files, root_id, shared_drives)
+            snapshot_db.create_file_snapshot(
+                snapshot_name, files, root_id, shared_drives
+            )
             return True
         except Exception as error:
             self.logger.error(error)
@@ -161,7 +165,9 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_files_of_shared_with_me(self, user_id, snapshot_name, offset=None, limit=None):
+    def get_files_of_shared_with_me(
+        self, user_id, snapshot_name, offset=None, limit=None
+    ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
             # get all files with no parent attribute
@@ -175,7 +181,7 @@ class GoogleSnapshotService(SnapshotService):
             data = yes_path + no_parent
             # slice data
             if offset is not None and limit is not None:
-                data = data[offset: (offset + limit)]  # noqa: E203
+                data = data[offset : (offset + limit)]  # noqa: E203
             if len(data) == 0:
                 return []
             files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -185,11 +191,13 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_files_of_shared_drive(
-            self, user_id, snapshot_name, drive_id, offset=None, limit=None
+        self, user_id, snapshot_name, drive_id, offset=None, limit=None
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
-            data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, drive_id)
+            data = snapshot_db.get_file_under_folder(
+                snapshot_name, offset, limit, drive_id
+            )
             if len(data) == 0:
                 return []
             files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -198,7 +206,9 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_files_of_folder(self, user_id, snapshot_name, folder_id, offset=None, limit=None):
+    def get_files_of_folder(
+        self, user_id, snapshot_name, folder_id, offset=None, limit=None
+    ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
             data = snapshot_db.get_file_under_folder(
@@ -247,9 +257,9 @@ class GoogleSnapshotService(SnapshotService):
                 file_id = file["id"]
                 parents = file["parents"]
                 if (
-                        len(parents) == 0
-                        or parents[0] == root_id
-                        or parents[0] in shared_drive_ids
+                    len(parents) == 0
+                    or parents[0] == root_id
+                    or parents[0] in shared_drive_ids
                 ):
                     continue
 
@@ -270,14 +280,18 @@ class GoogleSnapshotService(SnapshotService):
                     base_more_permissions,
                     changes,
                     compare_more_permissions,
-                ) = analysis.get_sharing_differences(file_permissions, folder_permissions)
+                ) = analysis.get_sharing_differences(
+                    file_permissions, folder_permissions
+                )
                 if (
-                        len(base_more_permissions) != 0
-                        or len(changes) != 0
-                        or len(compare_more_permissions) != 0
+                    len(base_more_permissions) != 0
+                    or len(changes) != 0
+                    or len(compare_more_permissions) != 0
                 ):
                     different_files.append(file)
-            different_files = json.loads(json.dumps(different_files, cls=DateTimeEncoder))
+            different_files = json.loads(
+                json.dumps(different_files, cls=DateTimeEncoder)
+            )
             return different_files
         except Exception as error:
             self.logger.error(error)
@@ -296,7 +310,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files(
-            self, user_id, snapshot_name, base_file_id, compare_file_id
+        self, user_id, snapshot_name, base_file_id, compare_file_id
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -320,7 +334,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files_different_snapshots(
-            self, user_id, base_snapshot_name, compare_snapshot_name, file_id
+        self, user_id, base_snapshot_name, compare_snapshot_name, file_id
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -343,10 +357,14 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_difference_of_two_snapshots(self, user_id, base_snapshot_name, compare_snapshot_name):
+    def get_difference_of_two_snapshots(
+        self, user_id, base_snapshot_name, compare_snapshot_name
+    ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
-            base_snapshot_files = snapshot_db.get_all_files_of_snapshot(base_snapshot_name)
+            base_snapshot_files = snapshot_db.get_all_files_of_snapshot(
+                base_snapshot_name
+            )
             compare_snapshot_files = snapshot_db.get_all_files_of_snapshot(
                 compare_snapshot_name
             )
@@ -460,7 +478,9 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def create_group_snapshot(self, user_id, group_name, group_email, create_time, memberships):
+    def create_group_snapshot(
+        self, user_id, group_name, group_email, create_time, memberships
+    ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
             snapshot_db.create_group_memberships_snapshot(
@@ -475,13 +495,17 @@ class GoogleSnapshotService(SnapshotService):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
             recent_groups = snapshot_db.get_recent_group_membership_snapshots()
-            json_result_groups = json.loads(json.dumps(recent_groups, cls=DateTimeEncoder))
+            json_result_groups = json.loads(
+                json.dumps(recent_groups, cls=DateTimeEncoder)
+            )
             return json_result_groups
         except Exception as error:
             self.logger.error(error)
             return False
 
-    def process_query_search(self, user_id, email, snapshot_name, query: str, is_groups=True):
+    def process_query_search(
+        self, user_id, email, snapshot_name, query: str, is_groups=True
+    ):
         user_db = GoogleAuthDatabase()
         try:
             query_obj = {"search_time": datetime.utcnow(), "query": query}
@@ -526,12 +550,14 @@ class GoogleSnapshotService(SnapshotService):
         try:
             all_members = []
             if is_groups:
-                recent_group_membership_snapshots = self.get_recent_group_membership_snapshots(
-                    user_id
+                recent_group_membership_snapshots = (
+                    self.get_recent_group_membership_snapshots(user_id)
                 )
                 for group in recent_group_membership_snapshots:
                     all_members.extend(group["memberships"])
-            permission_members = snapshot_db.get_all_members_from_permissions(snapshot_name)
+            permission_members = snapshot_db.get_all_members_from_permissions(
+                snapshot_name
+            )
             all_members.extend(permission_members)
             unique_group_members = list(
                 {member["email"]: member for member in all_members}.values()

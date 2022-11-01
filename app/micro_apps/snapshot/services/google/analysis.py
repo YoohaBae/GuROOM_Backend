@@ -74,11 +74,16 @@ class GoogleAnalysis(Analysis):
         self, visited, curr_folder_path, curr_permission, snapshot_name, file_id=None
     ):
         visited.append(file_id)
-        child_files = self._snapshot_db.get_file_under_folder(snapshot_name, folder_id=file_id)
+        child_files = self._snapshot_db.get_file_under_folder(
+            snapshot_name, folder_id=file_id
+        )
         for child_file in child_files:
             child_file_id = child_file["id"]
             if child_file_id not in visited:
-                child_path, child_permissions = self._snapshot_db.update_path_and_permissions(
+                (
+                    child_path,
+                    child_permissions,
+                ) = self._snapshot_db.update_path_and_permissions(
                     snapshot_name, curr_folder_path, curr_permission, child_file_id
                 )
                 self.dfs(
@@ -87,7 +92,9 @@ class GoogleAnalysis(Analysis):
 
     def dfs_shared(self, visited, curr_folder_path, snapshot_name, file_id=None):
         visited.append(file_id)
-        child_files = self._snapshot_db.get_file_under_folder(snapshot_name, folder_id=file_id)
+        child_files = self._snapshot_db.get_file_under_folder(
+            snapshot_name, folder_id=file_id
+        )
         for child_file in child_files:
             child_file_id = child_file["id"]
             if child_file_id not in visited:
@@ -129,7 +136,7 @@ class GoogleAnalysis(Analysis):
         return base_permission_more, sharing_changes, compare_permission_more
 
     def get_sharing_changes(
-            self, base_permissions, compare_permissions, remaining_permission_ids
+        self, base_permissions, compare_permissions, remaining_permission_ids
     ):
         changed_permissions = []
         for remain_id in remaining_permission_ids:
@@ -163,11 +170,11 @@ class GoogleAnalysis(Analysis):
         return changed_permissions
 
     def compare_two_file_snapshots(
-            self,
-            base_snapshot_name,
-            compare_snapshot_name,
-            base_snapshot_files,
-            compare_snapshot_files,
+        self,
+        base_snapshot_name,
+        compare_snapshot_name,
+        base_snapshot_files,
+        compare_snapshot_files,
     ):
         different_files = []
         base_snapshot_files_ids = [x["id"] for x in base_snapshot_files]
@@ -178,7 +185,9 @@ class GoogleAnalysis(Analysis):
                 compare_snapshot_file["additional_base_file_snapshot_permissions"] = []
                 compare_snapshot_file[
                     "additional_compare_file_snapshot_permissions"
-                ] = self._snapshot_db.get_all_permission_of_file(compare_snapshot_name, file_id)
+                ] = self._snapshot_db.get_all_permission_of_file(
+                    compare_snapshot_name, file_id
+                )
                 compare_snapshot_file["changed_permissions"] = []
                 different_files.append(compare_snapshot_file)
                 continue
@@ -194,9 +203,9 @@ class GoogleAnalysis(Analysis):
                 compare_more_permissions,
             ) = self.get_sharing_differences(base_permissions, compare_permissions)
             if (
-                    len(base_more_permissions) != 0
-                    or len(changes) != 0
-                    or len(compare_more_permissions) != 0
+                len(base_more_permissions) != 0
+                or len(changes) != 0
+                or len(compare_more_permissions) != 0
             ):
                 compare_snapshot_file[
                     "additional_base_file_snapshot_permissions"

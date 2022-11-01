@@ -175,7 +175,9 @@ def test_get_all_permission_of_snapshot():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
         all_permissions_of_snapshot_result = json.load(json_file)
-    permissions = mock_GoogleSnapshotDatabase.get_all_permission_of_snapshot(mock_snapshot_name)
+    permissions = mock_GoogleSnapshotDatabase.get_all_permission_of_snapshot(
+        mock_snapshot_name
+    )
     assert all_permissions_of_snapshot_result == permissions
 
 
@@ -195,7 +197,9 @@ def test_get_parent_id():
     mock_file_id = "FILEID20"
     parent_id_result = "FILEID8"
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
-    parent_id = mock_GoogleSnapshotDatabase.get_parent_id(mock_snapshot_name, mock_file_id)
+    parent_id = mock_GoogleSnapshotDatabase.get_parent_id(
+        mock_snapshot_name, mock_file_id
+    )
     assert parent_id_result == parent_id
 
 
@@ -217,7 +221,9 @@ def test_get_path_of_file():
     mock_file_id = "FILEID5"
     path_result = "/MyDrive"
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
-    path = mock_GoogleSnapshotDatabase.get_path_of_file(mock_snapshot_name, mock_file_id)
+    path = mock_GoogleSnapshotDatabase.get_path_of_file(
+        mock_snapshot_name, mock_file_id
+    )
     assert path_result == path
 
 
@@ -227,7 +233,9 @@ def test_get_path_of_shared_drives():
     mock_file_id = "SHAREDDRIVEID1"
     shared_drive_path_result = "/SUNY"
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
-    shared_drive_path = mock_GoogleSnapshotDatabase.get_path_of_file(mock_snapshot_name, mock_file_id)
+    shared_drive_path = mock_GoogleSnapshotDatabase.get_path_of_file(
+        mock_snapshot_name, mock_file_id
+    )
     assert shared_drive_path_result == shared_drive_path
 
 
@@ -268,7 +276,9 @@ def test_get_all_group_membership_snapshots():
     with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
         data = json.load(json_file)
         group_membership_snapshots_result = data
-    group_membership_snapshots = mock_GoogleSnapshotDatabase.get_all_group_membership_snapshots()
+    group_membership_snapshots = (
+        mock_GoogleSnapshotDatabase.get_all_group_membership_snapshots()
+    )
     assert group_membership_snapshots_result == group_membership_snapshots
 
 
@@ -277,7 +287,9 @@ def test_get_all_members_from_permissions():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_snapshot_name = "FILE_SNAPSHOT1"
 
-    all_members = mock_GoogleSnapshotDatabase.get_all_members_from_permissions(mock_snapshot_name)
+    all_members = mock_GoogleSnapshotDatabase.get_all_members_from_permissions(
+        mock_snapshot_name
+    )
     assert DataBaseResult.all_members_from_permissions_result == all_members
 
 
@@ -286,7 +298,9 @@ def test_get_files_with_path_regex():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_path = "/FOLDER_1"
-    files = mock_GoogleSnapshotDatabase.get_files_with_path_regex(mock_snapshot_name, mock_path)
+    files = mock_GoogleSnapshotDatabase.get_files_with_path_regex(
+        mock_snapshot_name, mock_path
+    )
     file_ids = [f["id"] for f in files]
     assert file_ids == ["FILEID19", "FILEID11", "FILEID12"]
 
@@ -320,7 +334,9 @@ def test_get_files_with_certain_role():
 def test_get_group_emails_of_user_email():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_email = "yoobae@cs.stonybrook.edu"
-    group_emails = mock_GoogleSnapshotDatabase.get_group_emails_of_user_email(mock_email)
+    group_emails = mock_GoogleSnapshotDatabase.get_group_emails_of_user_email(
+        mock_email
+    )
     assert group_emails == ["cse300@gmail.com"]
 
 
@@ -349,7 +365,9 @@ def test_get_folders_with_regex():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_folder_name = "Hi_Folder"
-    folders = mock_GoogleSnapshotDatabase.get_folders_with_regex(mock_snapshot_name, mock_folder_name)
+    folders = mock_GoogleSnapshotDatabase.get_folders_with_regex(
+        mock_snapshot_name, mock_folder_name
+    )
     folder_ids = [f["id"] for f in folders]
     assert folder_ids == ["FILEID1"]
 
@@ -381,7 +399,9 @@ def test_get_files_with_sharing_user():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_email = "yoollee@cs.stonybrook.edu"
-    files = mock_GoogleSnapshotDatabase.get_files_with_sharing_user(mock_snapshot_name, mock_email)
+    files = mock_GoogleSnapshotDatabase.get_files_with_sharing_user(
+        mock_snapshot_name, mock_email
+    )
     file_ids = [f["id"] for f in files]
     assert file_ids == ["FILEID1", "FILEID3"]
 
@@ -391,7 +411,9 @@ def test_get_files_of_file_ids():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_file_ids = ["FILEID1", "FILEID2"]
-    files = mock_GoogleSnapshotDatabase.get_files_of_file_ids(mock_snapshot_name, mock_file_ids)
+    files = mock_GoogleSnapshotDatabase.get_files_of_file_ids(
+        mock_snapshot_name, mock_file_ids
+    )
     file_ids = [f["id"] for f in files]
     assert file_ids == mock_file_ids
 
@@ -445,5 +467,7 @@ def test_get_not_shared_files():
 def test_get_file_ids_shared_with_anyone():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
     mock_snapshot_name = "FILE_SNAPSHOT1"
-    file_ids = mock_GoogleSnapshotDatabase.get_file_ids_shared_with_anyone(mock_snapshot_name)
+    file_ids = mock_GoogleSnapshotDatabase.get_file_ids_shared_with_anyone(
+        mock_snapshot_name
+    )
     assert file_ids == []

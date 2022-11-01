@@ -20,7 +20,7 @@ class SnapshotDatabase:
         raise NotImplementedError("Must be implemented by child class")
 
     def get_file_under_folder(
-            self, snapshot_name, offset=None, limit=None, folder_id=None
+        self, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         raise NotImplementedError("Must be implemented by child class")
 
@@ -37,12 +37,12 @@ class SnapshotDatabase:
         raise NotImplementedError("Must be implemented by child class")
 
     def update_path_and_permissions(
-            self, snapshot_name, folder_path, folder_permission, file_id
+        self, snapshot_name, folder_path, folder_permission, file_id
     ):
         raise NotImplementedError("Must be implemented by child class")
 
     def update_permissions_to_inherit_direct(
-            self, snapshot_name, parent_permissions, parent_path, file_id
+        self, snapshot_name, parent_permissions, parent_path, file_id
     ):
         raise NotImplementedError("Must be implemented by child class")
 
@@ -71,7 +71,7 @@ class SnapshotDatabase:
         raise NotImplementedError("Must be implemented by child class")
 
     def update_inherited_and_inherited_from(
-            self, snapshot_name, file_id, permission_id, inherited, inherited_from
+        self, snapshot_name, file_id, permission_id, inherited, inherited_from
     ):
         raise NotImplementedError("Must be implemented by child class")
 
@@ -88,7 +88,7 @@ class SnapshotDatabase:
         raise NotImplementedError("Must be implemented by child class")
 
     def get_files_with_certain_role_including_groups(
-            self, snapshot_name, role_name, email
+        self, snapshot_name, role_name, email
     ):
         raise NotImplementedError("Must be implemented by child class")
 

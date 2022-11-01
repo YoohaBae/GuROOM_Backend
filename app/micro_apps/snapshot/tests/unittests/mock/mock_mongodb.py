@@ -152,13 +152,14 @@ class MockMongoDB:
                     if "$ne" in query["role"]:
                         if "inherited" in query:
                             for permission in data:
-                                if (
-                                    permission["role"] != "owner"
-                                    and query["emailAddress"]
-                                    == permission["emailAddress"]
-                                    and permission["inherited"] is False
-                                ):
-                                    target_permissions.append(permission)
+                                if permission["emailAddress"]:
+                                    if (
+                                        permission["role"] != "owner"
+                                        and query["emailAddress"]
+                                        in permission["emailAddress"]
+                                        and permission["inherited"] is False
+                                    ):
+                                        target_permissions.append(permission)
                         else:
                             for permission in data:
                                 if permission["role"] != "owner":

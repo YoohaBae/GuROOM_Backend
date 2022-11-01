@@ -128,9 +128,14 @@ class QueryBuilder:
             )
 
     def validate_path(self, path):
-        path_pattern = r"^([\/]{1}[a-z0-9.]+)+(\/?){1}$|^([\/]{1})$"
+        path_pattern = r"^([\/]{1}[a-zA-Z0-9.]+)+(\/?){1}$|^([\/]{1})$"
         try:
-            re.match(path_pattern, path)
+            if re.match(path_pattern, path):
+                pass
+            else:
+                raise ValueError(
+                    f"Invalid Path Value: {path} is not in the correct format"
+                )
         except Exception:
             raise ValueError(f"Invalid Path Value: {path} is not in the correct format")
 
@@ -146,11 +151,11 @@ class QueryBuilder:
             "writable",
             # "sharable",
         ]:
-            self.validate_user(operator, value)
+            self.validate_user(value)
         elif operator in ["name", "folder", "inFolder"]:
             self.validate_regex(operator, value)
         elif operator == "path":
-            pass
+            self.validate_path(value)
         elif operator == "sharing":
             sharing_options = ["none", "anyone", "individual", "domain"]
             if value not in sharing_options:
@@ -207,7 +212,7 @@ class QueryBuilder:
     def get_file_of_operator(self, operator, value):
         files = []
         if operator == "drive":
-            regex_path = rf"^\/{value}"
+            regex_path = rf"^/{value}"
             files = self._db.get_files_with_path_regex(self.snapshot_name, regex_path)
         elif operator in ["owner", "readable", "writable"]:
             if operator == "readable":
@@ -235,7 +240,7 @@ class QueryBuilder:
             unique_file_ids = [*set(file_ids)]
             files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
         elif operator == "name":
-            regex_expr = re.compile(value)
+            regex_expr = value
             files = self._db.get_files_that_match_file_name_regex(
                 self.snapshot_name, regex_expr
             )

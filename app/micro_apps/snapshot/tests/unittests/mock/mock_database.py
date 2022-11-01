@@ -1,4 +1,5 @@
 import json
+import re
 from app.micro_apps.snapshot.tests.data.database_result import DataBaseResult
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
@@ -178,3 +179,144 @@ class MockDB:
     @classmethod
     def get_all_members_from_permissions(cls, snapshot_name):
         return DataBaseResult.all_members_from_permissions_result
+
+    @classmethod
+    def get_files_that_match_file_name_regex(cls, snapshot_name, regex_path):
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if re.match(regex_path, file["name"]):
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_files_with_certain_role_including_groups(cls, snapshot_name, role, email):
+        target_permissions = []
+        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+            data = json.load(json_file)
+            for permission in data:
+                if role == permission["role"] and email == permission["emailAddress"]:
+                    target_permissions.append(permission)
+        file_ids = [p["file_id"] for p in target_permissions]
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["id"] in file_ids:
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_files_with_certain_role(cls, snapshot_name, role, email):
+        target_permissions = []
+        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+            data = json.load(json_file)
+            for permission in data:
+                if role == permission["role"] and email == permission["emailAddress"]:
+                    target_permissions.append(permission)
+        file_ids = [p["file_id"] for p in target_permissions]
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["id"] in file_ids:
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_files_with_sharing_user(cls, snapshot_name, email):
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["sharingUser"] is not None:
+                    if "emailAddress" in file["sharingUser"]:
+                        if file["sharingUser"]["emailAddress"] == email:
+                            result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_directly_shared_permissions_file_ids(cls, snapshot_name, email):
+        target_permissions = []
+        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+            data = json.load(json_file)
+            for permission in data:
+                if (
+                    permission["role"] != "owner"
+                    and email == permission["emailAddress"]
+                    and permission["inherited"] is False
+                ):
+                    target_permissions.append(permission)
+        file_ids = [p["file_id"] for p in target_permissions]
+        return file_ids
+
+    @classmethod
+    def get_files_of_file_ids(cls, snapshot_name, unique_file_ids):
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["id"] in unique_file_ids:
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_folders_with_regex(cls, snapshot_name, folder_name):
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if (
+                    folder_name in file["name"]
+                    and "application/vnd.google-apps.folder" == file["mimeType"]
+                ):
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_files_with_path_regex(cls, snapshot_name, regex_path):
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                regex_pattern = re.compile(regex_path)
+                if re.match(regex_pattern, file["path"]):
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_not_shared_files(cls, snapshot_name):
+        result_file = []
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["shared"] is None:
+                    result_file.append(file)
+            return result_file
+
+    @classmethod
+    def get_file_ids_shared_with_anyone(cls, snapshot_name):
+        target_permissions = []
+        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+            data = json.load(json_file)
+            for permission in data:
+                if permission["type"] == "anyone":
+                    target_permissions.append(permission)
+            return target_permissions
+
+    @classmethod
+    def get_file_ids_shared_with_users_from_domain(cls, snapshot_name, domain):
+        target_permissions = []
+        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+            data = json.load(json_file)
+            for permission in data:
+                if permission["emailAddress"]:
+                    if (
+                        permission["role"] != "owner"
+                        and domain in permission["emailAddress"]
+                        and permission["inherited"] is False
+                    ):
+                        target_permissions.append(permission)
+        file_ids = [p["file_id"] for p in target_permissions]
+        return file_ids

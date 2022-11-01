@@ -29,9 +29,9 @@ class GoogleDrive(Drive):
                 params={
                     "access_token": token,
                     "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                              "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                              "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                              "size, contentRestrictions)",
+                    "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                    "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                    "size, contentRestrictions)",
                     "corpora": "allDrives",
                     "supportsAllDrives": True,
                     "includeItemsFromAllDrives": True,
@@ -46,9 +46,9 @@ class GoogleDrive(Drive):
                 params={
                     "access_token": token,
                     "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                              "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                              "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                              "size, contentRestrictions)",
+                    "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                    "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                    "size, contentRestrictions)",
                     "corpora": "allDrives",
                     "supportsAllDrives": True,
                     "includeItemsFromAllDrives": True,

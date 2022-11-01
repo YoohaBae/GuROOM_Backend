@@ -16,9 +16,13 @@ client = TestClient(app)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api)
+@mock.patch.object(
+    GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "get_all_shared_drives_from_api",
@@ -27,7 +31,9 @@ client = TestClient(app)
 @mock.patch.object(
     GoogleSnapshotService, "get_all_files_from_api", MockService.get_all_files_from_api
 )
-@mock.patch.object(GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot)
+@mock.patch.object(
+    GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "perform_inherit_direct_permission_analysis",
@@ -42,7 +48,9 @@ def test_valid_take_file_snapshot():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_take_file_snapshot():
     body = {"snapshot_name": "MOCK_FILE_SNAPSHOT1"}
     response = client.post("/apps/snapshot/v1/google/files", json=body)
@@ -53,7 +61,9 @@ def test_invalid_user_id_take_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(GoogleSnapshotService, "get_root_id_from_api", MockService.get_none)
 def test_invalid_root_id_take_file_snapshot():
@@ -66,14 +76,22 @@ def test_invalid_root_id_take_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api)
-@mock.patch.object(GoogleSnapshotService, "get_all_shared_drives_from_api", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api
+)
+@mock.patch.object(
+    GoogleSnapshotService, "get_all_shared_drives_from_api", MockService.get_none
+)
 @mock.patch.object(
     GoogleSnapshotService, "get_all_files_from_api", MockService.get_all_files_from_api
 )
-@mock.patch.object(GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot)
+@mock.patch.object(
+    GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "perform_inherit_direct_permission_analysis",
@@ -89,16 +107,24 @@ def test_invalid_all_shared_drives_take_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api)
+@mock.patch.object(
+    GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "get_all_shared_drives_from_api",
     MockService.get_all_shared_drives_from_api,
 )
-@mock.patch.object(GoogleSnapshotService, "get_all_files_from_api", MockService.get_none)
-@mock.patch.object(GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot)
+@mock.patch.object(
+    GoogleSnapshotService, "get_all_files_from_api", MockService.get_none
+)
+@mock.patch.object(
+    GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "perform_inherit_direct_permission_analysis",
@@ -114,9 +140,13 @@ def test_invalid_all_files_take_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api)
+@mock.patch.object(
+    GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "get_all_shared_drives_from_api",
@@ -141,9 +171,13 @@ def test_invalid_create_file_snapshot_take_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api)
+@mock.patch.object(
+    GoogleSnapshotService, "get_root_id_from_api", MockService.get_root_id_from_api
+)
 @mock.patch.object(
     GoogleSnapshotService,
     "get_all_shared_drives_from_api",
@@ -152,9 +186,13 @@ def test_invalid_create_file_snapshot_take_file_snapshot():
 @mock.patch.object(
     GoogleSnapshotService, "get_all_files_from_api", MockService.get_all_files_from_api
 )
-@mock.patch.object(GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot)
 @mock.patch.object(
-    GoogleSnapshotService, "perform_inherit_direct_permission_analysis", MockService.get_false
+    GoogleSnapshotService, "create_file_snapshot", MockService.create_file_snapshot
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "perform_inherit_direct_permission_analysis",
+    MockService.get_false,
 )
 def test_invalid_analysis_take_file_snapshot():
     body = {"snapshot_name": "MOCK_FILE_SNAPSHOT1"}
@@ -166,9 +204,13 @@ def test_invalid_analysis_take_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "delete_file_snapshot", MockService.delete_file_snapshot)
+@mock.patch.object(
+    GoogleSnapshotService, "delete_file_snapshot", MockService.delete_file_snapshot
+)
 def test_valid_delete_file_snapshot():
     body = {"snapshot_name": "MOCK_FILE_SNAPSHOT1"}
     response = client.delete("/apps/snapshot/v1/google/files", json=body)
@@ -178,7 +220,9 @@ def test_valid_delete_file_snapshot():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_get_user_id_delete_file_snapshot():
     body = {"snapshot_name": "MOCK_FILE_SNAPSHOT1"}
     response = client.delete("/apps/snapshot/v1/google/files", json=body)
@@ -189,7 +233,9 @@ def test_invalid_get_user_id_delete_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(GoogleSnapshotService, "delete_file_snapshot", MockService.get_false)
 def test_invalid_delete_file_snapshot():
@@ -202,10 +248,14 @@ def test_invalid_delete_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "edit_file_snapshot_name", MockService.edit_file_snapshot_name
+    GoogleSnapshotService,
+    "edit_file_snapshot_name",
+    MockService.edit_file_snapshot_name,
 )
 def test_valid_edit_file_snapshot_name():
     body = {
@@ -219,9 +269,13 @@ def test_valid_edit_file_snapshot_name():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
 @mock.patch.object(
-    GoogleSnapshotService, "edit_file_snapshot_name", MockService.edit_file_snapshot_name
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "edit_file_snapshot_name",
+    MockService.edit_file_snapshot_name,
 )
 def test_invalid_get_user_id_edit_file_snapshot_name():
     body = {
@@ -236,9 +290,13 @@ def test_invalid_get_user_id_edit_file_snapshot_name():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "edit_file_snapshot_name", MockService.get_false)
+@mock.patch.object(
+    GoogleSnapshotService, "edit_file_snapshot_name", MockService.get_false
+)
 def test_invalid_edit_file_snapshot_name():
     body = {
         "snapshot_name": "MOCK_FILE_SNAPSHOT1",
@@ -252,10 +310,14 @@ def test_invalid_edit_file_snapshot_name():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_file_snapshot_names", MockService.get_file_snapshot_names
+    GoogleSnapshotService,
+    "get_file_snapshot_names",
+    MockService.get_file_snapshot_names,
 )
 def test_valid_get_file_snapshot_names():
     response = client.get("/apps/snapshot/v1/google/files/names")
@@ -265,7 +327,9 @@ def test_valid_get_file_snapshot_names():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_get_file_snapshot_names():
     response = client.get("/apps/snapshot/v1/google/files/names")
     assert response.status_code == 404
@@ -275,9 +339,13 @@ def test_invalid_user_id_get_file_snapshot_names():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_file_snapshot_names", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_file_snapshot_names", MockService.get_none
+)
 def test_invalid_get_file_snapshot_names():
     response = client.get("/apps/snapshot/v1/google/files/names")
     assert response.status_code == 500
@@ -287,9 +355,13 @@ def test_invalid_get_file_snapshot_names():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_shared_drives", MockService.get_shared_drives)
+@mock.patch.object(
+    GoogleSnapshotService, "get_shared_drives", MockService.get_shared_drives
+)
 def test_valid_get_shared_drives():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1"}
     response = client.get("/apps/snapshot/v1/google/files/drives", params=params)
@@ -299,7 +371,9 @@ def test_valid_get_shared_drives():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_get_shared_drives():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1"}
     response = client.get("/apps/snapshot/v1/google/files/drives", params=params)
@@ -310,7 +384,9 @@ def test_invalid_user_id_get_shared_drives():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(GoogleSnapshotService, "get_shared_drives", MockService.get_none)
 def test_invalid_get_shared_drives():
@@ -323,11 +399,17 @@ def test_invalid_get_shared_drives():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_files_of_my_drive", MockService.get_files_of_my_drive)
 @mock.patch.object(
-    GoogleSnapshotService, "get_permission_of_files", MockService.get_permission_of_files
+    GoogleSnapshotService, "get_files_of_my_drive", MockService.get_files_of_my_drive
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
 )
 def test_valid_get_my_drive_file_snapshot():
     params = {
@@ -347,13 +429,19 @@ def test_valid_get_my_drive_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_files_of_shared_with_me", MockService.get_files_of_shared_with_me
+    GoogleSnapshotService,
+    "get_files_of_shared_with_me",
+    MockService.get_files_of_shared_with_me,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_permission_of_files", MockService.get_permission_of_files
+    GoogleSnapshotService,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
 )
 def test_valid_get_shared_with_me_file_snapshot():
     params = {
@@ -373,13 +461,19 @@ def test_valid_get_shared_with_me_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_files_of_shared_drive", MockService.get_files_of_shared_drive
+    GoogleSnapshotService,
+    "get_files_of_shared_drive",
+    MockService.get_files_of_shared_drive,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_permission_of_files", MockService.get_permission_of_files
+    GoogleSnapshotService,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
 )
 def test_valid_get_shared_drive_file_snapshot():
     params = {
@@ -399,11 +493,17 @@ def test_valid_get_shared_drive_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_files_of_folder", MockService.get_files_of_folder)
 @mock.patch.object(
-    GoogleSnapshotService, "get_permission_of_files", MockService.get_permission_of_files
+    GoogleSnapshotService, "get_files_of_folder", MockService.get_files_of_folder
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
 )
 def test_valid_get_under_folder_file_snapshot():
     params = {
@@ -422,7 +522,9 @@ def test_valid_get_under_folder_file_snapshot():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_get_file_snapshot():
     params = {
         "snapshot_name": "MOCK_FILE_SNAPSHOT1",
@@ -441,7 +543,9 @@ def test_invalid_user_id_get_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(GoogleSnapshotService, "get_files_of_folder", MockService.get_none)
 def test_invalid_files_get_file_snapshot():
@@ -462,10 +566,16 @@ def test_invalid_files_get_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_files_of_folder", MockService.get_files_of_folder)
-@mock.patch.object(GoogleSnapshotService, "get_permission_of_files", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_files_of_folder", MockService.get_files_of_folder
+)
+@mock.patch.object(
+    GoogleSnapshotService, "get_permission_of_files", MockService.get_none
+)
 def test_invalid_permissions_get_file_snapshot():
     params = {
         "snapshot_name": "MOCK_FILE_SNAPSHOT1",
@@ -484,7 +594,9 @@ def test_invalid_permissions_get_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -492,7 +604,9 @@ def test_invalid_permissions_get_file_snapshot():
     MockService.get_file_folder_sharing_difference,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_permission_of_files", MockService.get_permission_of_files
+    GoogleSnapshotService,
+    "get_permission_of_files",
+    MockService.get_permission_of_files,
 )
 def test_valid_file_folder_sharing_difference():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "file_id": "MOCK_FILE_ID1"}
@@ -505,7 +619,9 @@ def test_valid_file_folder_sharing_difference():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_file_folder_sharing_difference():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "file_id": "MOCK_FILE_ID1"}
     response = client.get(
@@ -518,9 +634,13 @@ def test_invalid_user_id_file_folder_sharing_difference():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_file_folder_sharing_difference", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_file_folder_sharing_difference", MockService.get_none
+)
 def test_invalid_file_folder_sharing_difference():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "file_id": "MOCK_FILE_ID1"}
     response = client.get(
@@ -533,7 +653,9 @@ def test_invalid_file_folder_sharing_difference():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -552,7 +674,9 @@ def test_valid_snapshot_difference():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_snapshot_difference():
     params = {
         "base_snapshot_name": "MOCK_FILE_SNAPSHOT1",
@@ -566,9 +690,13 @@ def test_invalid_user_id_snapshot_difference():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_difference_of_two_snapshots", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_difference_of_two_snapshots", MockService.get_none
+)
 def test_invalid_snapshot_difference():
     params = {
         "base_snapshot_name": "MOCK_FILE_SNAPSHOT1",
@@ -583,14 +711,18 @@ def test_invalid_snapshot_difference():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
     "scratch_group_memberships_from_file",
     MockService.scratch_group_memberships_from_file,
 )
-@mock.patch.object(GoogleSnapshotService, "create_group_snapshot", MockService.create_group_snapshot)
+@mock.patch.object(
+    GoogleSnapshotService, "create_group_snapshot", MockService.create_group_snapshot
+)
 async def test_valid_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
@@ -610,7 +742,9 @@ async def test_valid_create_group_membership_snapshot():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 async def test_invalid_user_id_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
@@ -631,7 +765,9 @@ async def test_invalid_user_id_create_group_membership_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -658,14 +794,18 @@ async def test_invalid_memberships_create_group_membership_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
     "scratch_group_memberships_from_file",
     MockService.scratch_group_memberships_from_file,
 )
-@mock.patch.object(GoogleSnapshotService, "create_group_snapshot", MockService.get_false)
+@mock.patch.object(
+    GoogleSnapshotService, "create_group_snapshot", MockService.get_false
+)
 async def test_invalid_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
@@ -685,7 +825,9 @@ async def test_invalid_create_group_membership_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -700,7 +842,9 @@ def test_valid_get_group_membership_snapshots():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_get_group_membership_snapshots():
     response = client.get("/apps/snapshot/v1/google/groups")
     assert response.status_code == 404
@@ -710,7 +854,9 @@ def test_invalid_user_id_get_group_membership_snapshots():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService, "get_recent_group_membership_snapshots", MockService.get_none
@@ -724,7 +870,9 @@ def test_invalid_get_group_membership_snapshots():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -740,7 +888,9 @@ def test_valid_get_recent_queries():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -755,7 +905,9 @@ def test_invalid_get_recent_queries():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_email_from_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_email_from_token", MockService.get_none
+)
 def test_invalid_user_email_get_recent_queries():
     response = client.get("/apps/snapshot/v1/google/queries")
     assert response.status_code == 404
@@ -765,7 +917,9 @@ def test_invalid_user_email_get_recent_queries():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -782,7 +936,9 @@ def test_valid_get_unique_members_of_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -798,7 +954,9 @@ def test_invalid_get_unique_members_of_file_snapshot():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_get_unique_members_of_file_snapshot():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "is_groups": False}
     response = client.get("/apps/snapshot/v1/google/files/members", params=params)
@@ -809,10 +967,14 @@ def test_invalid_user_id_get_unique_members_of_file_snapshot():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -842,10 +1004,14 @@ def test_valid_groups_off_search_files():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -871,7 +1037,9 @@ def test_valid_groups_on_search_files():
 @mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
-@mock.patch.object(GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_none
+)
 def test_invalid_user_id_search_files():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
     response = client.get("/apps/snapshot/v1/google/files/search", params=params)
@@ -882,9 +1050,13 @@ def test_invalid_user_id_search_files():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
-@mock.patch.object(GoogleSnapshotService, "get_user_email_from_token", MockService.get_none)
+@mock.patch.object(
+    GoogleSnapshotService, "get_user_email_from_token", MockService.get_none
+)
 def test_invalid_user_email_search_files():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
     response = client.get("/apps/snapshot/v1/google/files/search", params=params)
@@ -895,10 +1067,14 @@ def test_invalid_user_email_search_files():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -915,10 +1091,14 @@ def test_invalid_query_search_files():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,
@@ -940,10 +1120,14 @@ def test_invalid_process_query_search_files():
 @mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
 @mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_id_from_access_token", MockService.get_user_id_from_access_token
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
 )
 @mock.patch.object(
-    GoogleSnapshotService, "get_user_email_from_token", MockService.get_user_email_from_token
+    GoogleSnapshotService,
+    "get_user_email_from_token",
+    MockService.get_user_email_from_token,
 )
 @mock.patch.object(
     GoogleSnapshotService,

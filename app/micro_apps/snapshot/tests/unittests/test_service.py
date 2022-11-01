@@ -2,8 +2,15 @@ import datetime
 import pytest
 import mock
 import json
-from app.micro_apps.snapshot.services.google.service import GoogleSnapshotService, GoogleAuth, GoogleAuthDatabase, \
-    GoogleDrive, GoogleSnapshotDatabase, GoogleAnalysis, GoogleQueryBuilder
+from app.micro_apps.snapshot.services.google.service import (
+    GoogleSnapshotService,
+    GoogleAuth,
+    GoogleAuthDatabase,
+    GoogleDrive,
+    GoogleSnapshotDatabase,
+    GoogleAnalysis,
+    GoogleQueryBuilder,
+)
 from .mock.mock_google_auth import MockGoogleAuth
 from .mock.mock_user_database import MockUserDataBase
 from .mock.mock_google_drive import MockGoogleDrive
@@ -20,7 +27,7 @@ service = GoogleSnapshotService()
 
 
 def mock_get_sharing_difference_of_two_files(
-        user_id, snapshot_name, base_file_id, compare_file_id
+    user_id, snapshot_name, base_file_id, compare_file_id
 ):
     return [{"id": "PERMISSIONID1"}], [], [{"id": "PERMISSIONID4"}]
 
@@ -55,9 +62,7 @@ def test_invalid_get_user_id_from_token(google_auth_exception):
 
 
 @mock.patch.object(GoogleDrive, "__init__", MockGoogleDrive.__init__)
-@mock.patch.object(
-    GoogleDrive, "get_root_file_id", MockGoogleDrive.get_root_file_id
-)
+@mock.patch.object(GoogleDrive, "get_root_file_id", MockGoogleDrive.get_root_file_id)
 def test_valid_get_root_id_from_api():
     mock_service = GoogleSnapshotService()
     root_id = mock_service.get_root_id_from_api(mock_access_token)
@@ -73,9 +78,7 @@ def test_invalid_get_root_id_from_api(google_drive_exception):
 
 
 @mock.patch.object(GoogleDrive, "__init__", MockGoogleDrive.__init__)
-@mock.patch.object(
-    GoogleDrive, "get_shared_drives", MockGoogleDrive.get_shared_drives
-)
+@mock.patch.object(GoogleDrive, "get_shared_drives", MockGoogleDrive.get_shared_drives)
 def test_valid_get_all_shared_drives_from_api():
     shared_drives = service.get_all_shared_drives_from_api(mock_access_token)
     assert shared_drives
@@ -630,7 +633,7 @@ def test_valid_get_sharing_difference_of_two_files_different_snapshots():
 @mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
 @mock.patch.object(GoogleAnalysis, "get_sharing_differences", side_effect=Exception)
 def test_invalid_get_sharing_difference_of_two_files_different_snapshots(
-        snapshot_db_exception,
+    snapshot_db_exception,
 ):
     mock_user_id = "MOCK_USER_ID1"
     mock_base_snapshot_name = "FILE_SNAPSHOT1"
@@ -671,9 +674,7 @@ def test_valid_get_difference_of_two_snapshots():
     MockDB.get_all_files_of_snapshot,
 )
 @mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
-@mock.patch.object(
-    GoogleAnalysis, "compare_two_file_snapshots", side_effect=Exception
-)
+@mock.patch.object(GoogleAnalysis, "compare_two_file_snapshots", side_effect=Exception)
 def test_invalid_get_difference_of_two_snapshots(snapshot_db_exception):
     mock_user_id = "MOCK_USER_ID1"
     mock_base_snapshot_name = "FILE_SNAPSHOT1"
@@ -897,8 +898,8 @@ def test_invalid_is_file_folder_diff_validate_query():
         mock_user_id, mock_email, mock_snapshot_name, mock_query
     )
     assert (
-            validated
-            == "Invalid Query: file folder differences cannot be searched with other queries"
+        validated
+        == "Invalid Query: file folder differences cannot be searched with other queries"
     )
 
 
@@ -971,9 +972,7 @@ def test_valid_get_recent_queries():
 
 
 @mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
-@mock.patch.object(
-    GoogleAuthDatabase, "get_recent_queries", side_effect=Exception
-)
+@mock.patch.object(GoogleAuthDatabase, "get_recent_queries", side_effect=Exception)
 def test_invalid_get_recent_queries(google_auth_exception):
     mock_email = "yoobae@cs.stonybrook.edu"
     recent_queries = service.get_recent_queries(mock_email)

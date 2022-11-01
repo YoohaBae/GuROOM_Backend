@@ -23,7 +23,7 @@ def new_init(self, user_id):
 @mock.patch.object(GoogleAnalysis, "dfs_shared", return_value=None)
 @mock.patch.object(GoogleAnalysis, "update_inherited_shared", return_value=None)
 def test_calculate_permission_and_path(
-        mock_dfs, mock_dfs_shared, mock_update_inherited_shared
+    mock_dfs, mock_dfs_shared, mock_update_inherited_shared
 ):
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_GoogleAnalysis = GoogleAnalysis(mock_user_id)
@@ -63,7 +63,9 @@ def test_dfs_shared():
                 sample_shared_drive = file_snapshot["shared_drives"][0]
     curr_folder_path = "/" + sample_shared_drive["name"]
     folder_id = sample_shared_drive["id"]
-    mock_GoogleAnalysis.dfs_shared(visited, curr_folder_path, mock_snapshot_name, folder_id)
+    mock_GoogleAnalysis.dfs_shared(
+        visited, curr_folder_path, mock_snapshot_name, folder_id
+    )
 
 
 @mock.patch.object(GoogleAnalysis, "__init__", new_init)

@@ -208,7 +208,9 @@ class GoogleQueryBuilder(QueryBuilder):
         files = []
         if operator == "drive":
             regex_path = rf"^/{value}"
-            files = self._snapshot_db.get_files_with_path_regex(self.snapshot_name, regex_path)
+            files = self._snapshot_db.get_files_with_path_regex(
+                self.snapshot_name, regex_path
+            )
         elif operator in ["owner", "readable", "writable"]:
             if operator == "readable":
                 operator = "reader"
@@ -226,14 +228,18 @@ class GoogleQueryBuilder(QueryBuilder):
                 )
         elif operator == "from":
             email = self.validate_user(value)
-            files = self._snapshot_db.get_files_with_sharing_user(self.snapshot_name, email)
+            files = self._snapshot_db.get_files_with_sharing_user(
+                self.snapshot_name, email
+            )
         elif operator == "to":
             email = self.validate_user(value)
             file_ids = self._snapshot_db.get_directly_shared_permissions_file_ids(
                 self.snapshot_name, email
             )
             unique_file_ids = [*set(file_ids)]
-            files = self._snapshot_db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
+            files = self._snapshot_db.get_files_of_file_ids(
+                self.snapshot_name, unique_file_ids
+            )
         elif operator == "name":
             regex_expr = value
             files = self._snapshot_db.get_files_that_match_file_name_regex(
@@ -261,16 +267,22 @@ class GoogleQueryBuilder(QueryBuilder):
                 folder_path = rf"^{folder['path']}/{folder['name']}$"
                 files = ListOfDictsComparor.union(
                     files,
-                    self._snapshot_db.get_files_with_path_regex(self.snapshot_name, folder_path),
+                    self._snapshot_db.get_files_with_path_regex(
+                        self.snapshot_name, folder_path
+                    ),
                 )
         elif operator == "path":
             regex_path = rf"^{value}"
-            files = self._snapshot_db.get_files_with_path_regex(self.snapshot_name, regex_path)
+            files = self._snapshot_db.get_files_with_path_regex(
+                self.snapshot_name, regex_path
+            )
         elif operator == "sharing":
             if value == "none":
                 files = self._snapshot_db.get_not_shared_files(self.snapshot_name)
             elif value == "anyone":
-                file_ids = self._snapshot_db.get_file_ids_shared_with_anyone(self.snapshot_name)
+                file_ids = self._snapshot_db.get_file_ids_shared_with_anyone(
+                    self.snapshot_name
+                )
                 unique_file_ids = [*set(file_ids)]
                 files = self._snapshot_db.get_files_of_file_ids(
                     self.snapshot_name, unique_file_ids

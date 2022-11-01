@@ -1,21 +1,13 @@
 """
 Google Drive Auth
 """
-import logging
 import requests
 from app.services.drive import Drive
-
-logging.Formatter(
-    "[%(asctime)s] p%(process)s {%(pathname)s:"
-    "%(lineno)d} %(levelname)s - %(message)s",
-    "%m-%d %H:%M:%S",
-)
 
 
 class GoogleDrive(Drive):
     def __init__(self):
         super().__init__()
-        self._logger = logging.getLogger(__name__)
 
     def get_root_file_id(self, token):
         root_file_request = requests.get(
@@ -37,9 +29,9 @@ class GoogleDrive(Drive):
                 params={
                     "access_token": token,
                     "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                    "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                    "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                    "size, contentRestrictions)",
+                              "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                              "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                              "size, contentRestrictions)",
                     "corpora": "allDrives",
                     "supportsAllDrives": True,
                     "includeItemsFromAllDrives": True,
@@ -54,9 +46,9 @@ class GoogleDrive(Drive):
                 params={
                     "access_token": token,
                     "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                    "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                    "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                    "size, contentRestrictions)",
+                              "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                              "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
+                              "size, contentRestrictions)",
                     "corpora": "allDrives",
                     "supportsAllDrives": True,
                     "includeItemsFromAllDrives": True,

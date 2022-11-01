@@ -1,18 +1,13 @@
 import re
-from .service import SnapshotDataBase
-from app.utils.util import BinaryTree, ListOfDictsComparor
 import pyparsing as pp
+from app.services.query_builder import QueryBuilder
+from app.utils.util import BinaryTree, ListOfDictsComparor
+from .service import GoogleSnapshotDatabase
 
 
-class QueryBuilder:
+class GoogleQueryBuilder(QueryBuilder):
     def __init__(self, user_id, user_email, snapshot_name):
-        self._db = SnapshotDataBase(user_id)
-        self.user_email = user_email
-        self.snapshot_name = snapshot_name
-        self.boolean_operators = None
-        self.operators = None
-        self.initialize_grammar_factory()
-        self.all_files = self._db.get_all_files_of_snapshot(self.snapshot_name)
+        super().__init__(GoogleSnapshotDatabase(user_id), user_email, snapshot_name)
         self.is_groups = True
 
     def create_tree_from_query(self, query):
@@ -89,7 +84,7 @@ class QueryBuilder:
         if drive_name.lower() == "mydrive":
             return "MyDrive"
         else:
-            shared_drives = self._db.get_shared_drives(self.snapshot_name)
+            shared_drives = self._snapshot_db.get_shared_drives(self.snapshot_name)
             shared_drive_names = [x["name"] for x in shared_drives]
             if drive_name not in shared_drive_names:
                 raise ValueError(
@@ -213,7 +208,7 @@ class QueryBuilder:
         files = []
         if operator == "drive":
             regex_path = rf"^/{value}"
-            files = self._db.get_files_with_path_regex(self.snapshot_name, regex_path)
+            files = self._snapshot_db.get_files_with_path_regex(self.snapshot_name, regex_path)
         elif operator in ["owner", "readable", "writable"]:
             if operator == "readable":
                 operator = "reader"
@@ -222,30 +217,30 @@ class QueryBuilder:
             email = self.validate_user(value)
             if self.is_groups:
                 # get files including the group emails the email is in
-                files = self._db.get_files_with_certain_role_including_groups(
+                files = self._snapshot_db.get_files_with_certain_role_including_groups(
                     self.snapshot_name, operator, email
                 )
             else:
-                files = self._db.get_files_with_certain_role(
+                files = self._snapshot_db.get_files_with_certain_role(
                     self.snapshot_name, operator, email
                 )
         elif operator == "from":
             email = self.validate_user(value)
-            files = self._db.get_files_with_sharing_user(self.snapshot_name, email)
+            files = self._snapshot_db.get_files_with_sharing_user(self.snapshot_name, email)
         elif operator == "to":
             email = self.validate_user(value)
-            file_ids = self._db.get_directly_shared_permissions_file_ids(
+            file_ids = self._snapshot_db.get_directly_shared_permissions_file_ids(
                 self.snapshot_name, email
             )
             unique_file_ids = [*set(file_ids)]
-            files = self._db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
+            files = self._snapshot_db.get_files_of_file_ids(self.snapshot_name, unique_file_ids)
         elif operator == "name":
             regex_expr = value
-            files = self._db.get_files_that_match_file_name_regex(
+            files = self._snapshot_db.get_files_that_match_file_name_regex(
                 self.snapshot_name, regex_expr
             )
         elif operator == "inFolder":
-            folder_ids_and_names = self._db.get_folders_with_regex(
+            folder_ids_and_names = self._snapshot_db.get_folders_with_regex(
                 self.snapshot_name, value
             )
             files = []
@@ -253,12 +248,12 @@ class QueryBuilder:
                 folder_id = folder["id"]
                 files = ListOfDictsComparor.union(
                     files,
-                    self._db.get_file_under_folder(
+                    self._snapshot_db.get_file_under_folder(
                         self.snapshot_name, folder_id=folder_id
                     ),
                 )
         elif operator == "folder":
-            folder_ids_and_names = self._db.get_folders_with_regex(
+            folder_ids_and_names = self._snapshot_db.get_folders_with_regex(
                 self.snapshot_name, value
             )
             files = []
@@ -266,29 +261,29 @@ class QueryBuilder:
                 folder_path = rf"^{folder['path']}/{folder['name']}$"
                 files = ListOfDictsComparor.union(
                     files,
-                    self._db.get_files_with_path_regex(self.snapshot_name, folder_path),
+                    self._snapshot_db.get_files_with_path_regex(self.snapshot_name, folder_path),
                 )
         elif operator == "path":
             regex_path = rf"^{value}"
-            files = self._db.get_files_with_path_regex(self.snapshot_name, regex_path)
+            files = self._snapshot_db.get_files_with_path_regex(self.snapshot_name, regex_path)
         elif operator == "sharing":
             if value == "none":
-                files = self._db.get_not_shared_files(self.snapshot_name)
+                files = self._snapshot_db.get_not_shared_files(self.snapshot_name)
             elif value == "anyone":
-                file_ids = self._db.get_file_ids_shared_with_anyone(self.snapshot_name)
+                file_ids = self._snapshot_db.get_file_ids_shared_with_anyone(self.snapshot_name)
                 unique_file_ids = [*set(file_ids)]
-                files = self._db.get_files_of_file_ids(
+                files = self._snapshot_db.get_files_of_file_ids(
                     self.snapshot_name, unique_file_ids
                 )
             elif value == "individual":
                 pass
             elif value == "domain":
                 domain = re.search(r"@[\w.]+", self.user_email).group()
-                file_ids = self._db.get_file_ids_shared_with_users_from_domain(
+                file_ids = self._snapshot_db.get_file_ids_shared_with_users_from_domain(
                     self.snapshot_name, domain
                 )
                 unique_file_ids = [*set(file_ids)]
-                files = self._db.get_files_of_file_ids(
+                files = self._snapshot_db.get_files_of_file_ids(
                     self.snapshot_name, unique_file_ids
                 )
         else:

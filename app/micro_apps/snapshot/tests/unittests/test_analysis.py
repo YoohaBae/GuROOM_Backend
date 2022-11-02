@@ -96,7 +96,6 @@ def test_get_sharing_differences():
     assert compare_permissions_more_ids == ["PERMISSIONID7", "PERMISSIONID8"]
 
 
-# TODO: create FILE_SNAPSHOT2 data
 @mock.patch.object(GoogleAnalysis, "__init__", new_init)
 def test_compare_two_file_snapshots():
     mock_GoogleAnalysis = GoogleAnalysis(mock_user_id)

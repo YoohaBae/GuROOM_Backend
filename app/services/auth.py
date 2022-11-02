@@ -18,16 +18,40 @@ class Auth:
         self.client_secret = None
 
     def get_authorization_url(self):
-        pass
+        """
+        Retrieve the authorization url of drive oauth
+        :return: url
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def get_token(self, code):
-        pass
+        """
+        Retrieves the access token and refresh token
+        :param code: code retrieved by user authentication
+        :return: access token and refresh token as a dict
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def revoke_token(self, token):
-        pass
+        """
+        Revoke the refresh token of cloud drive oauth2
+        :param token: access token
+        :return: Boolean for success or failure
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def refresh_token(self, refresh_token):
-        pass
+        """
+        Refreshes access token with refresh token
+        :param refresh_token: refresh token
+        :return: access token
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def get_user(self, token):
-        pass
+        """
+        Get user information of cloud drive oauth2
+        :param token: access token
+        :return: user information -> may need to format in User model
+        """
+        raise NotImplementedError("Must be implemented by child class")

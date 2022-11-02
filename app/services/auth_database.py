@@ -14,16 +14,43 @@ class AuthDatabase:
         self.collection_name = "auth"
 
     def save_user(self, email):
-        pass
+        """
+        operation: save user to database
+        :param email: email of user
+        :return: None
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def check_user_exists(self, email):
-        pass
+        """
+        operation: check if user exists by finding user
+        :param email: user email
+        :return: True -> user exists, False -> user does not exist
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def get_user(self, email):
-        pass
+        """
+        operation: get user information
+        :param email: user email
+        :return: user with no recent queries
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def get_recent_queries(self, email):
-        pass
+        """
+        operation: retrieves recent queries of a user
+        :param email: user email
+        :return: list of recent queries
+        """
+        raise NotImplementedError("Must be implemented by child class")
 
     def update_or_push_recent_queries(self, email, recent_query_obj):
-        pass
+        """
+        operation: Check if query exists -> if it exists: update search_time to now
+                                        -> if not exists: append to recent_queries
+        :param email:
+        :param recent_query_obj: (query, search_time)
+        :return: None
+        """
+        raise NotImplementedError("Must be implemented by child class")

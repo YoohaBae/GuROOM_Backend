@@ -11,11 +11,12 @@ class GoogleQueryBuilder(QueryBuilder):
         self.is_groups = True
 
     def create_tree_from_query(self, query):
+        # pp -> pyparsing package that creates infix notation based on strings
         operator = pp.Regex(":").setName("operator")
         key = pp.Regex(r"([a-zA-Z0-9_\-\.@]+)")
         value = pp.Regex(r"\"([a-zA-Z0-9_\-\.@^$]\/ +]+)\"|([a-zA-Z0-9_\-\.@^$\/]+)")
         condition = pp.Group(key + operator + value)
-
+        # creates infix notation based on the above rules
         expr = pp.infix_notation(
             condition,
             [
@@ -23,22 +24,26 @@ class GoogleQueryBuilder(QueryBuilder):
                 (pp.one_of("and or"), 2, pp.OpAssoc.RIGHT),
             ],
         )
-
+        # get the string of the infix notation
         parsed_expr = expr.parseString(query).asList()[0]
+        # create tree from the infix notation
         tree = self.create_tree_from_parsed_expression(parsed_expr)
         return tree
 
     def create_tree_from_parsed_expression(self, parsed_expr):
         if parsed_expr is []:
             return
+        # simple search query
         if ":" in parsed_expr:
             root = parsed_expr
             left = None
             right = None
+        # - operator
         elif len(parsed_expr) == 2:
             left = parsed_expr.pop()
             root = parsed_expr.pop()
             right = None
+        # and or operator
         else:
             left = parsed_expr.pop()
             root = parsed_expr.pop()
@@ -85,6 +90,7 @@ class GoogleQueryBuilder(QueryBuilder):
             return "MyDrive"
         else:
             shared_drives = self._snapshot_db.get_shared_drives(self.snapshot_name)
+            # check if drive exists in shared drives
             shared_drive_names = [x["name"] for x in shared_drives]
             if drive_name not in shared_drive_names:
                 raise ValueError(
@@ -163,9 +169,11 @@ class GoogleQueryBuilder(QueryBuilder):
         if tree.data is None:
             return
         node = tree.data
+        # validate boolean operator
         if type(node) == str:
             boolean_operator = node
             self.validate_boolean_operator(boolean_operator)
+        # validate tree
         elif type(node) == list:
             operator = node[0]
             self.validate_operator(operator)
@@ -185,10 +193,12 @@ class GoogleQueryBuilder(QueryBuilder):
         node = tree.data
         left_files = []
         right_files = []
+        # node is simple query
         if type(node) == list:
             operator = node[0]
             value = node[2]
             return self.get_file_of_operator(operator, value)
+        # node is boolean operator
         if type(node) == str:
             boolean_operator = node
             if tree.left is not None:
@@ -196,21 +206,26 @@ class GoogleQueryBuilder(QueryBuilder):
             if tree.right is not None:
                 right_files = self.get_files_from_tree(tree.right)
             if boolean_operator == "and":
+                # get intersection
                 if left_files and right_files:
                     return ListOfDictsComparor.intersection(left_files, right_files)
             elif boolean_operator == "or":
+                # get union
                 if left_files and right_files:
                     return ListOfDictsComparor.union(left_files, right_files)
             elif boolean_operator == "-":
+                # get difference
                 return ListOfDictsComparor.difference(self.all_files, left_files)
 
     def get_file_of_operator(self, operator, value):
         files = []
+        # file of drive operator
         if operator == "drive":
             regex_path = rf"^/{value}"
             files = self._snapshot_db.get_files_with_path_regex(
                 self.snapshot_name, regex_path
             )
+        # file of roles operator
         elif operator in ["owner", "readable", "writable"]:
             if operator == "readable":
                 operator = "reader"
@@ -226,11 +241,13 @@ class GoogleQueryBuilder(QueryBuilder):
                 files = self._snapshot_db.get_files_with_certain_role(
                     self.snapshot_name, operator, email
                 )
+        # file of from operator
         elif operator == "from":
             email = self.validate_user(value)
             files = self._snapshot_db.get_files_with_sharing_user(
                 self.snapshot_name, email
             )
+        # file of to operator
         elif operator == "to":
             email = self.validate_user(value)
             file_ids = self._snapshot_db.get_directly_shared_permissions_file_ids(
@@ -240,11 +257,13 @@ class GoogleQueryBuilder(QueryBuilder):
             files = self._snapshot_db.get_files_of_file_ids(
                 self.snapshot_name, unique_file_ids
             )
+        # file of file name operator
         elif operator == "name":
             regex_expr = value
             files = self._snapshot_db.get_files_that_match_file_name_regex(
                 self.snapshot_name, regex_expr
             )
+        # file that are in folder
         elif operator == "inFolder":
             folder_ids_and_names = self._snapshot_db.get_folders_with_regex(
                 self.snapshot_name, value
@@ -258,6 +277,7 @@ class GoogleQueryBuilder(QueryBuilder):
                         self.snapshot_name, folder_id=folder_id
                     ),
                 )
+        # file that are under folder
         elif operator == "folder":
             folder_ids_and_names = self._snapshot_db.get_folders_with_regex(
                 self.snapshot_name, value
@@ -271,11 +291,13 @@ class GoogleQueryBuilder(QueryBuilder):
                         self.snapshot_name, folder_path
                     ),
                 )
+        # file of path operator
         elif operator == "path":
             regex_path = rf"^{value}"
             files = self._snapshot_db.get_files_with_path_regex(
                 self.snapshot_name, regex_path
             )
+        # file of sharing operator
         elif operator == "sharing":
             if value == "none":
                 files = self._snapshot_db.get_not_shared_files(self.snapshot_name)
@@ -290,6 +312,7 @@ class GoogleQueryBuilder(QueryBuilder):
             elif value == "individual":
                 pass
             elif value == "domain":
+                # domain of user email
                 domain = re.search(r"@[\w.]+", self.user_email).group()
                 file_ids = self._snapshot_db.get_file_ids_shared_with_users_from_domain(
                     self.snapshot_name, domain

@@ -80,6 +80,7 @@ class DropboxAuth(Auth):
         status_code = getattr(user_request, "status_code")
         if status_code == 200:
             data = user_request.json()
+            # format data to match user model
             formatted_data = {
                 "name": data["name"]["display_name"],
                 "given_name": data["name"]["given_name"],

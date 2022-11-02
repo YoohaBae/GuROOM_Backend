@@ -25,6 +25,10 @@ service = DropboxAuthService()
     status_code=status.HTTP_200_OK,
 )
 def create_auth():
+    """
+    Creating the auth url of dropbox
+    :return: url
+    """
     url = service.get_auth_url()
     if url is None:
         return JSONResponse(
@@ -36,6 +40,12 @@ def create_auth():
 
 @router.post("/login")
 def login(body=Body(...), authorize: AuthJWT = Depends()):
+    """
+    Performs login with the code retrieved from the frontend
+    :param body: has the authentication code
+    :param authorize: Creates and manages access and refresh tokens
+    :return: cookies that have access and refresh tokens
+    """
     code = body["code"]
     token = service.get_token(code)
     if token is None:
@@ -74,6 +84,10 @@ def login(body=Body(...), authorize: AuthJWT = Depends()):
     },
 )
 def get_user(authorize: AuthJWT = Depends()):
+    """
+    Get the user info using access token and if it is a new user, stores it into internal db
+    :param authorize: check if access_token exists and retrieve access token
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -99,6 +113,11 @@ def get_user(authorize: AuthJWT = Depends()):
 
 @router.post("/refresh")
 def refresh_token(authorize: AuthJWT = Depends()):
+    """
+    operation: refreshes access token with refresh token
+    :param authorize: user authentication
+    :return: cookie with new access token
+    """
     authorize.jwt_refresh_token_required()
     refresh_token = authorize.get_jwt_subject()
     authorize.unset_access_cookies()
@@ -121,6 +140,11 @@ def refresh_token(authorize: AuthJWT = Depends()):
 
 @router.delete("/logout")
 def logout(authorize: AuthJWT = Depends()):
+    """
+    operation: remove access token from cookie
+    :param authorize: user authentication
+    :return: cookie that has no access token
+    """
     authorize.jwt_required()
     authorize.unset_jwt_cookies()
     response = JSONResponse(status_code=status.HTTP_200_OK, content="token deleted")
@@ -129,6 +153,11 @@ def logout(authorize: AuthJWT = Depends()):
 
 @router.delete("/revoke")
 def revoke(authorize: AuthJWT = Depends()):
+    """
+    operation: invalidates refresh token from dropbox
+    :param authorize: user authentication
+    :return: cookie with no access and refresh token
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 

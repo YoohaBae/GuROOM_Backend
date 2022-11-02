@@ -7,6 +7,7 @@ class GoogleAuthDatabase(AuthDatabase):
         super().__init__()
 
     def save_user(self, email):
+        # save user email with type google and empty recent queries
         user = {"type": "google", "email": email, "recent_queries": []}
         self._db.insert_document(self.collection_name, user)
 

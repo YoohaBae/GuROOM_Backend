@@ -183,6 +183,11 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
 
 @router.get("/queries", tags=["queries"])
 def get_recent_queries(authorize: AuthJWT = Depends()):
+    """
+    Get the 10 most recent queries
+    :param authorize: retrieves access token
+    :return: 10 recent queries as a list
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -259,17 +264,20 @@ def get_file_snapshot(
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
-
+    # files directly under MyDrive
     if my_drive:
         files = service.get_files_of_my_drive(user_id, snapshot_name, offset, limit)
+    # files directly under Shared With Me
     elif shared_with_me:
         files = service.get_files_of_shared_with_me(
             user_id, snapshot_name, offset, limit
         )
+    # files directly under a certain shared drive
     elif shared_drive:
         files = service.get_files_of_shared_drive(
             user_id, snapshot_name, folder_id, offset, limit
         )
+    # files directly under a folder id
     else:
         files = service.get_files_of_folder(
             user_id, snapshot_name, folder_id, offset, limit
@@ -280,7 +288,7 @@ def get_file_snapshot(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of file under folder",
         )
-
+    # permissions of file list
     permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
     if permissions is None:
@@ -324,7 +332,7 @@ def search_files(
         )
     is_groups = True
     if "groups:off" in query:
-        # if groups:off exist -> remove it from the query
+        # if groups:off exist -> remove it from the query and set the is_groups to false
         query = query.replace("groups:off and ", "")
         is_groups = False
     valid = service.validate_query(user_id, email, snapshot_name, query)
@@ -335,6 +343,7 @@ def search_files(
             content=valid,
         )
 
+    # files of query
     files = service.process_query_search(
         user_id, email, snapshot_name, query, is_groups
     )
@@ -345,6 +354,7 @@ def search_files(
             content="unable to retrieve list of files of query",
         )
 
+    # permissions of file list
     permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
     if permissions is None:
@@ -436,6 +446,13 @@ def get_file_folder_sharing_difference(
 def get_unique_members_of_file_snapshot(
     snapshot_name: str, is_groups: bool, authorize: AuthJWT = Depends()
 ):
+    """
+    operation: get unique memberships of a file snapshot (for autocomplete)
+    :param snapshot_name: file snapshot name
+    :param is_groups: group membership snapshot is included
+    :param authorize: user authentication
+    :return: list of unique members
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -466,6 +483,15 @@ async def create_group_membership_snapshot(
     create_time: datetime = Form(...),
     authorize: AuthJWT = Depends(),
 ):
+    """
+    operation: create a group membership snapshot
+    :param file: html file of google groups
+    :param group_name: name of group
+    :param group_email: email of group
+    :param create_time: the time that the html file was saved
+    :param authorize: user authentication
+    :return: status code
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
@@ -497,6 +523,11 @@ async def create_group_membership_snapshot(
 
 @router.get("/groups", tags=["group_snapshot"])
 def get_group_membership_snapshot(authorize: AuthJWT = Depends()):
+    """
+    operation: retrieves the most recent group membership snapshot for each group
+    :param authorize: user authentication
+    :return: recent group membership snapshots
+    """
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 

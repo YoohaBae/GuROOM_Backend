@@ -41,6 +41,7 @@ class GoogleSnapshotService(SnapshotService):
     def get_root_id_from_api(self, access_token):
         google_drive = GoogleDrive()
         try:
+            # get the id of MyDrive
             root_id = google_drive.get_root_file_id(access_token)
             return root_id
         except Exception as error:
@@ -53,7 +54,7 @@ class GoogleSnapshotService(SnapshotService):
             drives, next_page_token = google_drive.get_shared_drives(access_token)
 
             if drives:
-                # take snapshot
+                # there are more shared drives to be retrieved
                 while next_page_token is not None:
                     new_drives, next_page_token = google_drive.get_shared_drives(
                         access_token, next_page_token
@@ -70,7 +71,7 @@ class GoogleSnapshotService(SnapshotService):
             files, next_page_token = google_drive.get_files(access_token)
 
             if files:
-                # take snapshot
+                # there are more files to be retrieved
                 while next_page_token is not None:
                     new_files, next_page_token = google_drive.get_files(
                         access_token, next_page_token
@@ -78,6 +79,7 @@ class GoogleSnapshotService(SnapshotService):
                     files += new_files
             for file in files:
                 shared_drive_permissions_for_file = []
+                # separate result into file and permission
                 if (
                     "driveId" in file
                     and file["driveId"] is not None
@@ -86,6 +88,7 @@ class GoogleSnapshotService(SnapshotService):
                 ):
                     permission_ids = file["permissionIds"]
                     for pid in permission_ids:
+                        # shared drive permissions must be retrieved separately by a different api request
                         permission = (
                             google_drive.get_permission_detail_of_shared_drive_file(
                                 access_token, file["id"], pid
@@ -153,7 +156,9 @@ class GoogleSnapshotService(SnapshotService):
     def get_files_of_my_drive(self, user_id, snapshot_name, offset=None, limit=None):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
+            # get the id of MyDrive
             folder_id = snapshot_db.get_root_id(snapshot_name)
+            # get files under MyDrive
             data = snapshot_db.get_file_under_folder(
                 snapshot_name, offset, limit, folder_id
             )
@@ -175,6 +180,7 @@ class GoogleSnapshotService(SnapshotService):
             # get all files that do not have a path attribute -> has a parent but that parent is not in snapshot
             no_path = snapshot_db.get_files_with_no_path(snapshot_name)
             yes_path = []
+            # set the files with no path as shared with me
             for no_path_file in no_path:
                 no_path_file["path"] = "/SharedWithMe"
                 yes_path.append(no_path_file)
@@ -231,8 +237,10 @@ class GoogleSnapshotService(SnapshotService):
                     snapshot_name, file["id"]
                 )
                 permissions.extend(permission)
+            # group the permissions by the same file ids
             permission_grouped = self.group_permission_by_file_id(permissions)
             for file_id in permission_grouped.keys():
+                # separate the permissions by inherit and direct permissions
                 inherit, direct = self.separate_permission_to_inherit_and_direct(
                     permission_grouped[file_id]
                 )
@@ -253,21 +261,24 @@ class GoogleSnapshotService(SnapshotService):
             root_id = snapshot_db.get_root_id(snapshot_name)
             shared_drives = snapshot_db.get_shared_drives(snapshot_name)
             shared_drive_ids = [x["id"] for x in shared_drives]
+            # go through all files of snapshot
             for file in all_files:
                 file_id = file["id"]
                 parents = file["parents"]
+                # if parent doesn't exist or the parent is MyDrive or any shared drive
                 if (
                     len(parents) == 0
                     or parents[0] == root_id
                     or parents[0] in shared_drive_ids
                 ):
                     continue
-
+                # get the folder id
                 folder_id = parents[0]
-
+                # get permission of file id
                 file_permissions = snapshot_db.get_all_permission_of_file(
                     snapshot_name, file_id
                 )
+                # get permission of folder id
                 folder_permissions = snapshot_db.get_all_permission_of_file(
                     snapshot_name, folder_id
                 )
@@ -275,6 +286,7 @@ class GoogleSnapshotService(SnapshotService):
                 # no folder with such id
                 if folder_permissions is None:
                     continue
+                # perform analysis
                 analysis = GoogleAnalysis(user_id)
                 (
                     base_more_permissions,
@@ -283,11 +295,13 @@ class GoogleSnapshotService(SnapshotService):
                 ) = analysis.get_sharing_differences(
                     file_permissions, folder_permissions
                 )
+                # there is a difference
                 if (
                     len(base_more_permissions) != 0
                     or len(changes) != 0
                     or len(compare_more_permissions) != 0
                 ):
+                    # append to different files
                     different_files.append(file)
             different_files = json.loads(
                 json.dumps(different_files, cls=DateTimeEncoder)
@@ -300,7 +314,9 @@ class GoogleSnapshotService(SnapshotService):
     def get_file_folder_sharing_difference(self, user_id, snapshot_name, file_id):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
+            # get the id of the parent(folder) of file
             folder_id = snapshot_db.get_parent_id(snapshot_name, file_id)
+            # compare the two files
             folder_more, changes, file_more = self.get_sharing_difference_of_two_files(
                 user_id, snapshot_name, folder_id, file_id
             )
@@ -314,12 +330,15 @@ class GoogleSnapshotService(SnapshotService):
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
+            # get the permissions of the base file
             base_file_permissions = snapshot_db.get_all_permission_of_file(
                 snapshot_name, base_file_id
             )
+            # get the permissions of the compare file
             compare_file_permissions = snapshot_db.get_all_permission_of_file(
                 snapshot_name, compare_file_id
             )
+            # perform analysis
             analysis = GoogleAnalysis(user_id)
             (
                 base_more_permissions,
@@ -338,12 +357,15 @@ class GoogleSnapshotService(SnapshotService):
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
+            # get the permissions of the base file snapshot
             base_snapshot_file_permissions = snapshot_db.get_all_permission_of_file(
                 base_snapshot_name, file_id
             )
+            # get the permissions of the compare file snapshot
             compare_snapshot_file_permissions = snapshot_db.get_all_permission_of_file(
                 compare_snapshot_name, file_id
             )
+            # perform analysis
             analysis = GoogleAnalysis(user_id)
             (
                 base_more_permissions,
@@ -368,14 +390,15 @@ class GoogleSnapshotService(SnapshotService):
             compare_snapshot_files = snapshot_db.get_all_files_of_snapshot(
                 compare_snapshot_name
             )
-            # get new files: files that exist in compare_snapshot_files and not base_snapshot_files
             analysis = GoogleAnalysis(user_id)
+            # compare the two file snapshots
             data = analysis.compare_two_file_snapshots(
                 base_snapshot_name,
                 compare_snapshot_name,
                 base_snapshot_files,
                 compare_snapshot_files,
             )
+            # get the files that have different permissions or files that were newly created
             different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
             return different_files
         except Exception as error:
@@ -409,20 +432,29 @@ class GoogleSnapshotService(SnapshotService):
 
     async def scratch_group_memberships_from_file(self, file):
         try:
+            # class for membership row div
             MEMBERSHIP_ROW_CLASS = "cXEmmc B9Uude hFgAsc J6Lkdb"
+            # class for membership name div
             MEMBERSHIP_NAME_CLASS = "LnLepd"
+            # class for membership email div
             MEMBERSHIP_EMAIL_CLASS = "p480bb Sq3iG"
+            # class for membership role div
             MEMBERSHIP_ROLE_CLASS = "y7VPke"
+            # class for membership join date div
             MEMBERSHIP_JOIN_DATE_CLASS = "y7VPke"
             memberships = []
             await file.seek(0)
             html = await file.read()
+            # BeautifulSoup: An html parser that goes through the html file.
+            # Can retrieve certain elements based on tags, classes, and ids.
             soup = BeautifulSoup(html, "html.parser")
+            # find all membership rows
             membership_html_rows = soup.find_all("div", {"class": MEMBERSHIP_ROW_CLASS})
             for membership_html in membership_html_rows:
                 membership_html_member = membership_html.find_all(
                     "span", {"class": "eois5"}
                 )
+                # email doesn't exist -> external groups
                 if len(membership_html_member) == 3:
                     [
                         membership_html_name,
@@ -447,6 +479,7 @@ class GoogleSnapshotService(SnapshotService):
                             "join_date": join_date,
                         }
                         memberships.append(membership)
+                # emails exist -> internal groups
                 else:
                     [
                         membership_html_name,
@@ -532,12 +565,13 @@ class GoogleSnapshotService(SnapshotService):
     def validate_query(self, user_id, user_email, snapshot_name, query):
         try:
             if "is:file_folder_diff" in query:
+                # file folder diff cannot have additional query statements
                 if "is:file_folder_diff" != query:
-                    print("here")
                     raise ValueError(
                         "Invalid Query: file folder differences cannot be searched with other queries"
                     )
             else:
+                # validate queries
                 query_builder = GoogleQueryBuilder(user_id, user_email, snapshot_name)
                 query_builder.create_tree_and_validate(query)
         except Exception as error:
@@ -546,19 +580,24 @@ class GoogleSnapshotService(SnapshotService):
         return True
 
     def get_unique_members_of_file_snapshot(self, user_id, snapshot_name, is_groups):
+        # Used for autocompletion when querying
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
             all_members = []
+            # if groups toggle button was set to True get all group memberships
+            # from all recent group membership snapshots
             if is_groups:
                 recent_group_membership_snapshots = (
                     self.get_recent_group_membership_snapshots(user_id)
                 )
                 for group in recent_group_membership_snapshots:
                     all_members.extend(group["memberships"])
+            # get all memberships from the file snapshot
             permission_members = snapshot_db.get_all_members_from_permissions(
                 snapshot_name
             )
             all_members.extend(permission_members)
+            # get the unique memberships and format them
             unique_group_members = list(
                 {member["email"]: member for member in all_members}.values()
             )
@@ -571,7 +610,9 @@ class GoogleSnapshotService(SnapshotService):
         user_db = GoogleAuthDatabase()
         try:
             data = user_db.get_recent_queries(email)
+            # sort the recent query by search time
             data.sort(key=lambda x: x["search_time"])
+            # get only the 10 recent queries
             data = data[-10:]
             recent_queries = json.loads(json.dumps(data, cls=DateTimeEncoder))
             return recent_queries

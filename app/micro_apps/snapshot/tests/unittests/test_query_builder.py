@@ -235,7 +235,7 @@ def test_invalid_validate_regex():
 
 
 @mock.patch.object(GoogleQueryBuilder, "__init__", new_init)
-def test_valid_path():
+def test_valid_validate_path():
     mock_user_id = "MOCK_USER_ID1"
     mock_user_email = "yoobae@cs.stonybrook.edu"
     mock_snapshot_name = "MOCK_FILE_SNAPSHOT1"

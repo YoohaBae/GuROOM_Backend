@@ -114,22 +114,31 @@ class GoogleAnalysis(Analysis):
         # the id list of compare permissions
         compare_permission_ids = [x["id"] for x in compare_permissions]
 
+        # get ids of what base permission has more
         base_permission_more_ids = ListOfDictsComparor.difference(
             base_permission_ids, compare_permission_ids
         )
+
+        # get ids of what compare permission has more
         compare_permission_more_ids = ListOfDictsComparor.difference(
             compare_permission_ids, base_permission_ids
         )
+
+        # get the remaining permission ids
         remaining_permission_ids = ListOfDictsComparor.intersection(
             base_permission_ids, compare_permission_ids
         )
+
+        # check if any of the remaining permission ids has permission changed
         sharing_changes = self.get_sharing_changes(
             base_permissions, compare_permissions, remaining_permission_ids
         )
 
+        # get the permission for base_permission_more_ids
         base_permission_more = [
             x for x in base_permissions if x["id"] in base_permission_more_ids
         ]
+        # get the permission for compare_permission_more_ids
         compare_permission_more = [
             x for x in compare_permissions if x["id"] in compare_permission_more_ids
         ]

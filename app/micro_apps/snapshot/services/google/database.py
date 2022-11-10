@@ -17,27 +17,34 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
 
     def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
+        # create model for file snapshot
         snapshot = FileSnapshot(
             name=snapshot_name,
             created=datetime.utcnow(),
             root_id=root_id,
             shared_drives=shared_drives,
         )
+        # insert file snapshot in database
         self._db.insert_document(file_snapshot_collection_name, snapshot.dict())
 
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
         files = copy.deepcopy(data)
+        # retrieve files as a list
         files = [File(**file).dict() for file in files]
+        # insert files to database
         self._db.insert_documents(file_collection_name, files)
 
         for file in data:
             file_id = file["id"]
             permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+            # get permission of file
             if "permissions" in file:
                 permissions = []
                 for permission in file["permissions"]:
                     permission["file_id"] = file_id
+                    # format permission and append it to list
                     permissions.append(Permission(**permission).dict())
+                # insert permission into database
                 self._db.insert_documents(permission_collection_name, permissions)
 
     def get_root_id(self, snapshot_name):
@@ -124,8 +131,10 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         for parent_permission in parent_permissions:
             query = {"file_id": file_id, "id": parent_permission["id"]}
+            # parent permission was also inherited => get the inherited value
             if parent_permission["inherited"]:
                 inherited_from = parent_permission["inherited_from"]
+            # parent permission was not inherited
             else:
                 inherited_from = parent_path
             update_query = {
@@ -409,3 +418,41 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
         files = self._db.find_documents(permission_collection_name, query, filter_query)
         file_ids = [f["file_id"] for f in files]
         return file_ids
+
+    def create_access_control_requirement(self, access_control):
+        access_control_requirement_collection_name = (
+            f"{self.user_id}.access_control_requirements"
+        )
+        self._db.insert_document(
+            access_control_requirement_collection_name, access_control.dict()
+        )
+
+    def get_access_control_requirements(self):
+        access_control_requirement_collection_name = (
+            f"{self.user_id}.access_control_requirements"
+        )
+        query = {}
+        filter_query = {"_id": 0}
+        access_controls = self._db.find_documents(
+            access_control_requirement_collection_name, query, filter_query
+        )
+        return access_controls
+
+    def check_duplicate_access_control_requirement(self, access_control):
+        access_control_requirement_collection_name = (
+            f"{self.user_id}.access_control_requirements"
+        )
+        query = {
+            "query": access_control.query,
+            "AR": access_control.AR,
+            "AW": access_control.AW,
+            "DR": access_control.DR,
+            "DW": access_control.DW,
+            "Grp": access_control.Grp,
+        }
+        access_control = self._db.find_document(
+            access_control_requirement_collection_name, query
+        )
+        if access_control is None:
+            return False
+        return True

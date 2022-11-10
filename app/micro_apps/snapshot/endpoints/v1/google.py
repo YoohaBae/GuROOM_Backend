@@ -14,6 +14,7 @@ from ..models.snapshot import (
     PutFileSnapshotBody,
     PostFileSnapshotBody,
 )
+from ..models.access_control import AccessControlBody
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -501,16 +502,20 @@ async def create_group_membership_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # scratch the membership from html file
     memberships = await service.scratch_group_memberships_from_file(file)
+    # failed to scratch memberships
     if memberships is None:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to retrieve memberships from html file",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="invalid html file",
         )
 
+    # create group snapshot
     created = service.create_group_snapshot(
         user_id, group_name, group_email, create_time, memberships
     )
+    # failed to create
     if not created:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -544,3 +549,85 @@ def get_group_membership_snapshot(authorize: AuthJWT = Depends()):
             content="unable to create group membership snapshot",
         )
     return JSONResponse(status_code=status.HTTP_200_OK, content=groups)
+
+
+@router.post("/access-controls", tags=["access_control_requirements"])
+def create_access_control_requirements(
+    access_control: AccessControlBody = Body(...), authorize: AuthJWT = Depends()
+):
+    """
+    operation: creates an access control requirement
+    :param access_control: the access control requirement body object
+    :param authorize: user authentication
+    :return: status code and content
+    """
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_access_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    duplicate = service.check_duplicate_access_control_requirement(
+        user_id, access_control
+    )
+
+    # checking for duplicate access control requirement failed
+    if duplicate is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to check if duplicate access control requirement exists",
+        )
+
+    # there exists a duplicate access control requirement
+    if duplicate:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="access control requirement with same properties exists",
+        )
+
+    created = service.create_access_control_requirement(user_id, access_control)
+
+    # creating an access control requirement failed
+    if not created:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to create access control requirement",
+        )
+
+    # successfully created access control requirement
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content="access control requirement created",
+    )
+
+
+@router.get("/access-controls", tags=["access_control_requirements"])
+def get_access_control_requirements(authorize: AuthJWT = Depends()):
+    """
+    operation: retrieve the access control requirements
+    :param authorize: user authentication
+    :return: list of created access control requirements of user
+    """
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+
+    user_id = service.get_user_id_from_access_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    access_control_requirements = service.get_access_control_requirements(user_id)
+
+    # failed to retrieve access control requirements
+    if access_control_requirements is None:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to retrieve access control requirements",
+        )
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content=access_control_requirements
+    )

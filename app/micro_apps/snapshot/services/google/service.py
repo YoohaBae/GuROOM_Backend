@@ -619,3 +619,32 @@ class GoogleSnapshotService(SnapshotService):
         except Exception as error:
             self.logger.error(error)
             return None
+
+    def create_access_control_requirement(self, user_id, access_control):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
+        try:
+            snapshot_db.create_access_control_requirement(access_control)
+            return True
+        except Exception as error:
+            self.logger.error(error)
+            return False
+
+    def check_duplicate_access_control_requirement(self, user_id, access_control):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
+        try:
+            duplicate = snapshot_db.check_duplicate_access_control_requirement(
+                access_control
+            )
+            return duplicate
+        except Exception as error:
+            self.logger.error(error)
+            return False
+
+    def get_access_control_requirements(self, user_id):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
+        try:
+            access_control_requirements = snapshot_db.get_access_control_requirements()
+            return access_control_requirements
+        except Exception as error:
+            self.logger.error(error)
+            return None

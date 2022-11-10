@@ -51,17 +51,22 @@ class GoogleAnalysis(Analysis):
         all_permissions_of_snapshot = self._snapshot_db.get_all_permission_of_snapshot(
             snapshot_name
         )
+        # iterate through the entire permission of snapshot
         for permission in all_permissions_of_snapshot:
+            # if permissionDetails exist: for shared drive only
             if (
                 "permissionDetails" in permission
                 and len(permission["permissionDetails"]) == 1
             ):
+                # move the value of permissionDetails to (inherited and inherited_from field)
                 inherited_from_id = permission["permissionDetails"][0]["inheritedFrom"]
                 inherited = permission["permissionDetails"][0]["inherited"]
                 if inherited_from_id is not None and inherited:
+                    # get path of file
                     inherited_from_path = self._snapshot_db.get_path_of_file(
                         snapshot_name, inherited_from_id
                     )
+                    # update the fields
                     self._snapshot_db.update_inherited_and_inherited_from(
                         snapshot_name,
                         permission["file_id"],
@@ -77,15 +82,20 @@ class GoogleAnalysis(Analysis):
         child_files = self._snapshot_db.get_file_under_folder(
             snapshot_name, folder_id=file_id
         )
+        # iterate through children files
         for child_file in child_files:
             child_file_id = child_file["id"]
+            # if not visited
             if child_file_id not in visited:
+                # update the path
+                # update permissions to inherited or not inherited
                 (
                     child_path,
                     child_permissions,
                 ) = self._snapshot_db.update_path_and_permissions(
                     snapshot_name, curr_folder_path, curr_permission, child_file_id
                 )
+                # perform dfs on children files
                 self.dfs(
                     visited, child_path, child_permissions, snapshot_name, child_file_id
                 )
@@ -95,9 +105,13 @@ class GoogleAnalysis(Analysis):
         child_files = self._snapshot_db.get_file_under_folder(
             snapshot_name, folder_id=file_id
         )
+        # iterate through children files
         for child_file in child_files:
             child_file_id = child_file["id"]
+            # if not visited
             if child_file_id not in visited:
+                # update the path of file
+                # (doesn't need to update inherited or not as it is shared drive)
                 child_path = self._snapshot_db.update_path(
                     snapshot_name, curr_folder_path, child_file_id
                 )
@@ -147,34 +161,45 @@ class GoogleAnalysis(Analysis):
     def get_sharing_changes(
         self, base_permissions, compare_permissions, remaining_permission_ids
     ):
+        # list of permissions where permission has changed
         changed_permissions = []
         for remain_id in remaining_permission_ids:
+            # get the permission object from base permission using id
             equal_base_permission = [
                 p for p in base_permissions if p["id"] == remain_id
             ][0]
+            # get the permission object from base permission using id
             equal_compare_permission = [
                 p for p in compare_permissions if p["id"] == remain_id
             ][0]
+            # get difference between two permissions using deepdiff
             change_deepdiff = DeepDiff(
                 equal_base_permission, equal_compare_permission, verbose_level=2
             )
+            # there is no difference
             if change_deepdiff == {}:
                 continue
             values_changed_dict, types_changed_dict = {}, {}
+            # value of permission has changed
             if "values_changed" in change_deepdiff:
                 values_changed_dict = change_deepdiff["values_changed"]
+            # type of permission has changed
             if "types_changed" in change_deepdiff:
                 types_changed_dict = change_deepdiff["types_changed"]
 
+            # fix format of the result of deepdiff
             values_changed_dict = fix_key_in_dict_of_roots(values_changed_dict)
             types_changed_dict = fix_key_in_dict_of_roots(types_changed_dict)
 
+            # format the data into a dictionary
             change_data = {
                 "from": equal_base_permission,
                 "to": equal_compare_permission,
                 "value_changed": values_changed_dict,
                 "type_changed": types_changed_dict,
             }
+
+            # add data to changed permissions
             changed_permissions.append(change_data)
         return changed_permissions
 
@@ -185,43 +210,57 @@ class GoogleAnalysis(Analysis):
         base_snapshot_files,
         compare_snapshot_files,
     ):
+        # list of files that are newly added or has different permissions
         different_files = []
+        # list of file ids for base snapshot
         base_snapshot_files_ids = [x["id"] for x in base_snapshot_files]
         for compare_snapshot_file in compare_snapshot_files:
             file_id = compare_snapshot_file["id"]
             # if file was newly added
             if file_id not in base_snapshot_files_ids:
                 compare_snapshot_file["additional_base_file_snapshot_permissions"] = []
+                # store permissions of file in additional compare file snapshot permissions
                 compare_snapshot_file[
                     "additional_compare_file_snapshot_permissions"
                 ] = self._snapshot_db.get_all_permission_of_file(
                     compare_snapshot_name, file_id
                 )
+                # there is no changed permissions
                 compare_snapshot_file["changed_permissions"] = []
+                # add it to different files
                 different_files.append(compare_snapshot_file)
+                # go to next file
                 continue
+            # permissions of file in base snapshot
             base_permissions = self._snapshot_db.get_all_permission_of_file(
                 base_snapshot_name, file_id
             )
+            # permissions of file in compare snapshot
             compare_permissions = self._snapshot_db.get_all_permission_of_file(
                 compare_snapshot_name, file_id
             )
+            # compare the permissions of file
             (
                 base_more_permissions,
                 changes,
                 compare_more_permissions,
             ) = self.get_sharing_differences(base_permissions, compare_permissions)
+            # there is a different permission
             if (
                 len(base_more_permissions) != 0
                 or len(changes) != 0
                 or len(compare_more_permissions) != 0
             ):
+                # permissions that base snapshot has more
                 compare_snapshot_file[
                     "additional_base_file_snapshot_permissions"
                 ] = base_more_permissions
+                # permissions that compare snapshot has more
                 compare_snapshot_file[
                     "additional_compare_file_snapshot_permissions"
                 ] = compare_more_permissions
+                # permissions where fields were changed
                 compare_snapshot_file["changed_permissions"] = changes
+                # add file to different files
                 different_files.append(compare_snapshot_file)
         return different_files

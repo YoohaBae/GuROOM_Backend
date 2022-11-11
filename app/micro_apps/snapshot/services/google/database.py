@@ -456,3 +456,14 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
         if access_control is None:
             return False
         return True
+
+    def get_access_control_requirement(self, access_control_requirement_name):
+        access_control_requirement_collection_name = (
+            f"{self.user_id}.access_control_requirements"
+        )
+        query = {"name": access_control_requirement_name}
+        filter_query = {"_id": 0}
+        access_control = self._db.find_document(
+            access_control_requirement_collection_name, query, filter_query
+        )
+        return access_control

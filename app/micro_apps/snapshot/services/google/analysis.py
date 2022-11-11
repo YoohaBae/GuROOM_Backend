@@ -264,3 +264,61 @@ class GoogleAnalysis(Analysis):
                 # add file to different files
                 different_files.append(compare_snapshot_file)
         return different_files
+
+    def tag_files_and_permissions_with_violation(
+        self, snapshot_name, files, access_control_requirement
+    ):
+        # TODO: handle domain and Grp
+        snapshot_permissions = []
+        for file in files:
+            permissions = self._snapshot_db.get_all_permission_of_file(
+                snapshot_name, file["id"]
+            )
+            AR = access_control_requirement["AR"]
+            AW = access_control_requirement["AW"]
+            DR = access_control_requirement["DR"]
+            DW = access_control_requirement["DW"]
+            file_violation = False
+            for permission in permissions:
+                emailAddress = permission["emailAddress"]
+                role = permission["role"]
+                violation = False
+                violation_type = []
+                if len(AR) != 0:
+                    # role of permission can read
+                    # email not in AR and not in AW
+                    if emailAddress not in AR and emailAddress not in AW:
+                        # violation
+                        violation = True
+                        violation_type.append("AR")
+                if len(AW) != 0:
+                    # role of permission can write
+                    if role in ["writer", "fileOrganizer", "organizer", "owner"]:
+                        # emailAddress is not in AW
+                        if emailAddress not in AW:
+                            # violation
+                            violation = True
+                            violation_type.append("AW")
+                if len(DR) != 0:
+                    # role of permission can read
+                    # email in DR
+                    if emailAddress in DR:
+                        # violation
+                        violation = True
+                        violation_type.append("DR")
+                if len(DW) != 0:
+                    # role of permission can write
+                    if role in ["writer", "fileOrganizer", "organizer", "owner"]:
+                        # email in DW
+                        if emailAddress in DW:
+                            # violation
+                            violation = True
+                            violation_type.append("AW")
+                # save violation
+                permission["violation"] = violation
+                permission["violation_type"] = violation_type
+                if violation:
+                    file_violation = True
+            snapshot_permissions.extend(permissions)
+            file["violation"] = file_violation
+        return files, snapshot_permissions

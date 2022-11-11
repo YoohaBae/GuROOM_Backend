@@ -552,6 +552,24 @@ class GoogleSnapshotService(SnapshotService):
                 different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
                 return different_files
             # query other files
+            elif "accessControl" in query:
+                access_control_requirement_name = query.split(":")[1]
+                files, permissions = self.get_files_of_access_control_requirement(
+                    user_id, email, snapshot_name, access_control_requirement_name
+                )
+                files = json.loads(json.dumps(files, cls=DateTimeEncoder))
+                # group the permissions by the same file ids
+                permission_grouped = self.group_permission_by_file_id(permissions)
+                for file_id in permission_grouped.keys():
+                    # separate the permissions by inherit and direct permissions
+                    inherit, direct = self.separate_permission_to_inherit_and_direct(
+                        permission_grouped[file_id]
+                    )
+                    permission_grouped[file_id] = {
+                        "inherit_permissions": inherit,
+                        "direct_permissions": direct,
+                    }
+                return files, permission_grouped
             else:
                 query_builder = GoogleQueryBuilder(user_id, email, snapshot_name)
                 query_builder.is_groups = is_groups
@@ -563,6 +581,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def validate_query(self, user_id, user_email, snapshot_name, query):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
             if "is:file_folder_diff" in query:
                 # file folder diff cannot have additional query statements
@@ -570,6 +589,23 @@ class GoogleSnapshotService(SnapshotService):
                     raise ValueError(
                         "Invalid Query: file folder differences cannot be searched with other queries"
                     )
+            elif "accessControl:" in query:
+                # access control policy cannot have additional query statements
+                access_control_query = query.split(":")
+                if len(access_control_query) >= 3:
+                    raise ValueError(
+                        "Invalid Query: Access Control Requirements cannot be searched with other queries"
+                    )
+                access_control_requirement = snapshot_db.get_access_control_requirement(
+                    access_control_query[1]
+                )
+                if access_control_requirement is None:
+                    raise ValueError(
+                        f"No Such Requirement: There is no access control requirement named :{access_control_query[1]}"
+                    )
+                search_query = access_control_requirement["query"]
+                query_builder = GoogleQueryBuilder(user_id, user_email, snapshot_name)
+                query_builder.create_tree_and_validate(search_query)
             else:
                 # validate queries
                 query_builder = GoogleQueryBuilder(user_id, user_email, snapshot_name)
@@ -645,6 +681,32 @@ class GoogleSnapshotService(SnapshotService):
         try:
             access_control_requirements = snapshot_db.get_access_control_requirements()
             return access_control_requirements
+        except Exception as error:
+            self.logger.error(error)
+            return None
+
+    def get_files_of_access_control_requirement(
+        self, user_id, email, snapshot_name, access_control_requirement_name
+    ):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
+        analysis = GoogleAnalysis(user_id)
+        try:
+            access_control_requirement = snapshot_db.get_access_control_requirement(
+                access_control_requirement_name
+            )
+            query = access_control_requirement["query"]
+            query_builder = GoogleQueryBuilder(user_id, email, snapshot_name)
+            query_builder.is_groups = access_control_requirement["Grp"]
+            data = query_builder.get_files_of_query(query)
+            files = json.loads(json.dumps(data, cls=DateTimeEncoder))
+            # include field violation: bool if file has violated the access control requirement
+            (
+                tagged_files,
+                tagged_permissions,
+            ) = analysis.tag_files_and_permissions_with_violation(
+                snapshot_name, files, access_control_requirement
+            )
+            return tagged_files, tagged_permissions
         except Exception as error:
             self.logger.error(error)
             return None

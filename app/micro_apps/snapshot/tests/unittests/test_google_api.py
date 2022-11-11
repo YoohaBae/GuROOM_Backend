@@ -778,7 +778,7 @@ async def test_invalid_memberships_create_group_membership_snapshot():
     with open(absolute_path_to_data + "/member_list.html") as file:
         body = {
             "group_name": "cse416",
-            "group_email": "cse416s@cs.stonybrook.edu",
+            "group_email": "cse416@cs.stonybrook.edu",
             "create_time": 1666240112000,
         }
         response = client.post(
@@ -786,7 +786,7 @@ async def test_invalid_memberships_create_group_membership_snapshot():
             data=body,
             files={"file": ("member_list.html", file, "text/html")},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
 
 @pytest.mark.asyncio

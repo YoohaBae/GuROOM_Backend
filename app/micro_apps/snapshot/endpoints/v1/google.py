@@ -344,19 +344,24 @@ def search_files(
             content=valid,
         )
 
-    # files of query
-    files = service.process_query_search(
+    # query result data
+    query_result = service.process_query_search(
         user_id, email, snapshot_name, query, is_groups
     )
 
-    if files is None:
+    if query_result is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve list of files of query",
         )
 
-    # permissions of file list
-    permissions = service.get_permission_of_files(user_id, snapshot_name, files)
+    # access control requirement search
+    if len(query_result) == 2:
+        files, permissions = query_result
+    else:
+        files = query_result
+        # permissions of file list
+        permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
     if permissions is None:
         return JSONResponse(

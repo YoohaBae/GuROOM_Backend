@@ -3,12 +3,12 @@ from datetime import datetime
 from collections import defaultdict
 from app.utils.util import ListOfDictsComparor
 from app.services.snapshot_database import SnapshotDatabase
-from app.micro_apps.snapshot.services.models.google_types import folder_mime_type
-from app.micro_apps.snapshot.services.models.snapshot import (
+from app.micro_apps.snapshot.services.models.google.google_types import folder_mime_type
+from app.micro_apps.snapshot.services.models.google.snapshot import (
     FileSnapshot,
     GroupMembershipsSnapshot,
 )
-from app.micro_apps.snapshot.services.models.files import File, Permission
+from app.micro_apps.snapshot.services.models.google.files import File, Permission
 
 
 class GoogleSnapshotDatabase(SnapshotDatabase):

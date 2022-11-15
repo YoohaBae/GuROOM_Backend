@@ -8,5 +8,5 @@ class Drive:
     def __init__(self):
         self._logger = logging.getLogger(__name__)
 
-    def get_files(self, creds):
+    def get_files(self, **args):
         raise NotImplementedError("Must be implemented by child class")

@@ -3,25 +3,24 @@ from datetime import datetime
 from collections import defaultdict
 from app.utils.util import ListOfDictsComparor
 from app.services.snapshot_database import SnapshotDatabase
-from app.micro_apps.snapshot.services.models.dropbox_types import folder_mime_type
-from app.micro_apps.snapshot.services.models.snapshot import (
+from app.micro_apps.snapshot.services.models.dropbox.dropbox_types import folder_mime_type
+from app.micro_apps.snapshot.services.models.google.snapshot import (
     FileSnapshot,
     GroupMembershipsSnapshot,
 )
-from app.micro_apps.snapshot.services.models.files import File, Permission
+from app.micro_apps.snapshot.services.models.google.files import File, Permission
 
 
 class DropboxSnapshotDatabase(SnapshotDatabase):
     def __init__(self, user_id):  # pragma: no cover
         super().__init__(user_id)
 
-    def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives=None):
+    def create_file_snapshot(self, snapshot_name, data, root_id=None, shared_drives=None):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
         # create model for file snapshot
         snapshot = FileSnapshot(
             name=snapshot_name,
             created=datetime.utcnow(),
-            root_id=root_id,
         )
         # insert file snapshot in database
         self._db.insert_document(file_snapshot_collection_name, snapshot.dict())
@@ -63,7 +62,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         return snapshot_names
 
     def get_file_under_folder(
-            self, snapshot_name, offset=None, limit=None, folder_id=None
+        self, snapshot_name, offset=None, limit=None, folder_id=None
     ):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
 
@@ -75,7 +74,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
         if offset is not None and limit is not None:
-            return files[offset: (offset + limit)]  # noqa: E203
+            return files[offset : (offset + limit)]  # noqa: E203
         return files
 
     def edit_file_snapshot_name(self, snapshot_name, new_snapshot_name):
@@ -116,7 +115,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
                 self._db.drop_collection(collection)
 
     def update_path_and_permissions(
-            self, snapshot_name, folder_path, folder_permission, file_id
+        self, snapshot_name, folder_path, folder_permission, file_id
     ):
         new_path = self.update_path(snapshot_name, folder_path, file_id)
         new_permissions = self.update_permissions_to_inherit_direct(
@@ -125,7 +124,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         return new_path, new_permissions
 
     def update_permissions_to_inherit_direct(
-            self, snapshot_name, parent_permissions, parent_path, file_id
+        self, snapshot_name, parent_permissions, parent_path, file_id
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         for parent_permission in parent_permissions:
@@ -213,7 +212,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
             raise ValueError("path of file cannot be calculated")
 
     def update_inherited_and_inherited_from(
-            self, snapshot_name, file_id, permission_id, inherited, inherited_from
+        self, snapshot_name, file_id, permission_id, inherited, inherited_from
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         query = {"id": permission_id, "file_id": file_id}
@@ -223,7 +222,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         self._db.update_document(permission_collection_name, update_query, query)
 
     def create_group_memberships_snapshot(
-            self, group_name, group_email, create_time, memberships
+        self, group_name, group_email, create_time, memberships
     ):
         group_memberships_snapshot_collection_name = (
             f"{self.user_id}.group_membership_snapshots"
@@ -318,7 +317,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         return files
 
     def get_files_with_certain_role_including_groups(
-            self, snapshot_name, role_name, email
+        self, snapshot_name, role_name, email
     ):
         group_emails = self.get_group_emails_of_user_email(email)
         if group_emails is []:

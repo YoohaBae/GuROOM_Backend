@@ -555,7 +555,10 @@ class GoogleSnapshotService(SnapshotService):
             elif "accessControl" in query:
                 access_control_requirement_name = query.split(":")[1]
                 # tagged files and permissions of access control requirement
-                files, permissions = self.get_files_and_permissions_of_access_control_requirement(
+                (
+                    files,
+                    permissions,
+                ) = self.get_files_and_permissions_of_access_control_requirement(
                     user_id, email, snapshot_name, access_control_requirement_name
                 )
                 files = json.loads(json.dumps(files, cls=DateTimeEncoder))

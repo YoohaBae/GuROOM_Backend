@@ -65,14 +65,14 @@ class Restriction(BaseModel):
 
 
 class File(BaseModel):
-    kind: str
-    mimeType: str
+    kind: str = "drive#file"  # don't need
+    mimeType: str  # whether type is file or folder
     id: str
     name: str
     parents: Optional[List[str]] = []
-    spaces: Optional[List[str]] = []
-    createdTime: datetime
-    modifiedTime: datetime
+    spaces: Optional[List[str]] = []  # don't need
+    createdTime: Optional[datetime]
+    modifiedTime: Optional[datetime]
     sharedWithMeTime: Optional[datetime]
     sharingUser: Optional[SharingUser]
     owners: Optional[List[Owner]] = []

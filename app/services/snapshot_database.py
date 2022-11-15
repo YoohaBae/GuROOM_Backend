@@ -13,7 +13,7 @@ class SnapshotDatabase:
         self.logger = logging.getLogger()
         self._db = MongoDB(url, db_name)
 
-    def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives):
+    def create_file_snapshot(self, snapshot_name, data, root_id, shared_drives=None):
         raise NotImplementedError("Must be implemented by child class")
 
     def get_file_snapshot_names(self):

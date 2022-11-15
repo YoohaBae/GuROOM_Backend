@@ -70,9 +70,9 @@ class File(BaseModel):
     name: str
     parents: Optional[List[str]] = []
     modifiedTime: Optional[datetime]
-    #sharedWithMeTime: Optional[datetime]
-    #sharingUser: Optional[SharingUser]
-    #owners: Optional[List[Owner]] = []
+    # sharedWithMeTime: Optional[datetime]
+    # sharingUser: Optional[SharingUser]
+    # owners: Optional[List[Owner]] = []
     driveId: str = None
     shared: Optional[bool]
     ownedByMe: Optional[bool]

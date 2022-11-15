@@ -62,7 +62,7 @@ class DropboxDrive(Drive):
                         "driveId": file["shared_folder_id"],
                         "shared": True,
                         "size": size,
-                        "path": file["path_display"]
+                        "path": file["path_display"],
                     }
                     formatted_shared_folders.append(formatted_folder)
                 else:
@@ -71,7 +71,7 @@ class DropboxDrive(Drive):
                         "id": file["id"],
                         "name": file["name"],
                         "shared": False,
-                        "path": file["path_display"]
+                        "path": file["path_display"],
                     }
                     formatted_files.append(formatted_file)
             files = [File(**file) for file in formatted_files]
@@ -80,7 +80,9 @@ class DropboxDrive(Drive):
         else:
             return None, None, None
 
-    def get_files_under_shared_folders(self, token, shared_folder_id, next_page_token=None):
+    def get_files_under_shared_folders(
+        self, token, shared_folder_id, next_page_token=None
+    ):
         if next_page_token is None:
             file_request = requests.post(
                 "https://api.dropboxapi.com/2/files/list_folder",
@@ -117,7 +119,7 @@ class DropboxDrive(Drive):
                     "driveId": file["shared_folder_id"],
                     "shared": True,
                     "size": size,
-                    "path": file["path_display"]
+                    "path": file["path_display"],
                 }
                 formatted_files.append(formatted_file)
             files = [File(**file) for file in formatted_files]

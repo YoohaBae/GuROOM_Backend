@@ -3,7 +3,9 @@ from datetime import datetime
 from collections import defaultdict
 from app.utils.util import ListOfDictsComparor
 from app.services.snapshot_database import SnapshotDatabase
-from app.micro_apps.snapshot.services.models.dropbox.dropbox_types import folder_mime_type
+from app.micro_apps.snapshot.services.models.dropbox.dropbox_types import (
+    folder_mime_type,
+)
 from app.micro_apps.snapshot.services.models.google.snapshot import (
     FileSnapshot,
     GroupMembershipsSnapshot,
@@ -15,7 +17,9 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
     def __init__(self, user_id):  # pragma: no cover
         super().__init__(user_id)
 
-    def create_file_snapshot(self, snapshot_name, data, root_id=None, shared_drives=None):
+    def create_file_snapshot(
+        self, snapshot_name, data, root_id=None, shared_drives=None
+    ):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
         # create model for file snapshot
         snapshot = FileSnapshot(

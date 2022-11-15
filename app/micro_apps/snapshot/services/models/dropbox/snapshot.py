@@ -11,8 +11,8 @@ class SharedDrive(BaseModel):
 class FileSnapshot(BaseModel):
     name: str
     created: datetime
-    root_id: str
-    shared_drives: List[SharedDrive]
+    root_id: str = None
+    shared_drives: List[SharedDrive] = []
 
 
 class Membership(BaseModel):

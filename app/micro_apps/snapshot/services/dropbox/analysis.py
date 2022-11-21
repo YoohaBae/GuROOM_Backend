@@ -14,12 +14,10 @@ class DropboxAnalysis(Analysis):
     def __init__(self, user_id):  # pragma: no cover
         super().__init__()
         self._snapshot_db = DropboxSnapshotDatabase(user_id)
-        self.shared_with_me_drive_path = "/SharedWithMe"
         self.my_drive_path = "/MyDrive"
 
     def calculate_permission_and_path(self, snapshot_name):
-        shared_with_me_folder_id = None
-        my_drive_folder_id = self._snapshot_db.get_root_id(snapshot_name)
+        my_drive_folder_id = None
 
         # dfs for my_drive
         visited_file_ids = []
@@ -27,44 +25,10 @@ class DropboxAnalysis(Analysis):
             visited_file_ids, self.my_drive_path, [], snapshot_name, my_drive_folder_id
         )
 
-        # dfs for shared_with_me
         visited_file_ids = []
-        self.dfs(
+        self.dfs_shared(
             visited_file_ids,
-            self.shared_with_me_drive_path,
-            [],
-            snapshot_name,
-            shared_with_me_folder_id,
         )
-        self.update_inherited_shared(snapshot_name)
-
-    def update_inherited_shared(self, snapshot_name):
-        all_permissions_of_snapshot = self._snapshot_db.get_all_permission_of_snapshot(
-            snapshot_name
-        )
-        # iterate through the entire permission of snapshot
-        for permission in all_permissions_of_snapshot:
-            # if permissionDetails exist: for shared drive only
-            if (
-                "permissionDetails" in permission
-                and len(permission["permissionDetails"]) == 1
-            ):
-                # move the value of permissionDetails to (inherited and inherited_from field)
-                inherited_from_id = permission["permissionDetails"][0]["inheritedFrom"]
-                inherited = permission["permissionDetails"][0]["inherited"]
-                if inherited_from_id is not None and inherited:
-                    # get path of file
-                    inherited_from_path = self._snapshot_db.get_path_of_file(
-                        snapshot_name, inherited_from_id
-                    )
-                    # update the fields
-                    self._snapshot_db.update_inherited_and_inherited_from(
-                        snapshot_name,
-                        permission["file_id"],
-                        permission["id"],
-                        inherited,
-                        inherited_from_path,
-                    )
 
     def dfs(
         self, visited, curr_folder_path, curr_permission, snapshot_name, file_id=None

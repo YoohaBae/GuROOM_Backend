@@ -50,14 +50,14 @@ def take_file_snapshot(
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
-    files = service.get_all_files_from_api(access_token)
+    files, permissions = service.get_all_files_and_permissions_from_api(access_token)
     if files is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content="unable to retrieve files",
         )
 
-    created = service.create_file_snapshot(user_id, snapshot_name, files)
+    created = service.create_file_snapshot(user_id, snapshot_name, files, permissions)
     if not created:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

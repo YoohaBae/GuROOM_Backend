@@ -13,9 +13,6 @@ class SnapshotService:
     def get_user_email_from_token(self, access_token):
         raise NotImplementedError("Must be implemented by child class")
 
-    def get_all_files_from_api(self, access_token):
-        raise NotImplementedError("Must be implemented by child class")
-
     def perform_inherit_direct_permission_analysis(self, user_id, snapshot_name):
         raise NotImplementedError("Must be implemented by child class")
 

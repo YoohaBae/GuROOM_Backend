@@ -21,7 +21,7 @@ class DropboxAuth(Auth):
             f"client_id={self.client_id}"
             f"&redirect_uri={self.redirect_uri}"
             f"&response_type=code"
-            f"&token_access_type=offline"
+            f"&token_access_type=offline",
         )
         return auth_url
 

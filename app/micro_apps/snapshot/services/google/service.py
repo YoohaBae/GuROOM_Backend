@@ -701,6 +701,7 @@ class GoogleSnapshotService(SnapshotService):
             access_control_requirement = snapshot_db.get_access_control_requirement(
                 access_control_requirement_name
             )
+            # query of access control requirement
             query = access_control_requirement["query"]
             query_builder = GoogleQueryBuilder(user_id, email, snapshot_name)
             query_builder.is_groups = access_control_requirement["Grp"]

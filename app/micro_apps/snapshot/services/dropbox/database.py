@@ -1,4 +1,3 @@
-import copy
 from datetime import datetime
 from collections import defaultdict
 from app.utils.util import ListOfDictsComparor
@@ -10,52 +9,24 @@ from app.micro_apps.snapshot.services.models.google.snapshot import (
     FileSnapshot,
     GroupMembershipsSnapshot,
 )
-from app.micro_apps.snapshot.services.models.google.files import File, Permission
 
 
 class DropboxSnapshotDatabase(SnapshotDatabase):
     def __init__(self, user_id):  # pragma: no cover
         super().__init__(user_id)
 
-    def create_file_snapshot(
-        self, snapshot_name, data, root_id=None, shared_drives=None
-    ):
+    def create_file_snapshot(self, snapshot_name, files, permissions):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
         # create model for file snapshot
-        snapshot = FileSnapshot(
-            name=snapshot_name,
-            created=datetime.utcnow(),
-        )
+        snapshot = FileSnapshot(name=snapshot_name, created=datetime.utcnow())
         # insert file snapshot in database
         self._db.insert_document(file_snapshot_collection_name, snapshot.dict())
 
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        files = copy.deepcopy(data)
-        # retrieve files as a list
-        files = [File(**file).dict() for file in files]
-        # insert files to database
         self._db.insert_documents(file_collection_name, files)
 
-        for file in data:
-            file_id = file["id"]
-            permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
-            # get permission of file
-            if "permissions" in file:
-                permissions = []
-                for permission in file["permissions"]:
-                    permission["file_id"] = file_id
-                    # format permission and append it to list
-                    permissions.append(Permission(**permission).dict())
-                # insert permission into database
-                self._db.insert_documents(permission_collection_name, permissions)
-
-    def get_root_id(self, snapshot_name):
-        file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
-        query = {"name": snapshot_name}
-        filter_query = {"root_id": 1, "_id": 0}
-        return self._db.find_document(
-            file_snapshot_collection_name, query, filter_query
-        )["root_id"]
+        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+        self._db.insert_documents(permission_collection_name, permissions)
 
     def get_file_snapshot_names(self):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"

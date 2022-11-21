@@ -38,104 +38,55 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    # def get_root_id_from_api(self, access_token):
-    #     dropbox_drive = DropboxDrive()
-    #     try:
-    #         # get the id of MyDrive
-    #         root_id = dropbox_drive.get_root_file_id(access_token)
-    #         return root_id
-    #     except Exception as error:
-    #         self.logger.error(error)
-    #         return None
-
-    def get_all_shared_drives_from_api(self, access_token):
+    def get_all_files_and_permissions_from_api(self, access_token):
         dropbox_drive = DropboxDrive()
-        try:
-            drives, next_page_token = dropbox_drive.get_shared_drives(access_token)
+        files, shared_folders, next_page_token = dropbox_drive.get_files(access_token)
 
-            if drives:
-                # there are more shared drives to be retrieved
-                while next_page_token is not None:
-                    new_drives, next_page_token = dropbox_drive.get_shared_drives(
-                        access_token, next_page_token
-                    )
-                    drives += new_drives
-            return drives
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
-    def get_all_files_from_api(self, access_token):
-        dropbox_drive = DropboxDrive()
-        try:
-            files, shared_folders, next_page_token = dropbox_drive.get_files(
-                access_token
-            )
-
-            if files and shared_folders:
-                # there are more files to be retrieved
-                while next_page_token is not None:
-                    (
-                        new_files,
-                        new_shared_folders,
-                        next_page_token,
-                    ) = dropbox_drive.get_files(access_token, next_page_token)
-                    files += new_files
-                    shared_folders += new_shared_folders
-
-            shared_folder_all_files = []
-            for folder in shared_folders:
-
+        if files and shared_folders:
+            # there are more files to be retrieved
+            while next_page_token is not None:
                 (
-                    shared_folder_files,
+                    new_files,
+                    new_shared_folders,
                     next_page_token,
-                ) = dropbox_drive.get_files_under_shared_folders(
-                    access_token, folder["shared_folder_id"]
+                ) = dropbox_drive.get_files(access_token, next_page_token)
+                files += new_files
+                shared_folders += new_shared_folders
+        elif files is None or shared_folders is None:
+            raise ValueError("unable to retrieve files and shared folders")
+
+        # separate file ids and folder ids
+        file_ids = [file["id"] for file in files if file["mimeType"] == "file"]
+        shared_folder_ids = [folder["driveId"] for folder in shared_folders]
+
+        # get permissions of files
+        file_permissions, next_page_token = dropbox_drive.get_permissions_of_files(
+            access_token, file_ids
+        )
+        if file_permissions:
+            # there are more permissions to be retrieved
+            while next_page_token is not None:
+                (
+                    new_file_permissions,
+                    next_page_token,
+                ) = dropbox_drive.get_permissions_of_files(
+                    access_token, [], next_page_token
                 )
-                if shared_folder_files:
-                    while next_page_token is not None:
-                        (
-                            new_shared_folder_files,
-                            next_page_token,
-                        ) = dropbox_drive.get_files_under_shared_folders(
-                            access_token, None, next_page_token
-                        )
-                        shared_folder_files += new_shared_folder_files
+                file_permissions += new_file_permissions
+        elif file_permissions is None:
+            raise ValueError("unable to retrieve file permissions")
+        # get permissions of folders and shared folders
+        shared_folder_permissions = dropbox_drive.get_permissions_of_folders(
+            access_token, shared_folder_ids
+        )
+        if shared_folder_permissions is None:
+            raise ValueError("unable to retrieve folder permissions")
+        return files + shared_folders, file_permissions + shared_folder_permissions
 
-                shared_folder_all_files += shared_folder_files
-
-            for file in files:
-                shared_drive_permissions_for_file = []
-                # separate result into file and permission
-                if (
-                    "driveId" in file
-                    and file["driveId"] is not None
-                    and "permissionIds" in file
-                    and "permissionIds" != []
-                ):
-                    permission_ids = file["permissionIds"]
-                    for pid in permission_ids:
-                        # shared drive permissions must be retrieved separately by a different api request
-                        permission = (
-                            dropbox_drive.get_permission_detail_of_shared_drive_file(
-                                access_token, file["id"], pid
-                            )
-                        )
-                        shared_drive_permissions_for_file.append(permission)
-                    file["permissions"] = shared_drive_permissions_for_file
-            return files
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
-    def create_file_snapshot(
-        self, user_id, snapshot_name, files, root_id, shared_drives
-    ):
+    def create_file_snapshot(self, user_id, snapshot_name, files, permissions):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
-            snapshot_db.create_file_snapshot(
-                snapshot_name, files, root_id, shared_drives
-            )
+            snapshot_db.create_file_snapshot(snapshot_name, files, permissions)
             return True
         except Exception as error:
             self.logger.error(error)
@@ -180,22 +131,22 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_files_of_my_drive(self, user_id, snapshot_name, offset=None, limit=None):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            # get the id of MyDrive
-            folder_id = snapshot_db.get_root_id(snapshot_name)
-            # get files under MyDrive
-            data = snapshot_db.get_file_under_folder(
-                snapshot_name, offset, limit, folder_id
-            )
-            if len(data) == 0:
-                return []
-            files = json.loads(json.dumps(data, cls=DateTimeEncoder))
-            return files
-        except Exception as error:
-            self.logger.error(error)
-            return None
+    # def get_files_of_my_drive(self, user_id, snapshot_name, offset=None, limit=None):
+    #     snapshot_db = DropboxSnapshotDatabase(user_id)
+    #     try:
+    #         # get the id of MyDrive
+    #         folder_id = snapshot_db.get_root_id(snapshot_name)
+    #         # get files under MyDrive
+    #         data = snapshot_db.get_file_under_folder(
+    #             snapshot_name, offset, limit, folder_id
+    #         )
+    #         if len(data) == 0:
+    #             return []
+    #         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
+    #         return files
+    #     except Exception as error:
+    #         self.logger.error(error)
+    #         return None
 
     def get_files_of_shared_with_me(
         self, user_id, snapshot_name, offset=None, limit=None

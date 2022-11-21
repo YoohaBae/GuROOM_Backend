@@ -35,7 +35,6 @@ class PermissionDetail(BaseModel):
 
 
 class Permission(BaseModel):
-    kind: str
     id: Optional[str]
     type: Optional[str]
     emailAddress: Optional[str]
@@ -52,18 +51,6 @@ class Permission(BaseModel):
     file_id: Optional[str] = None
 
 
-class Capabilities(BaseModel):
-    canComment: bool
-    canEdit: bool
-    canShare: bool
-
-
-class Restriction(BaseModel):
-    readOnly: bool
-    reason: Optional[str]
-    restrictingUser: Optional[RestrictUser]
-
-
 class File(BaseModel):
     mimeType: str  # whether type is file or folder
     id: str
@@ -76,9 +63,5 @@ class File(BaseModel):
     driveId: str = None
     shared: Optional[bool]
     ownedByMe: Optional[bool]
-    capabilities: Capabilities
-    fullFileExtension: Optional[str]
-    fileExtension: Optional[str]
     size: Optional[str]
-    contentRestrictions: Optional[List[Restriction]] = []
     path: str = None

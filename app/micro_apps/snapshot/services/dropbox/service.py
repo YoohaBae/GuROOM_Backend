@@ -1,4 +1,5 @@
 import json
+import copy
 from bs4 import BeautifulSoup
 from datetime import datetime
 from app.utils.util import DateTimeEncoder
@@ -9,6 +10,7 @@ from app.micro_apps.snapshot.services.dropbox.dropbox_drive import DropboxDrive
 from app.micro_apps.snapshot.services.dropbox.analysis import DropboxAnalysis
 from app.micro_apps.snapshot.services.dropbox.database import DropboxSnapshotDatabase
 from app.micro_apps.snapshot.services.dropbox.query_builder import DropboxQueryBuilder
+from app.micro_apps.snapshot.services.models.dropbox.files import Permission, File
 
 
 class DropboxSnapshotService(SnapshotService):
@@ -76,12 +78,37 @@ class DropboxSnapshotService(SnapshotService):
         elif file_permissions is None:
             raise ValueError("unable to retrieve file permissions")
         # get permissions of folders and shared folders
-        shared_folder_permissions = dropbox_drive.get_permissions_of_folders(
+        shared_folder_permissions = dropbox_drive.get_permissions_of_shared_folders(
             access_token, shared_folder_ids
         )
         if shared_folder_permissions is None:
             raise ValueError("unable to retrieve folder permissions")
-        return files + shared_folders, file_permissions + shared_folder_permissions
+
+        # give nested folders their inherited permissions
+        nested_folder_permissions = []
+        for file in files:
+            if file["mimeType"] == "folder":
+                for permission in shared_folder_permissions:
+                    # give permission of shared folder to nested folder
+                    if permission["driveId"] == file["driveId"]:
+                        folder_permission = copy.deepcopy(permission)
+                        folder_permission["file_id"] = file["id"]
+                        folder_permission["inherited"] = True
+                        nested_folder_permissions.append(folder_permission)
+
+        for folder in shared_folders:
+            for permission in shared_folder_permissions:
+                if permission["driveId"] == folder["driveId"]:
+                    if not permission["file_id"]:
+                        permission["file_id"] = folder["id"]
+        all_files = [File(**file).dict() for file in files + shared_folders]
+        all_permissions = [
+            Permission(**permission).dict()
+            for permission in file_permissions
+            + shared_folder_permissions
+            + nested_folder_permissions
+        ]
+        return all_files, all_permissions
 
     def create_file_snapshot(self, user_id, snapshot_name, files, permissions):
         snapshot_db = DropboxSnapshotDatabase(user_id)

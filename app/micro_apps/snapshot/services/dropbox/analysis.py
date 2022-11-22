@@ -14,7 +14,7 @@ class DropboxAnalysis(Analysis):
     def __init__(self, user_id):  # pragma: no cover
         super().__init__()
         self._snapshot_db = DropboxSnapshotDatabase(user_id)
-        self.my_drive_path = "/MyDrive"
+        self.base_path = ""
 
     def calculate_permission_and_path(self, snapshot_name):
         my_drive_folder_id = None
@@ -22,12 +22,7 @@ class DropboxAnalysis(Analysis):
         # dfs for my_drive
         visited_file_ids = []
         self.dfs(
-            visited_file_ids, self.my_drive_path, [], snapshot_name, my_drive_folder_id
-        )
-
-        visited_file_ids = []
-        self.dfs_shared(
-            visited_file_ids,
+            visited_file_ids, self.base_path, [], snapshot_name, my_drive_folder_id
         )
 
     def dfs(

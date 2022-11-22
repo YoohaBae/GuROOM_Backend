@@ -4,7 +4,6 @@ Dropbox Drive
 import requests
 from app.micro_apps.snapshot.services.models.dropbox.files import File
 from app.services.drive import Drive
-from app.micro_apps.snapshot.services.models.dropbox.files import Permission
 
 
 class DropboxDrive(Drive):
@@ -40,7 +39,7 @@ class DropboxDrive(Drive):
             formatted_shared_folders = []
             for file in files:
                 if "size" in file:
-                    size = file["size"]
+                    size = int(file["size"])
                 else:
                     size = 0
                 if "server_modified" in file:
@@ -52,17 +51,17 @@ class DropboxDrive(Drive):
                         "mimeType": file[".tag"],
                         "id": file["id"],
                         "name": file["name"],
-                        "driveId": file["shared_folder_id"],
+                        "driveId": str(file["shared_folder_id"]),
                         "shared": True,
                         "size": size,
-                        "path": "",
+                        "path": file["path_display"].rsplit("/", 1)[0],
                         "modifiedTime": modified_time,
                     }
                     formatted_shared_folders.append(formatted_folder)
                 else:
                     path = file["path_display"].rsplit("/", 1)[0]
                     if "parent_shared_folder_id" in file:
-                        driveId = [file["parent_shared_folder_id"]]
+                        driveId = file["parent_shared_folder_id"]
                     else:
                         driveId = None
                     formatted_file = {
@@ -73,6 +72,7 @@ class DropboxDrive(Drive):
                         "path": path,
                         "driveId": driveId,
                         "parents": [],
+                        "size": size,
                         "modifiedTime": modified_time,
                     }
                     formatted_files.append(formatted_file)
@@ -121,6 +121,7 @@ class DropboxDrive(Drive):
                     else:
                         raise ValueError("invalid role")
                     formatted_permission = {
+                        "driveId": None,
                         "file_id": file_id,
                         "type": "user",
                         "id": user["account_id"],
@@ -129,15 +130,12 @@ class DropboxDrive(Drive):
                         "role": role,
                         "inherited": permission["is_inherited"],
                     }
-
-                    formatted_permissions.append(
-                        Permission(**formatted_permission).dict()
-                    )
+                    formatted_permissions.append(formatted_permission)
             return formatted_permissions, next_page_token
         else:
             return None, None
 
-    def get_permissions_of_folder(self, token, folder_id, next_page_token=None):
+    def get_permissions_of_shared_folder(self, token, folder_id, next_page_token=None):
         if next_page_token is None:
             permission_request = requests.post(
                 "https://api.dropboxapi.com/2/sharing/list_folder_members",
@@ -171,7 +169,9 @@ class DropboxDrive(Drive):
                 else:
                     raise ValueError("invalid role")
                 formatted_permission = {
-                    "file_id": folder_id,
+                    # this is the shared_folder_id
+                    "driveId": folder_id,
+                    "file_id": None,
                     "type": "user",
                     "id": user["account_id"],
                     "emailAddress": user["email"],
@@ -179,15 +179,15 @@ class DropboxDrive(Drive):
                     "role": role,
                     "inherited": permission["is_inherited"],
                 }
-                formatted_permissions.append(Permission(**formatted_permission).dict())
+                formatted_permissions.append(formatted_permission)
             return formatted_permissions, next_page_token
         else:
             return None, None
 
-    def get_permissions_of_folders(self, token, folder_ids):
+    def get_permissions_of_shared_folders(self, token, folder_ids):
         formatted_permissions = []
         for folder_id in folder_ids:
-            folder_permissions, next_page_token = self.get_permissions_of_folder(
+            folder_permissions, next_page_token = self.get_permissions_of_shared_folder(
                 token, folder_id
             )
             if folder_permissions:
@@ -196,7 +196,9 @@ class DropboxDrive(Drive):
                     (
                         new_folder_permissions,
                         next_page_token,
-                    ) = self.get_permissions_of_folder(token, [], next_page_token)
+                    ) = self.get_permissions_of_shared_folder(
+                        token, [], next_page_token
+                    )
                     folder_permissions += new_folder_permissions
             elif folder_permissions is None:
                 return None

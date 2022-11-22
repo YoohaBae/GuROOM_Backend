@@ -62,6 +62,6 @@ class File(BaseModel):
     # owners: Optional[List[Owner]] = []
     driveId: str = None
     shared: Optional[bool]
-    ownedByMe: Optional[bool]
-    size: Optional[str]
+    # ownedByMe: Optional[bool]
+    size: Optional[int]
     path: str = None

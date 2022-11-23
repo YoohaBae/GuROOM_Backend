@@ -8,7 +8,6 @@ from .service import DropboxSnapshotDatabase
 class DropboxQueryBuilder(QueryBuilder):
     def __init__(self, user_id, user_email, snapshot_name):
         super().__init__(DropboxSnapshotDatabase(user_id), user_email, snapshot_name)
-        self.is_groups = True
 
     def create_tree_from_query(self, query):
         # pp -> pyparsing package that creates infix notation based on strings
@@ -141,7 +140,7 @@ class DropboxQueryBuilder(QueryBuilder):
         elif operator in [
             "owner",
             "creator",
-            "from",
+            # "from",
             "to",
             "readable",
             "writable",
@@ -227,21 +226,15 @@ class DropboxQueryBuilder(QueryBuilder):
             elif operator == "writable":
                 operator = "writer"
             email = self.validate_user(value)
-            if self.is_groups:
-                # get files including the group emails the email is in
-                files = self._snapshot_db.get_files_with_certain_role_including_groups(
-                    self.snapshot_name, operator, email
-                )
-            else:
-                files = self._snapshot_db.get_files_with_certain_role(
-                    self.snapshot_name, operator, email
-                )
-        # file of from operator
-        elif operator == "from":
-            email = self.validate_user(value)
-            files = self._snapshot_db.get_files_with_sharing_user(
-                self.snapshot_name, email
+            files = self._snapshot_db.get_files_with_certain_role(
+                self.snapshot_name, operator, email
             )
+        # # file of from operator
+        # elif operator == "from":
+        #     email = self.validate_user(value)
+        #     files = self._snapshot_db.get_files_with_sharing_user(
+        #         self.snapshot_name, email
+        #     )
         # file of to operator
         elif operator == "to":
             email = self.validate_user(value)

@@ -1,14 +1,9 @@
 from datetime import datetime
-from collections import defaultdict
-from app.utils.util import ListOfDictsComparor
 from app.services.snapshot_database import SnapshotDatabase
 from app.micro_apps.snapshot.services.models.dropbox.dropbox_types import (
     folder_mime_type,
 )
-from app.micro_apps.snapshot.services.models.google.snapshot import (
-    FileSnapshot,
-    GroupMembershipsSnapshot,
-)
+from app.micro_apps.snapshot.services.models.google.snapshot import FileSnapshot
 
 
 class DropboxSnapshotDatabase(SnapshotDatabase):
@@ -36,16 +31,9 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         )
         return snapshot_names
 
-    def get_file_under_folder(
-        self, snapshot_name, offset=None, limit=None, folder_id=None
-    ):
+    def get_file_under_folder(self, snapshot_name, offset=None, limit=None, path=None):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-
-        if folder_id:
-            query = {"parents": {"$in": [folder_id]}}
-        else:
-            query = {"parents": {"$size": 0}}
-
+        query = {"path": path}
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
         if offset is not None and limit is not None:
@@ -89,16 +77,15 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
             if collection.startswith(query):
                 self._db.drop_collection(collection)
 
-    def update_path_and_permissions(
+    def update_permissions(
         self, snapshot_name, folder_path, folder_permission, file_id
     ):
-        new_path = self.update_path(snapshot_name, folder_path, file_id)
-        new_permissions = self.update_permissions_to_inherit_direct(
+        new_permissions = self.update_inherited_from_permissions(
             snapshot_name, folder_permission, folder_path, file_id
         )
-        return new_path, new_permissions
+        return new_permissions
 
-    def update_permissions_to_inherit_direct(
+    def update_inherited_from_permissions(
         self, snapshot_name, parent_permissions, parent_path, file_id
     ):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
@@ -110,24 +97,13 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
             # parent permission was not inherited
             else:
                 inherited_from = parent_path
-            update_query = {
-                "$set": {"inherited": True, "inherited_from": inherited_from}
-            }
+            update_query = {"$set": {"inherited_from": inherited_from}}
             self._db.update_documents(permission_collection_name, update_query, query)
         query = {"file_id": file_id}
         permissions = self._db.find_documents(
             permission_collection_name, query, {"_id": 0}
         )
         return permissions
-
-    def update_path(self, snapshot_name, folder_path, file_id):
-        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        file_name = self.get_file_name(snapshot_name, file_id)
-        new_path = folder_path + "/" + file_name
-        query = {"id": file_id}
-        update_query = {"$set": {"path": folder_path}}
-        self._db.update_document(file_collection_name, update_query, query)
-        return new_path
 
     def get_file_name(self, snapshot_name, file_id):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
@@ -145,13 +121,6 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         )
         return permissions
 
-    def get_files_with_no_path(self, snapshot_name):
-        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        query = {"path": None}
-        filter_query = {"_id": 0}
-        files = self._db.find_documents(file_collection_name, query, filter_query)
-        return files
-
     def get_all_permission_of_snapshot(self, snapshot_name):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
         filter_query = {"_id": 0}
@@ -166,14 +135,14 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         files = self._db.find_documents(file_collection_name, filter_query=filter_query)
         return files
 
-    def get_parent_id(self, snapshot_name, file_id):
-        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        query = {"id": file_id}
-        filter_query = {"_id": 0, "parents": 1}
-        parent_id = self._db.find_document(file_collection_name, query, filter_query)[
-            "parents"
-        ][0]
-        return parent_id
+    # def get_parent_id(self, snapshot_name, file_id):
+    #     file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+    #     query = {"id": file_id}
+    #     filter_query = {"_id": 0, "parents": 1}
+    #     parent_id = self._db.find_document(file_collection_name, query, filter_query)[
+    #         "parents"
+    #     ][0]
+    #     return parent_id
 
     def get_path_of_file(self, snapshot_name, file_id):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
@@ -186,64 +155,15 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         if path_of_file is None:
             raise ValueError("path of file cannot be calculated")
 
-    def update_inherited_and_inherited_from(
-        self, snapshot_name, file_id, permission_id, inherited, inherited_from
-    ):
-        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
-        query = {"id": permission_id, "file_id": file_id}
-        update_query = {
-            "$set": {"inherited": inherited, "inherited_from": inherited_from}
-        }
-        self._db.update_document(permission_collection_name, update_query, query)
-
-    def create_group_memberships_snapshot(
-        self, group_name, group_email, create_time, memberships
-    ):
-        group_memberships_snapshot_collection_name = (
-            f"{self.user_id}.group_membership_snapshots"
-        )
-        snapshot = GroupMembershipsSnapshot(
-            group_name=group_name,
-            group_email=group_email,
-            create_time=create_time,
-            memberships=memberships,
-        )
-        self._db.insert_document(
-            group_memberships_snapshot_collection_name, snapshot.dict()
-        )
-
-    def get_all_group_membership_snapshots(self):
-        group_memberships_snapshot_collection_name = (
-            f"{self.user_id}.group_membership_snapshots"
-        )
-        filter_query = {"_id": 0}
-        groups = self._db.find_documents(
-            group_memberships_snapshot_collection_name, filter_query=filter_query
-        )
-        return groups
-
-    def get_recent_group_membership_snapshots(self):
-        all_groups = self.get_all_group_membership_snapshots()
-        if all_groups == []:
-            return []
-
-        def def_value():
-            return []
-
-        grouped_groups = defaultdict(def_value)
-        for group in all_groups:
-            grouped_groups[group["group_name"]].append(group)
-        result_groups = []
-        for key in grouped_groups.keys():
-            if len(grouped_groups[key]) > 1:
-                recent = grouped_groups[key][0]
-                for group in grouped_groups[key]:
-                    if recent["create_time"] < group["create_time"]:
-                        recent = group
-                result_groups.append(recent)
-            else:
-                result_groups.append(grouped_groups[key][0])
-        return result_groups
+    # def update_inherited_and_inherited_from(
+    #         self, snapshot_name, file_id, permission_id, inherited, inherited_from
+    # ):
+    #     permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+    #     query = {"id": permission_id, "file_id": file_id}
+    #     update_query = {
+    #         "$set": {"inherited": inherited, "inherited_from": inherited_from}
+    #     }
+    #     self._db.update_document(permission_collection_name, update_query, query)
 
     def get_all_members_from_permissions(self, snapshot_name):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
@@ -291,36 +211,6 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         files = self._db.find_documents(file_collection_name, query, filter_query)
         return files
 
-    def get_files_with_certain_role_including_groups(
-        self, snapshot_name, role_name, email
-    ):
-        group_emails = self.get_group_emails_of_user_email(email)
-        if group_emails is []:
-            files = self.get_files_with_certain_role(snapshot_name, role_name, email)
-            return files
-        else:
-            files = self.get_files_with_certain_role(snapshot_name, role_name, email)
-            group_files = []
-            for group_email in group_emails:
-                group_files = ListOfDictsComparor.union(
-                    group_files,
-                    self.get_files_with_certain_role(
-                        snapshot_name, role_name, group_email
-                    ),
-                )
-            files = ListOfDictsComparor.union(files, group_files)
-            return files
-
-    def get_group_emails_of_user_email(self, email):
-        recent_groups = self.get_recent_group_membership_snapshots()
-        group_emails = []
-        for group in recent_groups:
-            for member in group["memberships"]:
-                if member["email"] == email:
-                    group_emails.append(group["group_email"])
-                    break
-        return group_emails
-
     def get_folders_with_regex(self, snapshot_name, folder_name):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
         query = {"name": {"$regex": folder_name}, "mimeType": folder_mime_type}
@@ -336,12 +226,12 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         file_ids = [f["file_id"] for f in files]
         return file_ids
 
-    def get_files_with_sharing_user(self, snapshot_name, email):
-        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        query = {"sharingUser.emailAddress": email}
-        filter_query = {"_id": 0}
-        files = self._db.find_documents(file_collection_name, query, filter_query)
-        return files
+    # def get_files_with_sharing_user(self, snapshot_name, email):
+    #     file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+    #     query = {"sharingUser.emailAddress": email}
+    #     filter_query = {"_id": 0}
+    #     files = self._db.find_documents(file_collection_name, query, filter_query)
+    #     return files
 
     def get_files_of_file_ids(self, snapshot_name, file_ids):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
@@ -360,18 +250,18 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
 
     def get_not_shared_files(self, snapshot_name):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        query = {"shared": None}
+        query = {"shared": False}
         filter_query = {"_id": 0}
         files = self._db.find_documents(file_collection_name, query, filter_query)
         return files
 
-    def get_file_ids_shared_with_anyone(self, snapshot_name):
-        permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
-        query = {"type": "anyone"}
-        filter_query = {"_id": 0, "file_id": 1}
-        files = self._db.find_documents(permission_collection_name, query, filter_query)
-        file_ids = [f["file_id"] for f in files]
-        return file_ids
+    # def get_file_ids_shared_with_anyone(self, snapshot_name):
+    #     permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
+    #     query = {"type": "anyone"}
+    #     filter_query = {"_id": 0, "file_id": 1}
+    #     files = self._db.find_documents(permission_collection_name, query, filter_query)
+    #     file_ids = [f["file_id"] for f in files]
+    #     return file_ids
 
     def create_access_control_requirement(self, access_control):
         access_control_requirement_collection_name = (

@@ -17,20 +17,30 @@ class DropboxAnalysis(Analysis):
         self.base_path = ""
 
     def calculate_permission_and_path(self, snapshot_name):
-        my_drive_folder_id = None
 
         # dfs for my_drive
         visited_file_ids = []
-        self.dfs(
-            visited_file_ids, self.base_path, [], snapshot_name, my_drive_folder_id
+        shared_folders = self._snapshot_db.get_file_under_folder(
+            snapshot_name, path=self.base_path
         )
+        for shared_folder in shared_folders:
+            folder_id = shared_folder["id"]
+            folder_path = "/" + shared_folder["name"]
+            folder_permissions = self._snapshot_db.get_all_permission_of_file(
+                snapshot_name, folder_id
+            )
+            self.dfs(
+                visited_file_ids,
+                folder_path,
+                folder_permissions,
+                snapshot_name,
+                folder_id,
+            )
 
-    def dfs(
-        self, visited, curr_folder_path, curr_permission, snapshot_name, file_id=None
-    ):
-        visited.append(file_id)
+    def dfs(self, visited, curr_folder_path, curr_permission, snapshot_name, curr_id):
+        visited.append(curr_id)
         child_files = self._snapshot_db.get_file_under_folder(
-            snapshot_name, folder_id=file_id
+            snapshot_name, path=curr_folder_path
         )
         # iterate through children files
         for child_file in child_files:
@@ -39,33 +49,19 @@ class DropboxAnalysis(Analysis):
             if child_file_id not in visited:
                 # update the path
                 # update permissions to inherited or not inherited
-                (
-                    child_path,
-                    child_permissions,
-                ) = self._snapshot_db.update_path_and_permissions(
-                    snapshot_name, curr_folder_path, curr_permission, child_file_id
-                )
-                # perform dfs on children files
-                self.dfs(
-                    visited, child_path, child_permissions, snapshot_name, child_file_id
-                )
-
-    def dfs_shared(self, visited, curr_folder_path, snapshot_name, file_id=None):
-        visited.append(file_id)
-        child_files = self._snapshot_db.get_file_under_folder(
-            snapshot_name, folder_id=file_id
-        )
-        # iterate through children files
-        for child_file in child_files:
-            child_file_id = child_file["id"]
-            # if not visited
-            if child_file_id not in visited:
-                # update the path of file
-                # (doesn't need to update inherited or not as it is shared drive)
-                child_path = self._snapshot_db.update_path(
-                    snapshot_name, curr_folder_path, child_file_id
-                )
-                self.dfs_shared(visited, child_path, snapshot_name, child_file_id)
+                child_path = curr_folder_path + "/" + child_file["name"]
+                if len(curr_permission) != 0:
+                    child_permissions = self._snapshot_db.update_permissions(
+                        snapshot_name, curr_folder_path, curr_permission, child_file_id
+                    )
+                    # perform dfs on children files
+                    self.dfs(
+                        visited,
+                        child_path,
+                        child_permissions,
+                        snapshot_name,
+                        child_file_id,
+                    )
 
     def get_sharing_differences(self, base_permissions, compare_permissions):
         delete_keys = ["file_id", "inherited_from", "inherited"]

@@ -8,9 +8,7 @@ class Analysis:
     def calculate_permission_and_path(self, snapshot_name):
         raise NotImplementedError("Must be implemented by child class")
 
-    def dfs(
-        self, visited, curr_folder_path, curr_permission, snapshot_name, file_id=None
-    ):
+    def dfs(self, *args, **kwargs):
         raise NotImplementedError("Must be implemented by child class")
 
     def get_sharing_differences(self, base_permissions, compare_permissions):

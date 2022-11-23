@@ -195,9 +195,7 @@ def get_file_snapshot(
     snapshot_name: str,
     offset: int = None,
     limit: int = None,
-    my_drive: bool = False,
-    shared_with_me: bool = False,
-    folder_id: str = None,
+    folder_path: str = None,
     authorize: AuthJWT = Depends(),
 ):
     """
@@ -205,9 +203,7 @@ def get_file_snapshot(
     :param snapshot_name:
     :param offset: what index to start
     :param limit: how many to retrieve
-    :param my_drive: retrieve all files under my_drive
-    :param shared_with_me: retrieve all files shared with me
-    :param folder_id: the id of shared drive or folder to retrieve files from
+    :param folder_path: the path of shared drive or folder to retrieve files from
     :param authorize: user authentication
     :return:
     """
@@ -219,19 +215,11 @@ def get_file_snapshot(
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
-    # files directly under MyDrive
-    if my_drive:
-        files = service.get_files_of_my_drive(user_id, snapshot_name, offset, limit)
-    # files directly under Shared With Me
-    elif shared_with_me:
-        files = service.get_files_of_shared_with_me(
-            user_id, snapshot_name, offset, limit
-        )
-    # files directly under a folder id
-    else:
-        files = service.get_files_of_folder(
-            user_id, snapshot_name, folder_id, offset, limit
-        )
+
+    # files directly of folder path
+    files = service.get_files_of_folder(
+        user_id, snapshot_name, folder_path, offset, limit
+    )
 
     if files is None:
         return JSONResponse(

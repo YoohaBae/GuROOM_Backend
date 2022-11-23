@@ -57,15 +57,13 @@ class SnapshotService:
     def separate_permission_to_inherit_and_direct(self, permissions):
         raise NotImplementedError("Must be implemented by child class")
 
-    def process_query_search(
-        self, user_id, email, snapshot_name, query: str, is_groups=True
-    ):
+    def process_query_search(self, *args, **kwargs):
         raise NotImplementedError("Must be implemented by child class")
 
     def validate_query(self, user_id, user_email, snapshot_name, query):
         raise NotImplementedError("Must be implemented by child class")
 
-    def get_unique_members_of_file_snapshot(self, user_id, snapshot_name, is_groups):
+    def get_unique_members_of_file_snapshot(self, *args, **kwargs):
         raise NotImplementedError("Must be implemented by child class")
 
     def get_recent_queries(self, email):

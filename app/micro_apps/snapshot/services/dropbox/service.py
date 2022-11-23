@@ -272,7 +272,12 @@ class DropboxSnapshotService(SnapshotService):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
             # get the id of the parent(folder) of file
-            folder_id = snapshot_db.get_parent_id(snapshot_name, file_id)
+            folder_path = snapshot_db.get_path_of_file(snapshot_name, file_id)
+            print(folder_path)
+            folder_name = folder_path.split("/")[-1]
+            print(folder_name)
+            folder_id = snapshot_db.get_file_id_of_name(snapshot_name, folder_name)
+
             # compare the two files
             folder_more, changes, file_more = self.get_sharing_difference_of_two_files(
                 user_id, snapshot_name, folder_id, file_id
@@ -493,9 +498,7 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return False
 
-    def process_query_search(
-        self, user_id, email, snapshot_name, query: str, is_groups=True
-    ):
+    def process_query_search(self, user_id, email, snapshot_name, query: str):
         user_db = DropboxAuthDatabase()
         try:
             query_obj = {"search_time": datetime.utcnow(), "query": query}
@@ -534,7 +537,6 @@ class DropboxSnapshotService(SnapshotService):
             # query other files
             else:
                 query_builder = DropboxQueryBuilder(user_id, email, snapshot_name)
-                query_builder.is_groups = is_groups
                 data = query_builder.get_files_of_query(query)
                 files = json.loads(json.dumps(data, cls=DateTimeEncoder))
                 return files
@@ -579,19 +581,11 @@ class DropboxSnapshotService(SnapshotService):
             return message
         return True
 
-    def get_unique_members_of_file_snapshot(self, user_id, snapshot_name, is_groups):
+    def get_unique_members_of_file_snapshot(self, user_id, snapshot_name):
         # Used for autocompletion when querying
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
             all_members = []
-            # if groups toggle button was set to True get all group memberships
-            # from all recent group membership snapshots
-            if is_groups:
-                recent_group_membership_snapshots = (
-                    self.get_recent_group_membership_snapshots(user_id)
-                )
-                for group in recent_group_membership_snapshots:
-                    all_members.extend(group["memberships"])
             # get all memberships from the file snapshot
             permission_members = snapshot_db.get_all_members_from_permissions(
                 snapshot_name

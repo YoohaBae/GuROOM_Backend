@@ -4,8 +4,7 @@
 
 import logging
 import os
-from datetime import datetime
-from fastapi import APIRouter, status, Depends, Body, UploadFile, Form, File
+from fastapi import APIRouter, status, Depends, Body
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from ...services.dropbox.service import DropboxSnapshotService
@@ -268,11 +267,6 @@ def search_files(
             status_code=status.HTTP_404_NOT_FOUND,
             content="unable to retrieve user email",
         )
-    is_groups = True
-    if "groups:off" in query:
-        # if groups:off exist -> remove it from the query and set the is_groups to false
-        query = query.replace("groups:off and ", "")
-        is_groups = False
     valid = service.validate_query(user_id, email, snapshot_name, query)
 
     if type(valid) == str:
@@ -282,9 +276,7 @@ def search_files(
         )
 
     # query result data
-    query_result = service.process_query_search(
-        user_id, email, snapshot_name, query, is_groups
-    )
+    query_result = service.process_query_search(user_id, email, snapshot_name, query)
 
     if query_result is None:
         return JSONResponse(
@@ -351,7 +343,7 @@ def get_file_folder_sharing_difference(
     """
     operation: get the permission difference between a file and folder
     :param snapshot_name: file snapshot name
-    :param file_id: the file id to perform the analysis
+    :param file_id: the id of file to perform the analysis
     :param authorize: user authentication
     :return:
         additional_folder_permissions: permissions that folder has but file doesn't
@@ -387,12 +379,11 @@ def get_file_folder_sharing_difference(
 
 @router.get("/files/members", tags=["file_snapshot"])
 def get_unique_members_of_file_snapshot(
-    snapshot_name: str, is_groups: bool, authorize: AuthJWT = Depends()
+    snapshot_name: str, authorize: AuthJWT = Depends()
 ):
     """
     operation: get unique memberships of a file snapshot (for autocomplete)
     :param snapshot_name: file snapshot name
-    :param is_groups: group membership snapshot is included
     :param authorize: user authentication
     :return: list of unique members
     """
@@ -405,9 +396,7 @@ def get_unique_members_of_file_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
-    members = service.get_unique_members_of_file_snapshot(
-        user_id, snapshot_name, is_groups
-    )
+    members = service.get_unique_members_of_file_snapshot(user_id, snapshot_name)
 
     if members is None:
         return JSONResponse(
@@ -416,81 +405,6 @@ def get_unique_members_of_file_snapshot(
         )
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=members)
-
-
-@router.post("/groups", tags=["group_snapshot"])
-async def create_group_membership_snapshot(
-    file: UploadFile = File(),
-    group_name: str = Form(...),
-    group_email: str = Form(...),
-    create_time: datetime = Form(...),
-    authorize: AuthJWT = Depends(),
-):
-    """
-    operation: create a group membership snapshot
-    :param file: html file of dropbox groups
-    :param group_name: name of group
-    :param group_email: email of group
-    :param create_time: the time that the html file was saved
-    :param authorize: user authentication
-    :return: status code
-    """
-    authorize.jwt_required()
-    access_token = authorize.get_jwt_subject()
-
-    user_id = service.get_user_id_from_access_token(access_token)
-    if user_id is None:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
-        )
-
-    # scratch the membership from html file
-    memberships = await service.scratch_group_memberships_from_file(file)
-    # failed to scratch memberships
-    if memberships is None:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content="invalid html file",
-        )
-
-    # create group snapshot
-    created = service.create_group_snapshot(
-        user_id, group_name, group_email, create_time, memberships
-    )
-    # failed to create
-    if not created:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to create group membership snapshot",
-        )
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content="group membership snapshot created"
-    )
-
-
-@router.get("/groups", tags=["group_snapshot"])
-def get_group_membership_snapshot(authorize: AuthJWT = Depends()):
-    """
-    operation: retrieves the most recent group membership snapshot for each group
-    :param authorize: user authentication
-    :return: recent group membership snapshots
-    """
-    authorize.jwt_required()
-    access_token = authorize.get_jwt_subject()
-
-    user_id = service.get_user_id_from_access_token(access_token)
-    if user_id is None:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
-        )
-
-    groups = service.get_recent_group_membership_snapshots(user_id)
-    if groups is None:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content="unable to create group membership snapshot",
-        )
-    return JSONResponse(status_code=status.HTTP_200_OK, content=groups)
 
 
 @router.post("/access-controls", tags=["access_control_requirements"])

@@ -105,8 +105,8 @@ class DropboxSnapshotService(SnapshotService):
         all_permissions = [
             Permission(**permission).dict()
             for permission in file_permissions
-            + shared_folder_permissions
-            + nested_folder_permissions
+                              + shared_folder_permissions
+                              + nested_folder_permissions
         ]
         return all_files, all_permissions
 
@@ -172,7 +172,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_files_of_folder(
-        self, user_id, snapshot_name, path=None, offset=None, limit=None
+            self, user_id, snapshot_name, path=None, offset=None, limit=None
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -215,31 +215,24 @@ class DropboxSnapshotService(SnapshotService):
         try:
             all_files = snapshot_db.get_all_files_of_snapshot(snapshot_name)
             different_files = []
-            root_id = snapshot_db.get_root_id(snapshot_name)
-            shared_drives = snapshot_db.get_shared_drives(snapshot_name)
-            shared_drive_ids = [x["id"] for x in shared_drives]
             # go through all files of snapshot
             for file in all_files:
                 file_id = file["id"]
-                parents = file["parents"]
+                file_path = file["path"]
                 # if parent doesn't exist or the parent is MyDrive or any shared drive
-                if (
-                    len(parents) == 0
-                    or parents[0] == root_id
-                    or parents[0] in shared_drive_ids
-                ):
+                if len(file_path.split("/")) == 1:
                     continue
                 # get the folder id
-                folder_id = parents[0]
+                folder_name = file_path.split("/")[-1]
+                folder_id = snapshot_db.get_file_id_of_name(
+                    snapshot_name, folder_name
+                )
                 # get permission of file id
                 file_permissions = snapshot_db.get_all_permission_of_file(
                     snapshot_name, file_id
                 )
                 # get permission of folder id
-                folder_permissions = snapshot_db.get_all_permission_of_file(
-                    snapshot_name, folder_id
-                )
-
+                folder_permissions = snapshot_db.get_all_permission_of_file(snapshot_name, folder_id)
                 # no folder with such id
                 if folder_permissions is None:
                     continue
@@ -254,9 +247,9 @@ class DropboxSnapshotService(SnapshotService):
                 )
                 # there is a difference
                 if (
-                    len(base_more_permissions) != 0
-                    or len(changes) != 0
-                    or len(compare_more_permissions) != 0
+                        len(base_more_permissions) != 0
+                        or len(changes) != 0
+                        or len(compare_more_permissions) != 0
                 ):
                     # append to different files
                     different_files.append(file)
@@ -286,7 +279,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files(
-        self, user_id, snapshot_name, base_file_id, compare_file_id
+            self, user_id, snapshot_name, base_file_id, compare_file_id
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -313,7 +306,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files_different_snapshots(
-        self, user_id, base_snapshot_name, compare_snapshot_name, file_id
+            self, user_id, base_snapshot_name, compare_snapshot_name, file_id
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -340,7 +333,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_difference_of_two_snapshots(
-        self, user_id, base_snapshot_name, compare_snapshot_name
+            self, user_id, base_snapshot_name, compare_snapshot_name
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -389,112 +382,6 @@ class DropboxSnapshotService(SnapshotService):
             else:
                 direct.append(permission)
         return inherit, direct
-
-    async def scratch_group_memberships_from_file(self, file):
-        try:
-            # class for membership row div
-            MEMBERSHIP_ROW_CLASS = "cXEmmc B9Uude hFgAsc J6Lkdb"
-            # class for membership name div
-            MEMBERSHIP_NAME_CLASS = "LnLepd"
-            # class for membership email div
-            MEMBERSHIP_EMAIL_CLASS = "p480bb Sq3iG"
-            # class for membership role div
-            MEMBERSHIP_ROLE_CLASS = "y7VPke"
-            # class for membership join date div
-            MEMBERSHIP_JOIN_DATE_CLASS = "y7VPke"
-            memberships = []
-            await file.seek(0)
-            html = await file.read()
-            # BeautifulSoup: An html parser that goes through the html file.
-            # Can retrieve certain elements based on tags, classes, and ids.
-            soup = BeautifulSoup(html, "html.parser")
-            # find all membership rows
-            membership_html_rows = soup.find_all("div", {"class": MEMBERSHIP_ROW_CLASS})
-            for membership_html in membership_html_rows:
-                membership_html_member = membership_html.find_all(
-                    "span", {"class": "eois5"}
-                )
-                # email doesn't exist -> external groups
-                if len(membership_html_member) == 3:
-                    [
-                        membership_html_name,
-                        membership_html_role,
-                        membership_html_join_date,
-                    ] = membership_html_member
-                    name = membership_html_name.find(
-                        "div", {"class": MEMBERSHIP_NAME_CLASS}
-                    ).contents[0]
-                    role = membership_html_role.find(
-                        "div", {"class": MEMBERSHIP_ROLE_CLASS}
-                    ).contents[0]
-                    join_date = membership_html_join_date.find(
-                        "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
-                    ).contents[0]
-                    if "@" in name:
-                        email = name
-                        membership = {
-                            "member": name,
-                            "email": email,
-                            "role": role,
-                            "join_date": join_date,
-                        }
-                        memberships.append(membership)
-                # emails exist -> internal groups
-                else:
-                    [
-                        membership_html_name,
-                        membership_html_email,
-                        membership_html_role,
-                        membership_html_join_date,
-                    ] = membership_html_member
-                    name = membership_html_name.find(
-                        "div", {"class": MEMBERSHIP_NAME_CLASS}
-                    ).contents[0]
-                    email = membership_html_email.find(
-                        "a", {"class": MEMBERSHIP_EMAIL_CLASS}
-                    ).contents[0]
-                    role = membership_html_role.find(
-                        "div", {"class": MEMBERSHIP_ROLE_CLASS}
-                    ).contents[0]
-                    join_date = membership_html_join_date.find(
-                        "div", {"class": MEMBERSHIP_JOIN_DATE_CLASS}
-                    ).contents[0]
-                    membership = {
-                        "member": name,
-                        "email": email,
-                        "role": role,
-                        "join_date": join_date,
-                    }
-                    memberships.append(membership)
-            return memberships
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
-    def create_group_snapshot(
-        self, user_id, group_name, group_email, create_time, memberships
-    ):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            snapshot_db.create_group_memberships_snapshot(
-                group_name, group_email, create_time, memberships
-            )
-            return True
-        except Exception as error:
-            self.logger.error(error)
-            return False
-
-    def get_recent_group_membership_snapshots(self, user_id):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            recent_groups = snapshot_db.get_recent_group_membership_snapshots()
-            json_result_groups = json.loads(
-                json.dumps(recent_groups, cls=DateTimeEncoder)
-            )
-            return json_result_groups
-        except Exception as error:
-            self.logger.error(error)
-            return False
 
     def process_query_search(self, user_id, email, snapshot_name, query: str):
         user_db = DropboxAuthDatabase()
@@ -642,7 +529,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_files_and_permissions_of_access_control_requirement(
-        self, user_id, email, snapshot_name, access_control_requirement_name
+            self, user_id, email, snapshot_name, access_control_requirement_name
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         analysis = DropboxAnalysis(user_id)
@@ -652,7 +539,7 @@ class DropboxSnapshotService(SnapshotService):
             )
             query = access_control_requirement["query"]
             query_builder = DropboxQueryBuilder(user_id, email, snapshot_name)
-            query_builder.is_groups = access_control_requirement["Grp"]
+            # query_builder.is_groups = access_control_requirement["Grp"]
             # file of query
             data = query_builder.get_files_of_query(query)
             files = json.loads(json.dumps(data, cls=DateTimeEncoder))

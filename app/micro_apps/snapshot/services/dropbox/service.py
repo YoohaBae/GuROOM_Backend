@@ -158,57 +158,11 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    # def get_files_of_my_drive(self, user_id, snapshot_name, offset=None, limit=None):
-    #     snapshot_db = DropboxSnapshotDatabase(user_id)
-    #     try:
-    #         # get the id of MyDrive
-    #         folder_id = snapshot_db.get_root_id(snapshot_name)
-    #         # get files under MyDrive
-    #         data = snapshot_db.get_file_under_folder(
-    #             snapshot_name, offset, limit, folder_id
-    #         )
-    #         if len(data) == 0:
-    #             return []
-    #         files = json.loads(json.dumps(data, cls=DateTimeEncoder))
-    #         return files
-    #     except Exception as error:
-    #         self.logger.error(error)
-    #         return None
-
-    def get_files_of_shared_with_me(
-        self, user_id, snapshot_name, offset=None, limit=None
-    ):
+    def get_files_of_base(self, user_id, snapshot_name, offset=None, limit=None):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
-            # get all files with no parent attribute
-            no_parent = snapshot_db.get_file_under_folder(snapshot_name)
-            # get all files that do not have a path attribute -> has a parent but that parent is not in snapshot
-            no_path = snapshot_db.get_files_with_no_path(snapshot_name)
-            yes_path = []
-            # set the files with no path as shared with me
-            for no_path_file in no_path:
-                no_path_file["path"] = "/SharedWithMe"
-                yes_path.append(no_path_file)
-            data = yes_path + no_parent
-            # slice data
-            if offset is not None and limit is not None:
-                data = data[offset : (offset + limit)]  # noqa: E203
-            if len(data) == 0:
-                return []
-            files = json.loads(json.dumps(data, cls=DateTimeEncoder))
-            return files
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
-    def get_files_of_shared_drive(
-        self, user_id, snapshot_name, drive_id, offset=None, limit=None
-    ):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            data = snapshot_db.get_file_under_folder(
-                snapshot_name, offset, limit, drive_id
-            )
+            # get files under base path ""
+            data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, "")
             if len(data) == 0:
                 return []
             files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -218,13 +172,11 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_files_of_folder(
-        self, user_id, snapshot_name, folder_id, offset=None, limit=None
+        self, user_id, snapshot_name, path, offset=None, limit=None
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
-            data = snapshot_db.get_file_under_folder(
-                snapshot_name, offset, limit, folder_id
-            )
+            data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, path)
             if len(data) == 0:
                 return []
             files = json.loads(json.dumps(data, cls=DateTimeEncoder))

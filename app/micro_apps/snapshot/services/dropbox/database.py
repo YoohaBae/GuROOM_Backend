@@ -33,9 +33,14 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
 
     def get_file_under_folder(self, snapshot_name, offset=None, limit=None, path=None):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
+        if path is None:
+            path = ""
         query = {"path": path}
         filter_query = {"_id": 0}
+        print(path)
+        print(file_collection_name)
         files = self._db.find_documents(file_collection_name, query, filter_query)
+        print(files)
         if offset is not None and limit is not None:
             return files[offset : (offset + limit)]  # noqa: E203
         return files

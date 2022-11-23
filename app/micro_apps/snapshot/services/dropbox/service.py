@@ -172,7 +172,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_files_of_folder(
-        self, user_id, snapshot_name, path, offset=None, limit=None
+        self, user_id, snapshot_name, path=None, offset=None, limit=None
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:

@@ -37,10 +37,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
             path = ""
         query = {"path": path}
         filter_query = {"_id": 0}
-        print(path)
-        print(file_collection_name)
         files = self._db.find_documents(file_collection_name, query, filter_query)
-        print(files)
         if offset is not None and limit is not None:
             return files[offset : (offset + limit)]  # noqa: E203
         return files

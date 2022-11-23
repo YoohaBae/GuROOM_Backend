@@ -273,9 +273,7 @@ class DropboxSnapshotService(SnapshotService):
         try:
             # get the id of the parent(folder) of file
             folder_path = snapshot_db.get_path_of_file(snapshot_name, file_id)
-            print(folder_path)
             folder_name = folder_path.split("/")[-1]
-            print(folder_name)
             folder_id = snapshot_db.get_file_id_of_name(snapshot_name, folder_name)
 
             # compare the two files

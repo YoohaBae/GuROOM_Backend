@@ -12,5 +12,14 @@ class AccessControlBody(BaseModel):
     Grp: bool
 
 
+class DropboxAccessControlBody(BaseModel):
+    name: str
+    query: str
+    AR: List[str] = []
+    AW: List[str] = []
+    DR: List[str] = []
+    DW: List[str] = []
+
+
 class DeleteAccessControlRequirementBody(BaseModel):
     name: str

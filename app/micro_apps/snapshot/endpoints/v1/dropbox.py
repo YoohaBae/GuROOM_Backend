@@ -14,7 +14,7 @@ from ..models.snapshot import (
     PostFileSnapshotBody,
 )
 from ..models.access_control import (
-    AccessControlBody,
+    DropboxAccessControlBody,
     DeleteAccessControlRequirementBody,
 )
 
@@ -415,7 +415,7 @@ def get_unique_members_of_file_snapshot(
 
 @router.post("/access-controls", tags=["access_control_requirements"])
 def create_access_control_requirements(
-    access_control: AccessControlBody = Body(...), authorize: AuthJWT = Depends()
+    access_control: DropboxAccessControlBody = Body(...), authorize: AuthJWT = Depends()
 ):
     """
     operation: creates an access control requirement

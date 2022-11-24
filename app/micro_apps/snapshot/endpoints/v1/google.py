@@ -14,7 +14,10 @@ from ..models.snapshot import (
     PutFileSnapshotBody,
     PostFileSnapshotBody,
 )
-from ..models.access_control import AccessControlBody
+from ..models.access_control import (
+    AccessControlBody,
+    DeleteAccessControlRequirementBody,
+)
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -640,3 +643,35 @@ def get_access_control_requirements(authorize: AuthJWT = Depends()):
     return JSONResponse(
         status_code=status.HTTP_200_OK, content=access_control_requirements
     )
+
+
+@router.delete("/access-controls", tags=["access_control_requirements"])
+def delete_access_control_requirements(
+    body: DeleteAccessControlRequirementBody = Body(...), authorize: AuthJWT = Depends()
+):
+    """
+    operation: deletes file snapshot
+    :param body: file snapshot name
+    :param authorize: user authentication
+    :return: None
+    """
+    authorize.jwt_required()
+    access_token = authorize.get_jwt_subject()
+    access_control_requirement_name = body.name
+
+    user_id = service.get_user_id_from_access_token(access_token)
+    if user_id is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
+        )
+
+    deleted = service.delete_access_control_requirement(
+        user_id, access_control_requirement_name
+    )
+    if not deleted:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content="unable to delete requirement",
+        )
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content="requirement deleted")

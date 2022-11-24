@@ -606,48 +606,6 @@ def test_invalid_get_sharing_difference_of_two_files(snapshot_db_exception):
 @mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
 @mock.patch.object(
     GoogleSnapshotDatabase,
-    "get_all_permission_of_file",
-    MockDB.get_all_permission_of_file,
-)
-@mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
-@mock.patch.object(
-    GoogleAnalysis, "get_sharing_differences", MockAnalysis.get_sharing_differences
-)
-def test_valid_get_sharing_difference_of_two_files_different_snapshots():
-    mock_user_id = "MOCK_USER_ID1"
-    mock_base_snapshot_name = "FILE_SNAPSHOT1"
-    mock_compare_snapshot_name = "FILE_SNAPSHOT2"
-    mock_file_id = "FILEID1"
-    difference = service.get_sharing_difference_of_two_files_different_snapshots(
-        mock_user_id, mock_base_snapshot_name, mock_compare_snapshot_name, mock_file_id
-    )
-    assert difference
-
-
-@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
-@mock.patch.object(
-    GoogleSnapshotDatabase,
-    "get_all_permission_of_file",
-    MockDB.get_all_permission_of_file,
-)
-@mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
-@mock.patch.object(GoogleAnalysis, "get_sharing_differences", side_effect=Exception)
-def test_invalid_get_sharing_difference_of_two_files_different_snapshots(
-    snapshot_db_exception,
-):
-    mock_user_id = "MOCK_USER_ID1"
-    mock_base_snapshot_name = "FILE_SNAPSHOT1"
-    mock_compare_snapshot_name = "FILE_SNAPSHOT2"
-    mock_file_id = "FILEID1"
-    difference = service.get_sharing_difference_of_two_files_different_snapshots(
-        mock_user_id, mock_base_snapshot_name, mock_compare_snapshot_name, mock_file_id
-    )
-    assert not difference
-
-
-@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
-@mock.patch.object(
-    GoogleSnapshotDatabase,
     "get_all_files_of_snapshot",
     MockDB.get_all_files_of_snapshot,
 )

@@ -467,3 +467,9 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
             access_control_requirement_collection_name, query, filter_query
         )
         return access_control
+
+    def delete_access_control_requirement(self, access_control_requirement_name):
+        # delete file snapshot from user_id.file_snapshots
+        file_snapshot_collection_name = f"{self.user_id}.access_control_requirements"
+        query = {"name": access_control_requirement_name}
+        self._db.delete_document(file_snapshot_collection_name, query)

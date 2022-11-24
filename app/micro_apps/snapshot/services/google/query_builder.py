@@ -129,7 +129,7 @@ class GoogleQueryBuilder(QueryBuilder):
             )
 
     def validate_path(self, path):
-        path_pattern = r"^([\/]{1}[a-zA-Z0-9.]+)+(\/?){1}$|^([\/]{1})$"
+        path_pattern = r"^([\/]{1}[a-zA-Z0-9.][^\\]+)+(\/?){1}$|^([\/]{1})$"
         try:
             if re.match(path_pattern, path):
                 pass

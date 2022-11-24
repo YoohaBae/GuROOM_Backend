@@ -1,6 +1,5 @@
 import json
 import copy
-from bs4 import BeautifulSoup
 from datetime import datetime
 from app.utils.util import DateTimeEncoder
 from app.services.snapshot_service import SnapshotService
@@ -94,6 +93,7 @@ class DropboxSnapshotService(SnapshotService):
                         folder_permission = copy.deepcopy(permission)
                         folder_permission["file_id"] = file["id"]
                         folder_permission["inherited"] = True
+                        file["shared"] = True
                         nested_folder_permissions.append(folder_permission)
 
         for folder in shared_folders:
@@ -105,8 +105,8 @@ class DropboxSnapshotService(SnapshotService):
         all_permissions = [
             Permission(**permission).dict()
             for permission in file_permissions
-                              + shared_folder_permissions
-                              + nested_folder_permissions
+            + shared_folder_permissions
+            + nested_folder_permissions
         ]
         return all_files, all_permissions
 
@@ -172,7 +172,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_files_of_folder(
-            self, user_id, snapshot_name, path=None, offset=None, limit=None
+        self, user_id, snapshot_name, path=None, offset=None, limit=None
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -224,15 +224,15 @@ class DropboxSnapshotService(SnapshotService):
                     continue
                 # get the folder id
                 folder_name = file_path.split("/")[-1]
-                folder_id = snapshot_db.get_file_id_of_name(
-                    snapshot_name, folder_name
-                )
+                folder_id = snapshot_db.get_file_id_of_name(snapshot_name, folder_name)
                 # get permission of file id
                 file_permissions = snapshot_db.get_all_permission_of_file(
                     snapshot_name, file_id
                 )
                 # get permission of folder id
-                folder_permissions = snapshot_db.get_all_permission_of_file(snapshot_name, folder_id)
+                folder_permissions = snapshot_db.get_all_permission_of_file(
+                    snapshot_name, folder_id
+                )
                 # no folder with such id
                 if folder_permissions is None:
                     continue
@@ -247,9 +247,9 @@ class DropboxSnapshotService(SnapshotService):
                 )
                 # there is a difference
                 if (
-                        len(base_more_permissions) != 0
-                        or len(changes) != 0
-                        or len(compare_more_permissions) != 0
+                    len(base_more_permissions) != 0
+                    or len(changes) != 0
+                    or len(compare_more_permissions) != 0
                 ):
                     # append to different files
                     different_files.append(file)
@@ -279,7 +279,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files(
-            self, user_id, snapshot_name, base_file_id, compare_file_id
+        self, user_id, snapshot_name, base_file_id, compare_file_id
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -306,7 +306,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files_different_snapshots(
-            self, user_id, base_snapshot_name, compare_snapshot_name, file_id
+        self, user_id, base_snapshot_name, compare_snapshot_name, file_id
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -333,7 +333,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_difference_of_two_snapshots(
-            self, user_id, base_snapshot_name, compare_snapshot_name
+        self, user_id, base_snapshot_name, compare_snapshot_name
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         try:
@@ -354,15 +354,6 @@ class DropboxSnapshotService(SnapshotService):
             # get the files that have different permissions or files that were newly created
             different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
             return different_files
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
-    def get_shared_drives(self, user_id, snapshot_name):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            shared_drives = snapshot_db.get_shared_drives(snapshot_name)
-            return shared_drives
         except Exception as error:
             self.logger.error(error)
             return None
@@ -529,7 +520,7 @@ class DropboxSnapshotService(SnapshotService):
             return None
 
     def get_files_and_permissions_of_access_control_requirement(
-            self, user_id, email, snapshot_name, access_control_requirement_name
+        self, user_id, email, snapshot_name, access_control_requirement_name
     ):
         snapshot_db = DropboxSnapshotDatabase(user_id)
         analysis = DropboxAnalysis(user_id)

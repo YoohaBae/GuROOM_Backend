@@ -258,19 +258,13 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         return file_ids
 
     def get_not_shared_files(self, snapshot_name):
-        file_collection_name = f"{self.user_id}.{snapshot_name}.files"
-        query = {"shared": False}
-        filter_query = {"_id": 0}
-        files = self._db.find_documents(file_collection_name, query, filter_query)
-        return files
-
-    # def get_file_ids_shared_with_anyone(self, snapshot_name):
-    #     permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"
-    #     query = {"type": "anyone"}
-    #     filter_query = {"_id": 0, "file_id": 1}
-    #     files = self._db.find_documents(permission_collection_name, query, filter_query)
-    #     file_ids = [f["file_id"] for f in files]
-    #     return file_ids
+        all_files = self.get_all_files_of_snapshot(snapshot_name)
+        not_shared_files = []
+        for file in all_files:
+            permission = self.get_all_permission_of_file(snapshot_name, file["id"])
+            if len(permission) == 0:
+                not_shared_files.append(file)
+        return not_shared_files
 
     def create_access_control_requirement(self, access_control):
         access_control_requirement_collection_name = (

@@ -62,20 +62,10 @@ class DropboxSnapshotService(SnapshotService):
         shared_folder_ids = [folder["driveId"] for folder in shared_folders]
 
         # get permissions of files
-        file_permissions, next_page_token = dropbox_drive.get_permissions_of_files(
+        file_permissions = dropbox_drive.get_permissions_of_files(
             access_token, file_ids
         )
-        if file_permissions:
-            # there are more permissions to be retrieved
-            while next_page_token is not None:
-                (
-                    new_file_permissions,
-                    next_page_token,
-                ) = dropbox_drive.get_permissions_of_files(
-                    access_token, [], next_page_token
-                )
-                file_permissions += new_file_permissions
-        elif file_permissions is None:
+        if file_permissions is None:
             raise ValueError("unable to retrieve file permissions")
         # get permissions of folders and shared folders
         shared_folder_permissions = dropbox_drive.get_permissions_of_shared_folders(

@@ -82,12 +82,12 @@ class DropboxDrive(Drive):
         else:
             return None, None, None
 
-    def get_permissions_of_files(self, token, file_ids, next_page_token=None):
+    def get_permissions_of_file(self, token, file_id, next_page_token=None):
         if next_page_token is None:
             permission_request = requests.post(
-                "https://api.dropboxapi.com/2/sharing/list_file_members/batch",
+                "https://api.dropboxapi.com/2/sharing/list_file_members",
                 headers={"Authorization": f"Bearer {token}"},
-                json={"files": file_ids, "limit": 20},
+                json={"file": file_id, "include_inherited": False, "limit": 20},
             )
         else:
             permission_request = requests.post(
@@ -97,43 +97,57 @@ class DropboxDrive(Drive):
             )
         status_code = getattr(permission_request, "status_code")
 
+        formatted_permissions = []
+
         if status_code == 200:
             file_obj = permission_request.json()
             if "cursor" in file_obj:
                 next_page_token = file_obj["cursor"]
-            formatted_permissions = []
-            for file in file_obj:
-                permissions = file["result"]["members"]["users"]
-                if permissions is []:
-                    continue
-                file_id = file["file"]
-                for permission in permissions:
-                    user = permission["user"]
-                    raw_role = permission["access_type"][".tag"]
-                    if raw_role == "editor":
-                        role = "writer"
-                    elif raw_role == "owner":
-                        role = raw_role
-                    elif raw_role == "viewer":
-                        role = "commenter"
-                    elif raw_role == "viewer_no_comment":
-                        role = "reader"
-                    else:
-                        raise ValueError("invalid role")
-                    formatted_permission = {
-                        "driveId": None,
-                        "file_id": file_id,
-                        "type": "user",
-                        "id": user["account_id"],
-                        "emailAddress": user["email"],
-                        "displayName": user["display_name"],
-                        "role": role,
-                        "inherited": permission["is_inherited"],
-                    }
-                    formatted_permissions.append(formatted_permission)
+            permissions = file_obj["users"]
+            if file_id == "id:TY-a4ayiEGAAAAAAAAAACQ":
+                print("this!")
+                print(permissions)
+            if permissions is []:
+                return []
+            for permission in permissions:
+                user = permission["user"]
+                raw_role = permission["access_type"][".tag"]
+                if raw_role == "editor":
+                    role = "writer"
+                elif raw_role == "owner":
+                    role = raw_role
+                elif raw_role == "viewer":
+                    role = "commenter"
+                elif raw_role == "viewer_no_comment":
+                    role = "reader"
+                else:
+                    raise ValueError("invalid role")
+                formatted_permission = {
+                    "driveId": None,
+                    "file_id": file_id,
+                    "type": "user",
+                    "id": user["account_id"],
+                    "emailAddress": user["email"],
+                    "displayName": user["display_name"],
+                    "role": role,
+                    "inherited": permission["is_inherited"],
+                }
+                formatted_permissions.append(formatted_permission)
             return formatted_permissions, next_page_token
-        else:
-            return None, None
+
+    def get_permissions_of_files(self, token, file_ids):
+        files_permissions = []
+        for file_id in file_ids:
+            file_permissions, next_page_token = self.get_permissions_of_file(
+                token, file_id
+            )
+            while next_page_token is not None:
+                (new_file_permissions, next_page_token) = self.get_permissions_of_file(
+                    token, file_id
+                )
+                file_permissions += new_file_permissions
+            files_permissions.extend(file_permissions)
+        return files_permissions
 
     def get_permissions_of_shared_folder(self, token, folder_id, next_page_token=None):
         if next_page_token is None:

@@ -99,7 +99,7 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
             # parent permission was not inherited
             else:
                 inherited_from = parent_path
-            update_query = {"$set": {"inherited_from": inherited_from}}
+            update_query = {"$set": {"inherited_from": inherited_from, "inherited": True}}
             self._db.update_documents(permission_collection_name, update_query, query)
         query = {"file_id": file_id}
         permissions = self._db.find_documents(

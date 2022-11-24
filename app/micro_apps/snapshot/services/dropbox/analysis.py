@@ -29,13 +29,17 @@ class DropboxAnalysis(Analysis):
             folder_permissions = self._snapshot_db.get_all_permission_of_file(
                 snapshot_name, folder_id
             )
-            self.dfs(
-                visited_file_ids,
-                folder_path,
-                folder_permissions,
-                snapshot_name,
-                folder_id,
-            )
+            if shared_folder["mimeType"] == "folder":
+                self.dfs(
+                    visited_file_ids,
+                    folder_path,
+                    folder_permissions,
+                    snapshot_name,
+                    folder_id,
+                )
+            else:
+                for permission in folder_permissions:
+                    permission["inherited"] = False
 
     def dfs(self, visited, curr_folder_path, curr_permission, snapshot_name, curr_id):
         visited.append(curr_id)

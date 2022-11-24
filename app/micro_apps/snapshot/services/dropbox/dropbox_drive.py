@@ -104,9 +104,6 @@ class DropboxDrive(Drive):
             if "cursor" in file_obj:
                 next_page_token = file_obj["cursor"]
             permissions = file_obj["users"]
-            if file_id == "id:TY-a4ayiEGAAAAAAAAAACQ":
-                print("this!")
-                print(permissions)
             if permissions is []:
                 return []
             for permission in permissions:

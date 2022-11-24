@@ -445,9 +445,12 @@ class DropboxSnapshotService(SnapshotService):
         try:
             if "is:file_folder_diff" in query:
                 # file folder diff cannot have additional query statements
-                if "is:file_folder_diff" != query:
+                if (
+                        query.split(" ")[1] != "and"
+                        or "file_ids" not in query.split(" ")[2]
+                ):
                     raise ValueError(
-                        "Invalid Query: file folder differences cannot be searched with other queries"
+                        "Invalid Query: invalid format of file folder sharing difference query"
                     )
             elif "accessControl:" in query:
                 # access control requirement cannot have additional query statements

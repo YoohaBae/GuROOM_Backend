@@ -1,4 +1,5 @@
 import json
+import ast
 from bs4 import BeautifulSoup
 from datetime import datetime
 from app.utils.util import DateTimeEncoder
@@ -81,10 +82,10 @@ class GoogleSnapshotService(SnapshotService):
                 shared_drive_permissions_for_file = []
                 # separate result into file and permission
                 if (
-                    "driveId" in file
-                    and file["driveId"] is not None
-                    and "permissionIds" in file
-                    and "permissionIds" != []
+                        "driveId" in file
+                        and file["driveId"] is not None
+                        and "permissionIds" in file
+                        and "permissionIds" != []
                 ):
                     permission_ids = file["permissionIds"]
                     for pid in permission_ids:
@@ -102,7 +103,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def create_file_snapshot(
-        self, user_id, snapshot_name, files, root_id, shared_drives
+            self, user_id, snapshot_name, files, root_id, shared_drives
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -171,7 +172,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_files_of_shared_with_me(
-        self, user_id, snapshot_name, offset=None, limit=None
+            self, user_id, snapshot_name, offset=None, limit=None
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -187,7 +188,7 @@ class GoogleSnapshotService(SnapshotService):
             data = yes_path + no_parent
             # slice data
             if offset is not None and limit is not None:
-                data = data[offset : (offset + limit)]  # noqa: E203
+                data = data[offset: (offset + limit)]  # noqa: E203
             if len(data) == 0:
                 return []
             files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -197,7 +198,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_files_of_shared_drive(
-        self, user_id, snapshot_name, drive_id, offset=None, limit=None
+            self, user_id, snapshot_name, drive_id, offset=None, limit=None
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -213,7 +214,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_files_of_folder(
-        self, user_id, snapshot_name, folder_id, offset=None, limit=None
+            self, user_id, snapshot_name, folder_id, offset=None, limit=None
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -253,23 +254,24 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_files_with_diff_permission_from_folder(self, user_id, snapshot_name):
+    def check_if_files_have_different_permission_from_folder(self, user_id, snapshot_name, file_ids):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
-            all_files = snapshot_db.get_all_files_of_snapshot(snapshot_name)
-            different_files = []
+            all_files = snapshot_db.get_files_of_file_ids(snapshot_name, file_ids)
+
             root_id = snapshot_db.get_root_id(snapshot_name)
             shared_drives = snapshot_db.get_shared_drives(snapshot_name)
             shared_drive_ids = [x["id"] for x in shared_drives]
             # go through all files of snapshot
+            print(all_files)
             for file in all_files:
                 file_id = file["id"]
                 parents = file["parents"]
                 # if parent doesn't exist or the parent is MyDrive or any shared drive
                 if (
-                    len(parents) == 0
-                    or parents[0] == root_id
-                    or parents[0] in shared_drive_ids
+                        len(parents) == 0
+                        or parents[0] == root_id
+                        or parents[0] in shared_drive_ids
                 ):
                     continue
                 # get the folder id
@@ -297,9 +299,64 @@ class GoogleSnapshotService(SnapshotService):
                 )
                 # there is a difference
                 if (
-                    len(base_more_permissions) != 0
-                    or len(changes) != 0
-                    or len(compare_more_permissions) != 0
+                        len(base_more_permissions) != 0
+                        or len(changes) != 0
+                        or len(compare_more_permissions) != 0
+                ):
+                    # append to different files
+                    file["flag"] = True
+            return all_files
+        except Exception as error:
+            self.logger.error(error)
+            return None
+
+    def get_files_with_diff_permission_from_folder(self, user_id, snapshot_name):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
+        try:
+            all_files = snapshot_db.get_all_files_of_snapshot(snapshot_name)
+            different_files = []
+            root_id = snapshot_db.get_root_id(snapshot_name)
+            shared_drives = snapshot_db.get_shared_drives(snapshot_name)
+            shared_drive_ids = [x["id"] for x in shared_drives]
+            # go through all files of snapshot
+            for file in all_files:
+                file_id = file["id"]
+                parents = file["parents"]
+                # if parent doesn't exist or the parent is MyDrive or any shared drive
+                if (
+                        len(parents) == 0
+                        or parents[0] == root_id
+                        or parents[0] in shared_drive_ids
+                ):
+                    continue
+                # get the folder id
+                folder_id = parents[0]
+                # get permission of file id
+                file_permissions = snapshot_db.get_all_permission_of_file(
+                    snapshot_name, file_id
+                )
+                # get permission of folder id
+                folder_permissions = snapshot_db.get_all_permission_of_file(
+                    snapshot_name, folder_id
+                )
+
+                # no folder with such id
+                if folder_permissions is None:
+                    continue
+                # perform analysis
+                analysis = GoogleAnalysis(user_id)
+                (
+                    base_more_permissions,
+                    changes,
+                    compare_more_permissions,
+                ) = analysis.get_sharing_differences(
+                    file_permissions, folder_permissions
+                )
+                # there is a difference
+                if (
+                        len(base_more_permissions) != 0
+                        or len(changes) != 0
+                        or len(compare_more_permissions) != 0
                 ):
                     # append to different files
                     different_files.append(file)
@@ -326,7 +383,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_sharing_difference_of_two_files(
-        self, user_id, snapshot_name, base_file_id, compare_file_id
+            self, user_id, snapshot_name, base_file_id, compare_file_id
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -353,7 +410,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_difference_of_two_snapshots(
-        self, user_id, base_snapshot_name, compare_snapshot_name
+            self, user_id, base_snapshot_name, compare_snapshot_name
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -485,7 +542,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def create_group_snapshot(
-        self, user_id, group_name, group_email, create_time, memberships
+            self, user_id, group_name, group_email, create_time, memberships
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
@@ -510,20 +567,27 @@ class GoogleSnapshotService(SnapshotService):
             return False
 
     def process_query_search(
-        self, user_id, email, snapshot_name, query: str, is_groups=True
+            self, user_id, email, snapshot_name, query: str, is_groups=True
     ):
         user_db = GoogleAuthDatabase()
         try:
             query_obj = {"search_time": datetime.utcnow(), "query": query}
             user_db.update_or_push_recent_queries(email, query_obj)
             # retrieve file folder sharing different files
-            if "is:file_folder_diff" == query:
-                data = self.get_files_with_diff_permission_from_folder(
-                    user_id,
-                    snapshot_name,
-                )
-                different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
-                return different_files
+            if "is:file_folder_diff" in query:
+                file_ids = ast.literal_eval(query.split(" ")[2].replace("file_ids:", ""))
+                print(file_ids)
+                if len(file_ids) == 0:
+                    data = self.get_files_with_diff_permission_from_folder(
+                        user_id,
+                        snapshot_name,
+                    )
+                    different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
+                    return different_files
+                else:
+                    files = self.check_if_files_have_different_permission_from_folder(user_id, snapshot_name, file_ids)
+                    files = json.loads(json.dumps(files, cls=DateTimeEncoder))
+                    return files
             # query access control requirement files
             elif "accessControl" in query:
                 access_control_requirement_name = query.split(":")[1]
@@ -563,9 +627,9 @@ class GoogleSnapshotService(SnapshotService):
         try:
             if "is:file_folder_diff" in query:
                 # file folder diff cannot have additional query statements
-                if "is:file_folder_diff" != query:
+                if query.split(" ")[1] != "and" or "file_ids" not in query.split(" ")[2]:
                     raise ValueError(
-                        "Invalid Query: file folder differences cannot be searched with other queries"
+                        "Invalid Query: invalid format of file folder sharing difference query"
                     )
             elif "accessControl:" in query:
                 # access control requirement cannot have additional query statements
@@ -666,7 +730,7 @@ class GoogleSnapshotService(SnapshotService):
             return None
 
     def get_files_and_permissions_of_access_control_requirement(
-        self, user_id, email, snapshot_name, access_control_requirement_name
+            self, user_id, email, snapshot_name, access_control_requirement_name
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         analysis = GoogleAnalysis(user_id)

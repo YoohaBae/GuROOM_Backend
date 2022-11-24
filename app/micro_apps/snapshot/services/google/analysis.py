@@ -269,7 +269,8 @@ class GoogleAnalysis(Analysis):
         self, snapshot_name, files, access_control_requirement
     ):
         # TODO: handle domain and Grp
-        snapshot_permissions = []
+        violated_files_permissions = []
+        violated_files = []
         for file in files:
             permissions = self._snapshot_db.get_all_permission_of_file(
                 snapshot_name, file["id"]
@@ -278,6 +279,7 @@ class GoogleAnalysis(Analysis):
             AW = access_control_requirement["AW"]
             DR = access_control_requirement["DR"]
             DW = access_control_requirement["DW"]
+            Grp = access_control_requirement["Grp"]
             file_violation = False
             for permission in permissions:
                 emailAddress = permission["emailAddress"]
@@ -319,6 +321,8 @@ class GoogleAnalysis(Analysis):
                 permission["violation_type"] = violation_type
                 if violation:
                     file_violation = True
-            snapshot_permissions.extend(permissions)
             file["violation"] = file_violation
-        return files, snapshot_permissions
+            if file_violation:
+                violated_files.append(file)
+                violated_files_permissions.extend(permissions)
+        return violated_files, violated_files_permissions

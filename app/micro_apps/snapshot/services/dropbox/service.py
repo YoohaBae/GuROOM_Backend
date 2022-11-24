@@ -158,19 +158,6 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_files_of_base(self, user_id, snapshot_name, offset=None, limit=None):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            # get files under base path ""
-            data = snapshot_db.get_file_under_folder(snapshot_name, offset, limit, "")
-            if len(data) == 0:
-                return []
-            files = json.loads(json.dumps(data, cls=DateTimeEncoder))
-            return files
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
     def get_files_of_folder(
         self, user_id, snapshot_name, path=None, offset=None, limit=None
     ):
@@ -299,33 +286,6 @@ class DropboxSnapshotService(SnapshotService):
                 compare_more_permissions,
             ) = analysis.get_sharing_differences(
                 base_file_permissions, compare_file_permissions
-            )
-            return base_more_permissions, changes, compare_more_permissions
-        except Exception as error:
-            self.logger.error(error)
-            return None
-
-    def get_sharing_difference_of_two_files_different_snapshots(
-        self, user_id, base_snapshot_name, compare_snapshot_name, file_id
-    ):
-        snapshot_db = DropboxSnapshotDatabase(user_id)
-        try:
-            # get the permissions of the base file snapshot
-            base_snapshot_file_permissions = snapshot_db.get_all_permission_of_file(
-                base_snapshot_name, file_id
-            )
-            # get the permissions of the compare file snapshot
-            compare_snapshot_file_permissions = snapshot_db.get_all_permission_of_file(
-                compare_snapshot_name, file_id
-            )
-            # perform analysis
-            analysis = DropboxAnalysis(user_id)
-            (
-                base_more_permissions,
-                changes,
-                compare_more_permissions,
-            ) = analysis.get_sharing_differences(
-                base_snapshot_file_permissions, compare_snapshot_file_permissions
             )
             return base_more_permissions, changes, compare_more_permissions
         except Exception as error:
@@ -545,3 +505,12 @@ class DropboxSnapshotService(SnapshotService):
         except Exception as error:
             self.logger.error(error)
             return None
+
+    def delete_access_control_requirement(self, user_id, access_control_name):
+        snapshot_db = DropboxSnapshotDatabase(user_id)
+        try:
+            snapshot_db.delete_access_control_requirement(access_control_name)
+            return True
+        except Exception as error:
+            self.logger.error(error)
+            return False

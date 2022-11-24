@@ -10,3 +10,7 @@ class AccessControlBody(BaseModel):
     DR: List[str] = []
     DW: List[str] = []
     Grp: bool
+
+
+class DeleteAccessControlRequirementBody(BaseModel):
+    name: str

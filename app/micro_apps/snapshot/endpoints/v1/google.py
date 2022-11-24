@@ -356,7 +356,11 @@ def search_files(
         )
 
     # access control requirement search
-    if len(query_result) == 2:
+    if (
+        len(query_result) == 2
+        and type(query_result[0]) == list
+        and type(query_result[1]) == dict
+    ):
         files, permissions = query_result
     else:
         files = query_result

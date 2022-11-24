@@ -60,14 +60,10 @@ class DropboxQueryBuilder(QueryBuilder):
         _not = "-"
         boolean_operators = [_and, _or, _not]
         operators = [
-            "drive",
             "owner",
-            # "creator",
-            "from",
             "to",
             "readable",
             "writable",
-            # "sharable",
             "name",
             "inFolder",
             "folder",
@@ -83,14 +79,6 @@ class DropboxQueryBuilder(QueryBuilder):
             return True
         else:
             return False
-
-    def validate_drive(self, drive_name):
-        if drive_name.lower() == "mydrive":
-            return "MyDrive"
-        else:
-            raise ValueError(
-                f"No Such Shared Drive: {drive_name} for the 'drive:' argument"
-            )
 
     def validate_user(self, user_email):
         if user_email == "me":
@@ -123,7 +111,7 @@ class DropboxQueryBuilder(QueryBuilder):
             )
 
     def validate_path(self, path):
-        path_pattern = r"^([\/]{1}[a-zA-Z0-9.]+)+(\/?){1}$|^([\/]{1})$"
+        path_pattern = r"^([\/]{1}[a-zA-Z0-9.][^\\]+)+(\/?){1}$|^([\/]{1})$"
         try:
             if re.match(path_pattern, path):
                 pass
@@ -135,16 +123,12 @@ class DropboxQueryBuilder(QueryBuilder):
             raise ValueError(f"Invalid Path Value: {path} is not in the correct format")
 
     def validate_value(self, operator, value):
-        if operator == "drive":
-            self.validate_drive(value)
-        elif operator in [
+        if operator in [
             "owner",
             "creator",
-            # "from",
             "to",
             "readable",
             "writable",
-            # "sharable",
         ]:
             self.validate_user(value)
         elif operator in ["name", "folder", "inFolder"]:
@@ -152,7 +136,7 @@ class DropboxQueryBuilder(QueryBuilder):
         elif operator == "path":
             self.validate_path(value)
         elif operator == "sharing":
-            sharing_options = ["none", "anyone", "individual", "domain"]
+            sharing_options = ["none", "individual"]
             if value not in sharing_options:
                 raise ValueError(
                     f"Invalid Sharing Option: {value} is not one of "
@@ -213,14 +197,8 @@ class DropboxQueryBuilder(QueryBuilder):
 
     def get_file_of_operator(self, operator, value):
         files = []
-        # file of drive operator
-        if operator == "drive":
-            regex_path = rf"^/{value}"
-            files = self._snapshot_db.get_files_with_path_regex(
-                self.snapshot_name, regex_path
-            )
         # file of roles operator
-        elif operator in ["owner", "readable", "writable"]:
+        if operator in ["owner", "readable", "writable"]:
             if operator == "readable":
                 operator = "reader"
             elif operator == "writable":
@@ -229,13 +207,6 @@ class DropboxQueryBuilder(QueryBuilder):
             files = self._snapshot_db.get_files_with_certain_role(
                 self.snapshot_name, operator, email
             )
-        # # file of from operator
-        # elif operator == "from":
-        #     email = self.validate_user(value)
-        #     files = self._snapshot_db.get_files_with_sharing_user(
-        #         self.snapshot_name, email
-        #     )
-        # file of to operator
         elif operator == "to":
             email = self.validate_user(value)
             file_ids = self._snapshot_db.get_directly_shared_permissions_file_ids(
@@ -258,11 +229,11 @@ class DropboxQueryBuilder(QueryBuilder):
             )
             files = []
             for folder in folder_ids_and_names:
-                folder_id = folder["id"]
+                path = folder["path"] + "/" + folder["name"]
                 files = ListOfDictsComparor.union(
                     files,
                     self._snapshot_db.get_file_under_folder(
-                        self.snapshot_name, folder_id=folder_id
+                        self.snapshot_name, path=path
                     ),
                 )
         # file that are under folder
@@ -289,26 +260,6 @@ class DropboxQueryBuilder(QueryBuilder):
         elif operator == "sharing":
             if value == "none":
                 files = self._snapshot_db.get_not_shared_files(self.snapshot_name)
-            elif value == "anyone":
-                file_ids = self._snapshot_db.get_file_ids_shared_with_anyone(
-                    self.snapshot_name
-                )
-                unique_file_ids = [*set(file_ids)]
-                files = self._snapshot_db.get_files_of_file_ids(
-                    self.snapshot_name, unique_file_ids
-                )
-            elif value == "individual":
-                pass
-            elif value == "domain":
-                # domain of user email
-                domain = re.search(r"@[\w.]+", self.user_email).group()
-                file_ids = self._snapshot_db.get_file_ids_shared_with_users_from_domain(
-                    self.snapshot_name, domain
-                )
-                unique_file_ids = [*set(file_ids)]
-                files = self._snapshot_db.get_files_of_file_ids(
-                    self.snapshot_name, unique_file_ids
-                )
         else:
             raise ValueError("Invalid Operator")
         return files

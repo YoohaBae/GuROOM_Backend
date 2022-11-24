@@ -1,5 +1,6 @@
 import json
 import copy
+import ast
 from datetime import datetime
 from app.utils.util import DateTimeEncoder
 from app.services.snapshot_service import SnapshotService
@@ -334,19 +335,78 @@ class DropboxSnapshotService(SnapshotService):
                 direct.append(permission)
         return inherit, direct
 
+    def check_if_files_have_different_permission_from_folder(
+        self, user_id, snapshot_name, file_ids
+    ):
+        snapshot_db = DropboxSnapshotDatabase(user_id)
+        try:
+            all_files = snapshot_db.get_files_of_file_ids(snapshot_name, file_ids)
+            # go through all files of snapshot
+            for file in all_files:
+                file_id = file["id"]
+                file_path = file["path"]
+                # if parent doesn't exist or the parent is MyDrive or any shared drive
+                if len(file_path.split("/")) == 1:
+                    continue
+                # get the folder id
+                folder_name = file_path.split("/")[-1]
+                folder_id = snapshot_db.get_file_id_of_name(snapshot_name, folder_name)
+                # get permission of file id
+                file_permissions = snapshot_db.get_all_permission_of_file(
+                    snapshot_name, file_id
+                )
+                # get permission of folder id
+                folder_permissions = snapshot_db.get_all_permission_of_file(
+                    snapshot_name, folder_id
+                )
+                # no folder with such id
+                if folder_permissions is None:
+                    continue
+                # perform analysis
+                analysis = DropboxAnalysis(user_id)
+                (
+                    base_more_permissions,
+                    changes,
+                    compare_more_permissions,
+                ) = analysis.get_sharing_differences(
+                    file_permissions, folder_permissions
+                )
+                # there is a difference
+                if (
+                    len(base_more_permissions) != 0
+                    or len(changes) != 0
+                    or len(compare_more_permissions) != 0
+                ):
+                    # append to different files
+                    file["flag"] = True
+            return all_files
+        except Exception as error:
+            self.logger.error(error)
+            return None
+
     def process_query_search(self, user_id, email, snapshot_name, query: str):
         user_db = DropboxAuthDatabase()
         try:
             query_obj = {"search_time": datetime.utcnow(), "query": query}
             user_db.update_or_push_recent_queries(email, query_obj)
             # retrieve file folder sharing different files
-            if "is:file_folder_diff" == query:
-                data = self.get_files_with_diff_permission_from_folder(
-                    user_id,
-                    snapshot_name,
+            if "is:file_folder_diff" in query:
+                file_ids = ast.literal_eval(
+                    query.split(" ")[2].replace("file_ids:", "")
                 )
-                different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
-                return different_files
+                if len(file_ids) == 0:
+                    data = self.get_files_with_diff_permission_from_folder(
+                        user_id,
+                        snapshot_name,
+                    )
+                    different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
+                    return different_files
+                else:
+                    files = self.check_if_files_have_different_permission_from_folder(
+                        user_id, snapshot_name, file_ids
+                    )
+                    files = json.loads(json.dumps(files, cls=DateTimeEncoder))
+                    return files
             # query access control requirement files
             elif "accessControl" in query:
                 access_control_requirement_name = query.split(":")[1]

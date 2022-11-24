@@ -265,27 +265,128 @@ class GoogleAnalysis(Analysis):
                 different_files.append(compare_snapshot_file)
         return different_files
 
-    def tag_files_and_permissions_with_violation(
-        self, snapshot_name, files, access_control_requirement
+    def tag_files_and_permissions_with_violation_groups(
+        self, snapshot_name, files, AR, AW, DR, DW
     ):
-        # TODO: handle domain and Grp
         violated_files_permissions = []
         violated_files = []
         for file in files:
             permissions = self._snapshot_db.get_all_permission_of_file(
                 snapshot_name, file["id"]
             )
-            AR = access_control_requirement["AR"]
-            AW = access_control_requirement["AW"]
-            DR = access_control_requirement["DR"]
-            DW = access_control_requirement["DW"]
-            Grp = access_control_requirement["Grp"]
+            file_violation = False
+            for permission in permissions:
+                emailAddress = permission["emailAddress"]
+                group_mails = self._snapshot_db.get_group_emails_of_user_email(
+                    emailAddress
+                )
+                role = permission["role"]
+                violation = False
+                violation_type = []
+                violation_description = []
+                if len(AR) != 0:
+                    # role of permission can read
+                    # email not in AR and not in AW
+                    group_violation_tag = True
+                    for mail in group_mails:
+                        if mail in AR or mail in AW:
+                            group_violation_tag = False
+                            break
+                    if group_violation_tag:
+                        if emailAddress not in AR and emailAddress not in AW:
+                            # violation
+                            violation = True
+                            violation_type.append("AR")
+                            violation_description = (
+                                f"{emailAddress} is not in Allowed Readers"
+                            )
+
+                if len(AW) != 0:
+                    # role of permission can write
+                    if role in ["writer", "fileOrganizer", "organizer", "owner"]:
+                        # emailAddress is not in AW
+                        group_violation_tag = True
+                        for mail in group_mails:
+                            if mail in AW:
+                                group_violation_tag = False
+                                break
+                        # violation
+                        if group_violation_tag:
+                            if emailAddress not in AW:
+                                violation = True
+                                violation_type.append("AW")
+                                violation_description.append(
+                                    f"{emailAddress} is not in Allowed Writers"
+                                )
+
+                if len(DR) != 0:
+                    # role of permission can read
+                    for mail in group_mails:
+                        if mail in DR:
+                            violation = True
+                            violation_type.append("DR")
+                            violation_description.append(
+                                f"{emailAddress} is a member of group {mail} which is in Denied Readers"
+                            )
+                            break
+                    # email in DR
+                    if not violation:
+                        if emailAddress in DR:
+                            # violation
+                            violation = True
+                            violation_type.append("DR")
+                            violation_description.append(
+                                f"{emailAddress} is in Denied Readers"
+                            )
+                if len(DW) != 0:
+                    # role of permission can write
+                    if role in ["writer", "fileOrganizer", "organizer", "owner"]:
+                        for mail in group_mails:
+                            if mail in DW:
+                                violation = True
+                                violation_type.append("DW")
+                                violation_description.append(
+                                    f"{emailAddress} is a member of group {mail} which is in Denied Writers"
+                                )
+                                break
+                        if not violation:
+                            # email in DW
+                            if emailAddress in DW:
+                                # violation
+                                violation = True
+                                violation_type.append("AW")
+                                violation_description.append(
+                                    f"{emailAddress} is in Denied Writers"
+                                )
+                # save violation
+                permission["violation"] = violation
+                permission["violation_type"] = violation_type
+                permission["violation_description"] = violation_description
+                if violation:
+                    file_violation = True
+            file["violation"] = file_violation
+            if file_violation:
+                violated_files.append(file)
+                violated_files_permissions.extend(permissions)
+        return violated_files, violated_files_permissions
+
+    def tag_files_and_permissions_with_violation_non_groups(
+        self, snapshot_name, files, AR, AW, DR, DW
+    ):
+        violated_files_permissions = []
+        violated_files = []
+
+        for file in files:
+            permissions = self._snapshot_db.get_all_permission_of_file(
+                snapshot_name, file["id"]
+            )
             file_violation = False
             for permission in permissions:
                 emailAddress = permission["emailAddress"]
                 role = permission["role"]
                 violation = False
                 violation_type = []
+                violation_description = []
                 if len(AR) != 0:
                     # role of permission can read
                     # email not in AR and not in AW
@@ -293,6 +394,9 @@ class GoogleAnalysis(Analysis):
                         # violation
                         violation = True
                         violation_type.append("AR")
+                        violation_description.append(
+                            f"{emailAddress} is not in Allowed Readers"
+                        )
                 if len(AW) != 0:
                     # role of permission can write
                     if role in ["writer", "fileOrganizer", "organizer", "owner"]:
@@ -301,6 +405,9 @@ class GoogleAnalysis(Analysis):
                             # violation
                             violation = True
                             violation_type.append("AW")
+                            violation_description.append(
+                                f"{emailAddress} is not in Allowed Writers"
+                            )
                 if len(DR) != 0:
                     # role of permission can read
                     # email in DR
@@ -308,6 +415,9 @@ class GoogleAnalysis(Analysis):
                         # violation
                         violation = True
                         violation_type.append("DR")
+                        violation_description.append(
+                            f"{emailAddress} is in Denied Readers"
+                        )
                 if len(DW) != 0:
                     # role of permission can write
                     if role in ["writer", "fileOrganizer", "organizer", "owner"]:
@@ -316,13 +426,42 @@ class GoogleAnalysis(Analysis):
                             # violation
                             violation = True
                             violation_type.append("AW")
+                            violation_description.append(
+                                f"{emailAddress} is in Denied Writers"
+                            )
                 # save violation
                 permission["violation"] = violation
                 permission["violation_type"] = violation_type
+                permission["violation_description"] = violation_description
                 if violation:
                     file_violation = True
             file["violation"] = file_violation
             if file_violation:
                 violated_files.append(file)
                 violated_files_permissions.extend(permissions)
+        return violated_files, violated_files_permissions
+
+    def tag_files_and_permissions_with_violation(
+        self, snapshot_name, files, access_control_requirement
+    ):
+        AR = access_control_requirement["AR"]
+        AW = access_control_requirement["AW"]
+        DR = access_control_requirement["DR"]
+        DW = access_control_requirement["DW"]
+        Grp = access_control_requirement["Grp"]
+
+        if Grp:
+            (
+                violated_files,
+                violated_files_permissions,
+            ) = self.tag_files_and_permissions_with_violation_groups(
+                snapshot_name, files, AR, AW, DR, DW
+            )
+        else:
+            (
+                violated_files,
+                violated_files_permissions,
+            ) = self.tag_files_and_permissions_with_violation_non_groups(
+                snapshot_name, files, AR, AW, DR, DW
+            )
         return violated_files, violated_files_permissions

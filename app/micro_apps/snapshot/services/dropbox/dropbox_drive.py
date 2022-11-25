@@ -87,7 +87,7 @@ class DropboxDrive(Drive):
             permission_request = requests.post(
                 "https://api.dropboxapi.com/2/sharing/list_file_members",
                 headers={"Authorization": f"Bearer {token}"},
-                json={"file": file_id, "include_inherited": False, "limit": 20},
+                json={"file": file_id, "include_inherited": True, "limit": 20},
             )
         else:
             permission_request = requests.post(

@@ -127,7 +127,6 @@ class DropboxDrive(Drive):
                     "emailAddress": user["email"],
                     "displayName": user["display_name"],
                     "role": role,
-                    "inherited": permission["is_inherited"],
                 }
                 formatted_permissions.append(formatted_permission)
             return formatted_permissions, next_page_token
@@ -188,7 +187,6 @@ class DropboxDrive(Drive):
                     "emailAddress": user["email"],
                     "displayName": user["display_name"],
                     "role": role,
-                    "inherited": permission["is_inherited"],
                 }
                 formatted_permissions.append(formatted_permission)
             return formatted_permissions, next_page_token

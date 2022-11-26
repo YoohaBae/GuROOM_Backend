@@ -52,7 +52,17 @@ def take_file_snapshot(
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
-    files, permissions = service.get_all_files_and_permissions_from_api(access_token)
+
+    email = service.get_user_email_from_token(access_token)
+
+    if email is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content="unable to retrieve user email",
+        )
+    files, permissions = service.get_all_files_and_permissions_from_api(
+        access_token, email
+    )
     if files is None:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

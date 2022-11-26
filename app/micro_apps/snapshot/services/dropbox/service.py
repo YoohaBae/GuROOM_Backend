@@ -40,7 +40,7 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
-    def get_all_files_and_permissions_from_api(self, access_token):
+    def get_all_files_and_permissions_from_api(self, access_token, user_email):
         dropbox_drive = DropboxDrive()
         files, shared_folders, next_page_token = dropbox_drive.get_files(access_token)
 
@@ -74,18 +74,29 @@ class DropboxSnapshotService(SnapshotService):
         if shared_folder_permissions is None:
             raise ValueError("unable to retrieve folder permissions")
 
+        owner_permission = {}
+        for permission in file_permissions:
+            if permission["emailAddress"] == user_email:
+                owner_permission = permission
+                break
+
         # give nested folders their inherited permissions
         nested_folder_permissions = []
+        not_shared_folder_permissions = []
         for file in files:
             if file["mimeType"] == "folder":
-                for permission in shared_folder_permissions:
-                    # give permission of shared folder to nested folder
-                    if permission["driveId"] == file["driveId"]:
-                        folder_permission = copy.deepcopy(permission)
-                        folder_permission["file_id"] = file["id"]
-                        folder_permission["inherited"] = True
-                        file["shared"] = True
-                        nested_folder_permissions.append(folder_permission)
+                if not file["shared"]:
+                    owner_permission["file_id"] = file["id"]
+                    not_shared_folder_permissions.append(owner_permission)
+                else:
+                    for permission in shared_folder_permissions:
+                        # give permission of shared folder to nested folder
+                        if permission["driveId"] == file["driveId"]:
+                            folder_permission = copy.deepcopy(permission)
+                            folder_permission["file_id"] = file["id"]
+                            folder_permission["inherited"] = True
+                            file["shared"] = True
+                            nested_folder_permissions.append(folder_permission)
 
         for folder in shared_folders:
             for permission in shared_folder_permissions:
@@ -98,6 +109,7 @@ class DropboxSnapshotService(SnapshotService):
             for permission in file_permissions
             + shared_folder_permissions
             + nested_folder_permissions
+            + not_shared_folder_permissions
         ]
         return all_files, all_permissions
 

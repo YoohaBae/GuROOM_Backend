@@ -54,6 +54,14 @@ def take_file_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    duplicate = service.check_duplicate_file_snapshot_name(user_id, snapshot_name)
+
+    if duplicate:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content="snapshot with name already exists"
+        )
+
     # get root drive id
     root_id = service.get_root_id_from_api(access_token)
     if root_id is None:

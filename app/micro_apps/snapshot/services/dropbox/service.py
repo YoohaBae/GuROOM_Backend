@@ -40,6 +40,15 @@ class DropboxSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
+    def check_duplicate_file_snapshot_name(self, user_id, snapshot_name):
+        snapshot_db = DropboxSnapshotDatabase(user_id)
+        try:
+            duplicate = snapshot_db.check_duplicate_file_snapshot_name(snapshot_name)
+            return duplicate
+        except Exception as error:
+            self.logger.error(error)
+            return None
+
     def get_all_files_and_permissions_from_api(self, access_token, user_email):
         dropbox_drive = DropboxDrive()
         files, shared_folders, next_page_token = dropbox_drive.get_files(access_token)

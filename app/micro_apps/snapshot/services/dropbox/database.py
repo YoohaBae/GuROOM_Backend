@@ -10,6 +10,20 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
     def __init__(self, user_id):  # pragma: no cover
         super().__init__(user_id)
 
+    def check_duplicate_file_snapshot_name(self, snapshot_name):
+        file_snapshot_collection_name = (
+            f"{self.user_id}.file_snapshots"
+        )
+        query = {
+            "name": snapshot_name
+        }
+        file_snapshot = self._db.find_document(
+            file_snapshot_collection_name, query
+        )
+        if file_snapshot is None:
+            return False
+        return True
+
     def create_file_snapshot(self, snapshot_name, files, permissions):
         file_snapshot_collection_name = f"{self.user_id}.file_snapshots"
         # create model for file snapshot

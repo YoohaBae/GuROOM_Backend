@@ -39,6 +39,15 @@ class GoogleSnapshotService(SnapshotService):
             self.logger.error(error)
             return None
 
+    def check_duplicate_file_snapshot_name(self, user_id, snapshot_name):
+        snapshot_db = GoogleSnapshotDatabase(user_id)
+        try:
+            duplicate = snapshot_db.check_duplicate_file_snapshot_name(snapshot_name)
+            return duplicate
+        except Exception as error:
+            self.logger.error(error)
+            return None
+
     def get_root_id_from_api(self, access_token):
         google_drive = GoogleDrive()
         try:

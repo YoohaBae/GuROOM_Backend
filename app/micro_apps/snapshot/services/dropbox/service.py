@@ -86,19 +86,17 @@ class DropboxSnapshotService(SnapshotService):
         for file in files:
             if file["mimeType"] == "folder":
                 if not file["shared"]:
-                    print(file)
-                    new_permission = copy.deepcopy(owner_permission)
-                    new_permission["file_id"] = file["id"]
-                    not_shared_folder_permissions.append(new_permission)
-                else:
-                    for permission in shared_folder_permissions:
-                        # give permission of shared folder to nested folder
-                        if permission["driveId"] == file["driveId"]:
-                            folder_permission = copy.deepcopy(permission)
-                            folder_permission["file_id"] = file["id"]
-                            folder_permission["inherited"] = True
-                            file["shared"] = True
-                            nested_folder_permissions.append(folder_permission)
+                    if file["driveId"] is None:
+                        new_permission = copy.deepcopy(owner_permission)
+                        new_permission["file_id"] = file["id"]
+                        not_shared_folder_permissions.append(new_permission)
+                for permission in shared_folder_permissions:
+                    # give permission of shared folder to nested folder
+                    if permission["driveId"] == file["driveId"]:
+                        folder_permission = copy.deepcopy(permission)
+                        folder_permission["file_id"] = file["id"]
+                        folder_permission["inherited"] = True
+                        nested_folder_permissions.append(folder_permission)
 
         for folder in shared_folders:
             for permission in shared_folder_permissions:

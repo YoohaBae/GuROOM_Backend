@@ -58,7 +58,7 @@ def take_file_snapshot(
     if duplicate:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content="snapshot with name already exists"
+            content="snapshot with name already exists",
         )
 
     email = service.get_user_email_from_token(access_token)

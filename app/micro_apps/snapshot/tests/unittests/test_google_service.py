@@ -1244,15 +1244,17 @@ def test_invalid_create_access_control_requirement(create_acr_exception):
 )
 def test_valid_duplicate_check_duplicate_access_control_requirement():
     mock_user_id = "MOCK_USER_ID1"
-    mock_access_control = {
-        "name": "ACR#3",
-        "query": "drive:MyDrive",
-        "AR": [],
-        "AW": ["yoobae@cs.stonybrook.edu"],
-        "DR": [],
-        "DW": ["yoollee@cs.stonybrook.edu"],
-        "Grp": True,
-    }
+    mock_access_control = (
+        {
+            "name": "ACR#3",
+            "query": "drive:MyDrive",
+            "AR": ["yooha.bae@stonybrook.edu"],
+            "AW": [],
+            "DR": ["cse416@cs.stonybrook.edu"],
+            "DW": [],
+            "Grp": True,
+        },
+    )
     duplicate = service.check_duplicate_access_control_requirement(
         mock_user_id, mock_access_control
     )

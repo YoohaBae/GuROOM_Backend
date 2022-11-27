@@ -506,7 +506,7 @@ def test_duplicate_check_access_control_requirements():
         "name": "ACR#1",
         "query": "drive:MyDrive",
         "AR": [],
-        "AW": ["yoobae@cs.stonybrook.edu"],
+        "AW": ["cse416@cs.stonybrook.edu"],
         "DR": [],
         "DW": ["yoollee@cs.stonybrook.edu"],
         "Grp": True,
@@ -554,7 +554,7 @@ def test_get_access_control_requirement():
 @mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
 def test_invalid_get_access_control_requirement():
     mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
-    mock_acr_name = "ACR#4"
+    mock_acr_name = "ACR#10"
     access_control_requirement = (
         mock_GoogleSnapshotDatabase.get_access_control_requirement(mock_acr_name)
     )

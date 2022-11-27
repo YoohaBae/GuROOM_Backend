@@ -363,3 +363,14 @@ class MockDB:
     @classmethod
     def delete_access_control_requirement(cls, access_control_name):
         pass
+
+    @classmethod
+    def get_group_emails_of_user_email(cls, email):
+        with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
+            data = json.load(json_file)
+            group_emails = []
+            for group in data:
+                for member in group["memberships"]:
+                    if email == member["email"]:
+                        group_emails.append(group["group_email"])
+            return group_emails

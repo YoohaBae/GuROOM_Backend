@@ -112,3 +112,269 @@ def test_compare_two_file_snapshots():
         mock_compare_snapshot_files,
     )
     assert different_files == compare_snapshot_result
+
+
+@mock.patch.object(GoogleAnalysis, "__init__", new_init)
+def test_tag_files_and_permissions_with_violation_groups():
+    mock_GoogleAnalysis = GoogleAnalysis(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+        mock_files = json.load(json_file)
+    with open(absolute_path_to_data + "/access_control_requirement.json") as json_file:
+        data = json.load(json_file)
+        mock_access_control_requirement = data[0]
+    (
+        violated_files,
+        violated_permissions,
+    ) = mock_GoogleAnalysis.tag_files_and_permissions_with_violation(
+        mock_snapshot_name, mock_files, mock_access_control_requirement
+    )
+    violated_file_ids = [f["id"] for f in violated_files]
+    violated_permission_ids = [p["id"] for p in violated_permissions]
+    assert violated_file_ids == [
+        "FILEID1",
+        "FILEID2",
+        "FILEID6",
+        "FILEID7",
+        "FILEID8",
+        "FILEID14",
+        "FILEID16",
+        "FILEID17",
+        "FILEID3",
+        "FILEID4",
+        "FILEID5",
+    ]
+    assert violated_permission_ids == [
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID4",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID5",
+        "PERMISSIONID6",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID7",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID8",
+    ]
+
+
+@mock.patch.object(GoogleAnalysis, "__init__", new_init)
+def test_tag_files_and_permissions_with_violation_groups2():
+    mock_GoogleAnalysis = GoogleAnalysis(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+        mock_files = json.load(json_file)
+    with open(absolute_path_to_data + "/access_control_requirement.json") as json_file:
+        data = json.load(json_file)
+        mock_access_control_requirement = data[2]
+    (
+        violated_files,
+        violated_permissions,
+    ) = mock_GoogleAnalysis.tag_files_and_permissions_with_violation(
+        mock_snapshot_name, mock_files, mock_access_control_requirement
+    )
+    violated_file_ids = [f["id"] for f in violated_files]
+    violated_permission_ids = [p["id"] for p in violated_permissions]
+    assert violated_file_ids == [
+        "FILEID1",
+        "FILEID2",
+        "FILEID6",
+        "FILEID7",
+        "FILEID8",
+        "FILEID14",
+        "FILEID16",
+        "FILEID17",
+        "FILEID3",
+        "FILEID4",
+        "FILEID5",
+    ]
+    assert violated_permission_ids == [
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID4",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID5",
+        "PERMISSIONID6",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID7",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID8",
+    ]
+
+
+@mock.patch.object(GoogleAnalysis, "__init__", new_init)
+def test_tag_files_and_permissions_with_violation():
+    mock_GoogleAnalysis = GoogleAnalysis(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+        mock_files = json.load(json_file)
+    with open(absolute_path_to_data + "/access_control_requirement.json") as json_file:
+        data = json.load(json_file)
+        mock_access_control_requirement = data[1]
+    (
+        violated_files,
+        violated_permissions,
+    ) = mock_GoogleAnalysis.tag_files_and_permissions_with_violation(
+        mock_snapshot_name, mock_files, mock_access_control_requirement
+    )
+    violated_file_ids = [f["id"] for f in violated_files]
+    violated_permission_ids = [p["id"] for p in violated_permissions]
+    assert violated_file_ids == [
+        "FILEID1",
+        "FILEID2",
+        "FILEID6",
+        "FILEID7",
+        "FILEID16",
+        "FILEID17",
+        "FILEID3",
+        "FILEID4",
+        "FILEID5",
+    ]
+    assert violated_permission_ids == [
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID4",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID3",
+        "PERMISSIONID5",
+        "PERMISSIONID6",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID7",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID8",
+    ]
+
+
+@mock.patch.object(GoogleAnalysis, "__init__", new_init)
+def test_tag_files_and_permissions_with_violation2():
+    mock_GoogleAnalysis = GoogleAnalysis(mock_user_id)
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+        mock_files = json.load(json_file)
+    with open(absolute_path_to_data + "/access_control_requirement.json") as json_file:
+        data = json.load(json_file)
+        mock_access_control_requirement = data[3]
+    (
+        violated_files,
+        violated_permissions,
+    ) = mock_GoogleAnalysis.tag_files_and_permissions_with_violation(
+        mock_snapshot_name, mock_files, mock_access_control_requirement
+    )
+    violated_file_ids = [f["id"] for f in violated_files]
+    violated_permission_ids = [p["id"] for p in violated_permissions]
+    assert violated_file_ids == [
+        "FILEID1",
+        "FILEID2",
+        "FILEID6",
+        "FILEID7",
+        "FILEID8",
+        "FILEID14",
+        "FILEID16",
+        "FILEID17",
+        "FILEID3",
+        "FILEID4",
+        "FILEID5",
+    ]
+    assert violated_permission_ids == [
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID4",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID5",
+        "PERMISSIONID6",
+        "PERMISSIONID2",
+        "PERMISSIONID4",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID1",
+        "PERMISSIONID2",
+        "PERMISSIONID3",
+        "PERMISSIONID7",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID2",
+        "PERMISSIONID8",
+    ]

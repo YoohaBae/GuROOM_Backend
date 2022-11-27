@@ -1,6 +1,7 @@
 import mock
 import json
 from datetime import datetime
+from app.micro_apps.snapshot.endpoints.models.access_control import AccessControlBody
 from app.micro_apps.snapshot.services.google.analysis import GoogleSnapshotDatabase
 from app.micro_apps.snapshot.tests.unittests.mock.mock_google_mongodb import MockMongoDB
 from app.micro_apps.snapshot.tests.data.google.database_result import DataBaseResult
@@ -471,3 +472,97 @@ def test_get_file_ids_shared_with_anyone():
         mock_snapshot_name
     )
     assert file_ids == []
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_create_access_control_requirement():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    mock_access_control = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    mock_access_control = AccessControlBody(**mock_access_control)
+    mock_GoogleSnapshotDatabase.create_access_control_requirement(mock_access_control)
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_get_access_control_requirements():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    access_control_requirements = (
+        mock_GoogleSnapshotDatabase.get_access_control_requirements()
+    )
+    assert access_control_requirements == DataBaseResult.all_access_control_requirements
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_duplicate_check_access_control_requirements():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    mock_access_control = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": ["yoobae@cs.stonybrook.edu"],
+        "DR": [],
+        "DW": ["yoollee@cs.stonybrook.edu"],
+        "Grp": True,
+    }
+    mock_access_control = AccessControlBody(**mock_access_control)
+    access_control_requirements = (
+        mock_GoogleSnapshotDatabase.check_duplicate_access_control_requirement(
+            mock_access_control
+        )
+    )
+    assert access_control_requirements
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_not_duplicate_check_access_control_requirements():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    mock_access_control = {
+        "name": "ACR#5",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["haeunpark@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": False,
+    }
+    mock_access_control = AccessControlBody(**mock_access_control)
+    access_control_requirements = (
+        mock_GoogleSnapshotDatabase.check_duplicate_access_control_requirement(
+            mock_access_control
+        )
+    )
+    assert not access_control_requirements
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_get_access_control_requirement():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    mock_acr_name = "ACR#1"
+    access_control_requirement = (
+        mock_GoogleSnapshotDatabase.get_access_control_requirement(mock_acr_name)
+    )
+    assert access_control_requirement["name"] == "ACR#1"
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_invalid_get_access_control_requirement():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    mock_acr_name = "ACR#4"
+    access_control_requirement = (
+        mock_GoogleSnapshotDatabase.get_access_control_requirement(mock_acr_name)
+    )
+    assert not access_control_requirement
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", new_init)
+def test_delete_access_control_requirement():
+    mock_GoogleSnapshotDatabase = GoogleSnapshotDatabase(mock_user_id)
+    mock_acr_name = "ACR#1"
+    mock_GoogleSnapshotDatabase.delete_access_control_requirement(mock_acr_name)

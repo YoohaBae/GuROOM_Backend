@@ -56,6 +56,35 @@ class MockMongoDB:
                     for file in data:
                         if file["id"] == query["id"]:
                             return file
+        if "access_control_requirements" in collection_name:
+            with open(
+                absolute_path_to_data + "/access_control_requirement.json"
+            ) as json_file:
+                data = json.load(json_file)
+                if "name" in query:
+                    name = query["name"]
+                    for acr in data:
+                        if acr["name"] == name:
+                            return acr
+                    return None
+                else:
+                    search_query = query["query"]
+                    AR = query["AR"]
+                    AW = query["AW"]
+                    DR = query["DR"]
+                    DW = query["DW"]
+                    Grp = query["Grp"]
+                    for acr in data:
+                        if (
+                            acr["query"] == search_query
+                            and acr["AR"] == AR
+                            and acr["AW"] == AW
+                            and acr["DR"] == DR
+                            and acr["DW"] == DW
+                            and acr["Grp"] == Grp
+                        ):
+                            return True
+                    return None
         return None
 
     @classmethod
@@ -185,6 +214,12 @@ class MockMongoDB:
                 return target_permissions
         if "group_membership_snapshots" in collection_name:
             with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
+                data = json.load(json_file)
+                return data
+        if "access_control_requirements" in collection_name:
+            with open(
+                absolute_path_to_data + "/access_control_requirement.json"
+            ) as json_file:
                 data = json.load(json_file)
                 return data
         return []

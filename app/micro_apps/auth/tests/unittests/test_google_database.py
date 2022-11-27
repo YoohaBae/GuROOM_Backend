@@ -2,7 +2,7 @@ import mock
 from app.micro_apps.auth.services.google.database import GoogleAuthDatabase
 from app.micro_apps.auth.tests.unittests.mock.mock_mongodb import MockMongoDB
 
-absolute_path_to_data = "./app/micro_apps/auth/tests/data"
+absolute_path_to_data = "./app/micro_apps/auth/tests/data/google"
 
 
 def new_init(self):

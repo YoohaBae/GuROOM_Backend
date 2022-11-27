@@ -1,8 +1,8 @@
 import json
 import re
-from app.micro_apps.snapshot.tests.data.database_result import DataBaseResult
+from app.micro_apps.snapshot.tests.data.google.database_result import DataBaseResult
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 
 
 class MockDB:

@@ -17,9 +17,9 @@ from .mock.mock_google_drive import MockGoogleDrive
 from .mock.mock_database import MockDB
 from .mock.mock_analysis import MockAnalysis
 from .mock.mock_query_builder import MockQueryBuilder
-from ..data import service_input
+from ..data.google import service_input
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 
 mock_access_token = "ACCESS_TOKEN"
 
@@ -1354,4 +1354,4 @@ def test_invalid_delete_access_control_requirements(snapshot_db_exception):
     deleted = service.delete_access_control_requirement(
         mock_user_id, mock_access_control_requirement_name
     )
-    assert deleted is None
+    assert not deleted

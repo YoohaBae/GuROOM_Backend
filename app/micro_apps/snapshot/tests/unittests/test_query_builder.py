@@ -3,7 +3,7 @@ import pytest
 from .mock.mock_database import MockDB
 from app.micro_apps.snapshot.services.google.query_builder import GoogleQueryBuilder
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 
 mock_access_token = "ACCESS_TOKEN"
 

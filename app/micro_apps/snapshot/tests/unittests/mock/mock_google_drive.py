@@ -1,7 +1,7 @@
 import json
 import logging
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 mock_user_id = "MOCK_USER_ID1"
 
 logging.Formatter(

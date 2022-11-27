@@ -1,7 +1,7 @@
 import json
 import asyncio
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 
 
 class MockService:

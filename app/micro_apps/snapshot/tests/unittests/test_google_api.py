@@ -7,7 +7,7 @@ from app.main import app
 from .mock.mock_authjwt import MockAuthJWT
 from .mock.mock_service import MockService
 
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 
 client = TestClient(app)
 

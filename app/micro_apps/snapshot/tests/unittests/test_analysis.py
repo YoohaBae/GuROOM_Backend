@@ -2,13 +2,13 @@ import mock
 import json
 from app.micro_apps.snapshot.tests.unittests.mock.mock_database import MockDB
 from app.micro_apps.snapshot.services.google.analysis import GoogleAnalysis
-from app.micro_apps.snapshot.tests.data.analysis_result import (
+from app.micro_apps.snapshot.tests.data.google.analysis_result import (
     sharing_changes_result,
     compare_snapshot_result,
 )
 
 mock_user_id = "MOCK_USER_ID1"
-absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
+absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 
 
 def new_init(self, user_id):

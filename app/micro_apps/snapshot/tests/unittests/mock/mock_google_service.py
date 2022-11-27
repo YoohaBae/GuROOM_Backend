@@ -48,6 +48,10 @@ class MockService:
         return False
 
     @classmethod
+    def get_true(cls, *args, **kwargs):
+        return True
+
+    @classmethod
     def delete_file_snapshot(cls, user_id, snapshot_name):
         return True
 
@@ -156,5 +160,13 @@ class MockService:
     @classmethod
     def process_query_search(cls, user_id, email, snapshot_name, query, is_groups):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            return data
+
+    @classmethod
+    def get_access_control_requirements(cls, user_id):
+        with open(
+            absolute_path_to_data + "/access_control_requirement.json"
+        ) as json_file:
             data = json.load(json_file)
             return data

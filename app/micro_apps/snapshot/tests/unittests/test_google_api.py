@@ -1148,3 +1148,236 @@ def test_invalid_permissions_search_files():
     params = {"snapshot_name": "MOCK_FILE_SNAPSHOT1", "query": "drive:MyDrive"}
     response = client.get("/apps/snapshot/v1/google/files/search", params=params)
     assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "check_duplicate_access_control_requirement",
+    MockService.get_false,
+)
+@mock.patch.object(
+    GoogleSnapshotService, "create_access_control_requirement", MockService.get_true
+)
+def test_valid_create_access_control_requirements():
+    body = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    response = client.post("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 201
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_none,
+)
+def test_invalid_user_id_create_access_control_requirements():
+    body = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    response = client.post("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "check_duplicate_access_control_requirement",
+    MockService.get_true,
+)
+def test_invalid_is_duplicate_create_access_control_requirements():
+    body = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    response = client.post("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 400
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "check_duplicate_access_control_requirement",
+    MockService.get_none,
+)
+def test_invalid_check_duplicate_create_access_control_requirements():
+    body = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    response = client.post("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "check_duplicate_access_control_requirement",
+    MockService.get_false,
+)
+@mock.patch.object(
+    GoogleSnapshotService, "create_access_control_requirement", MockService.get_false
+)
+def test_invalid_create_access_control_requirements():
+    body = {
+        "name": "ACR#1",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    response = client.post("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_access_control_requirements",
+    MockService.get_access_control_requirements,
+)
+def test_valid_get_access_control_requirements():
+    response = client.get(
+        "/apps/snapshot/v1/google/access-controls",
+    )
+    assert response.status_code == 200
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_none,
+)
+def test_invalid_user_id_get_access_control_requirements():
+    response = client.get("/apps/snapshot/v1/google/access-controls")
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService, "get_access_control_requirements", MockService.get_none
+)
+def test_invalid_get_access_control_requirements():
+    response = client.get("/apps/snapshot/v1/google/access-controls")
+    assert response.status_code == 500
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService, "delete_access_control_requirement", MockService.get_true
+)
+def test_valid_delete_access_control_requirement():
+    body = {"name": "ACR#1"}
+    response = client.delete("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 200
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_none,
+)
+def test_invalid_user_id_delete_access_control_requirement():
+    body = {"name": "ACR#1"}
+    response = client.delete("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 404
+
+
+@mock.patch.object(AuthJWT, "__init__", MockAuthJWT.__init__)
+@mock.patch.object(AuthJWT, "jwt_required", MockAuthJWT.jwt_required)
+@mock.patch.object(AuthJWT, "get_jwt_subject", MockAuthJWT.get_jwt_subject)
+@mock.patch.object(
+    GoogleSnapshotService,
+    "get_user_id_from_access_token",
+    MockService.get_user_id_from_access_token,
+)
+@mock.patch.object(
+    GoogleSnapshotService, "delete_access_control_requirement", MockService.get_false
+)
+def test_invalid_delete_access_control_requirement():
+    body = {"name": "ACR#1"}
+    response = client.delete("/apps/snapshot/v1/google/access-controls", json=body)
+    assert response.status_code == 500

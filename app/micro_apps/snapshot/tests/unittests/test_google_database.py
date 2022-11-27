@@ -2,7 +2,7 @@ import mock
 import json
 from datetime import datetime
 from app.micro_apps.snapshot.services.google.analysis import GoogleSnapshotDatabase
-from app.micro_apps.snapshot.tests.unittests.mock.mock_mongodb import MockMongoDB
+from app.micro_apps.snapshot.tests.unittests.mock.mock_google_mongodb import MockMongoDB
 from app.micro_apps.snapshot.tests.data.google.database_result import DataBaseResult
 
 mock_user_id = "MOCK_USER_ID1"

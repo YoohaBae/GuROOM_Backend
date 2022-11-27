@@ -1,6 +1,6 @@
 import mock
 import pytest
-from .mock.mock_database import MockDB
+from .mock.mock_google_database import MockDB
 from app.micro_apps.snapshot.services.google.query_builder import GoogleQueryBuilder
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"

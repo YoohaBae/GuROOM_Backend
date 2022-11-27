@@ -1,6 +1,6 @@
 import mock
 import json
-from app.micro_apps.snapshot.tests.unittests.mock.mock_database import MockDB
+from app.micro_apps.snapshot.tests.unittests.mock.mock_google_database import MockDB
 from app.micro_apps.snapshot.services.google.analysis import GoogleAnalysis
 from app.micro_apps.snapshot.tests.data.google.analysis_result import (
     sharing_changes_result,

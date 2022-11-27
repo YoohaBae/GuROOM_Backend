@@ -5,7 +5,7 @@ from app.micro_apps.snapshot.endpoints.v1.google import AuthJWT
 from ...services.google.service import GoogleSnapshotService
 from app.main import app
 from .mock.mock_authjwt import MockAuthJWT
-from .mock.mock_service import MockService
+from .mock.mock_google_service import MockService
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"
 

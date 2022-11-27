@@ -2,7 +2,7 @@ import mock
 import os
 import json
 from app.micro_apps.snapshot.services.google.google_drive import GoogleDrive
-from .mock.mock_requests import MockRequests
+from .mock.mock_google_requests import MockRequests
 
 absolute_path_to_auth_data = "./app/micro_apps/auth/tests/data"
 

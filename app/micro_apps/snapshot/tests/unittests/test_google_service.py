@@ -14,9 +14,9 @@ from app.micro_apps.snapshot.services.google.service import (
 from .mock.mock_google_auth import MockGoogleAuth
 from .mock.mock_user_database import MockUserDataBase
 from .mock.mock_google_drive import MockGoogleDrive
-from .mock.mock_database import MockDB
-from .mock.mock_analysis import MockAnalysis
-from .mock.mock_query_builder import MockQueryBuilder
+from .mock.mock_google_database import MockDB
+from .mock.mock_google_analysis import MockAnalysis
+from .mock.mock_google_query_builder import MockQueryBuilder
 from ..data.google import service_input
 
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data/google"

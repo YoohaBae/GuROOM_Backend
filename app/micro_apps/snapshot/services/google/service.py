@@ -581,8 +581,6 @@ class GoogleSnapshotService(SnapshotService):
     ):
         user_db = GoogleAuthDatabase()
         try:
-            query_obj = {"search_time": datetime.utcnow(), "query": query}
-            user_db.update_or_push_recent_queries(email, query_obj)
             # retrieve file folder sharing different files
             if "is:file_folder_diff" in query:
                 file_ids = ast.literal_eval(
@@ -605,12 +603,15 @@ class GoogleSnapshotService(SnapshotService):
             elif "accessControl" in query:
                 access_control_requirement_name = query.split(":")[1]
                 # tagged files and permissions of access control requirement
+                data = self.get_files_and_permissions_of_access_control_requirement(
+                    user_id, email, snapshot_name, access_control_requirement_name
+                )
+                if data is None:
+                    raise ValueError("unable to retrieve data")
                 (
                     files,
                     permissions,
-                ) = self.get_files_and_permissions_of_access_control_requirement(
-                    user_id, email, snapshot_name, access_control_requirement_name
-                )
+                ) = data
                 files = json.loads(json.dumps(files, cls=DateTimeEncoder))
                 # group the permissions by the same file ids
                 permission_grouped = self.group_permission_by_file_id(permissions)
@@ -626,6 +627,8 @@ class GoogleSnapshotService(SnapshotService):
                 return files, permission_grouped
             # query other files
             else:
+                query_obj = {"search_time": datetime.utcnow(), "query": query}
+                user_db.update_or_push_recent_queries(email, query_obj)
                 query_builder = GoogleQueryBuilder(user_id, email, snapshot_name)
                 query_builder.is_groups = is_groups
                 data = query_builder.get_files_of_query(query)
@@ -734,7 +737,7 @@ class GoogleSnapshotService(SnapshotService):
             return duplicate
         except Exception as error:
             self.logger.error(error)
-            return False
+            return None
 
     def get_access_control_requirements(self, user_id):
         snapshot_db = GoogleSnapshotDatabase(user_id)

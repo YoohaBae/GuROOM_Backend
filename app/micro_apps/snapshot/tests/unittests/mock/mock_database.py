@@ -320,3 +320,46 @@ class MockDB:
                         target_permissions.append(permission)
         file_ids = [p["file_id"] for p in target_permissions]
         return file_ids
+
+    @classmethod
+    def get_access_control_requirement(cls, name):
+        with open(
+            absolute_path_to_data + "/access_control_requirement.json"
+        ) as json_file:
+            data = json.load(json_file)
+            for acr in data:
+                if acr["name"] == name:
+                    return acr
+
+    @classmethod
+    def create_access_control_requirement(cls, access_control):
+        pass
+
+    @classmethod
+    def check_duplicate_access_control_requirement(cls, access_control):
+        with open(
+            absolute_path_to_data + "/access_control_requirement.json"
+        ) as json_file:
+            data = json.load(json_file)
+            for acr in data:
+                if (
+                    acr["AR"] == access_control["AR"]
+                    and acr["AW"] == access_control["AW"]
+                    and acr["DR"] == access_control["DR"]
+                    and acr["DW"] == access_control["DW"]
+                    and acr["Grp"] == access_control["Grp"]
+                ):
+                    return True
+            return False
+
+    @classmethod
+    def get_access_control_requirements(cls):
+        with open(
+            absolute_path_to_data + "/access_control_requirement.json"
+        ) as json_file:
+            data = json.load(json_file)
+            return data
+
+    @classmethod
+    def delete_access_control_requirement(cls, access_control_name):
+        pass

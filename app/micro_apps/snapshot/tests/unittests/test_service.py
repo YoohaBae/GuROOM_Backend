@@ -61,6 +61,23 @@ def test_invalid_get_user_id_from_token(google_auth_exception):
     assert not user_id
 
 
+@mock.patch.object(GoogleAuth, "__init__", MockGoogleAuth.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleAuth, "get_user", MockGoogleAuth.get_user)
+@mock.patch.object(GoogleAuthDatabase, "get_user", MockUserDataBase.get_user)
+def test_valid_get_user_email_from_token():
+    user_email = service.get_user_email_from_token(mock_access_token)
+    assert user_email == "yooha.bae@stonybrook.edu"
+
+
+@mock.patch.object(GoogleAuth, "__init__", MockGoogleAuth.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleAuth, "get_user", side_effect=Exception)
+def test_invalid_get_user_email_from_token(google_auth_exception):
+    user_email = service.get_user_email_from_token(mock_access_token)
+    assert not user_email
+
+
 @mock.patch.object(GoogleDrive, "__init__", MockGoogleDrive.__init__)
 @mock.patch.object(GoogleDrive, "get_root_file_id", MockGoogleDrive.get_root_file_id)
 def test_valid_get_root_id_from_api():
@@ -470,6 +487,53 @@ def test_invalid_get_permission_of_files(snapshot_db_exception):
     GoogleSnapshotDatabase, "get_shared_drives", MockDB.get_shared_drives
 )
 @mock.patch.object(
+    GoogleSnapshotDatabase, "get_files_of_file_ids", MockDB.get_files_of_file_ids
+)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_all_permission_of_file",
+    MockDB.get_all_permission_of_file,
+)
+@mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
+@mock.patch.object(
+    GoogleAnalysis, "get_sharing_differences", MockAnalysis.get_sharing_differences
+)
+def test_valid_check_if_files_have_different_permissions_from_folder():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_file_ids = ["FILEID1", "FILEID2", "FILEID3", "FILEID19"]
+    different_files = service.check_if_files_have_different_permission_from_folder(
+        mock_user_id, mock_snapshot_name, mock_file_ids
+    )
+    assert different_files
+
+
+@mock.patch.object(
+    GoogleSnapshotDatabase, "get_files_of_file_ids", side_effect=Exception
+)
+def test_invalid_check_if_files_have_different_permissions_from_folder(
+    snapshot_db_exception,
+):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_file_ids = ["FILEID1", "FILEID2", "FILEID3", "FILEID19"]
+    different_files = service.check_if_files_have_different_permission_from_folder(
+        mock_user_id, mock_snapshot_name, mock_file_ids
+    )
+    assert not different_files
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_all_files_of_snapshot",
+    MockDB.get_all_files_of_snapshot,
+)
+@mock.patch.object(GoogleSnapshotDatabase, "get_root_id", MockDB.get_root_id)
+@mock.patch.object(
+    GoogleSnapshotDatabase, "get_shared_drives", MockDB.get_shared_drives
+)
+@mock.patch.object(
     GoogleSnapshotDatabase,
     "get_all_permission_of_file",
     MockDB.get_all_permission_of_file,
@@ -775,12 +839,125 @@ def test_valid_is_file_folder_diff_process_query_search():
     mock_user_id = "MOCK_USER_ID1"
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_email = "yoobae@cs.stonybrook.edu"
-    mock_query = "is:file_folder_diff"
+    mock_query = "is:file_folder_diff and file_ids:[]"
     mock_is_groups = True
     files = service.process_query_search(
         mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
     )
     assert files
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(
+    GoogleAuthDatabase,
+    "update_or_push_recent_queries",
+    MockDB.update_or_push_recent_queries,
+)
+@mock.patch.object(
+    service,
+    "get_files_with_diff_permission_from_folder",
+    mock_get_files_with_diff_permission_from_folder,
+)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_all_files_of_snapshot",
+    MockDB.get_all_files_of_snapshot,
+)
+@mock.patch.object(GoogleSnapshotDatabase, "get_root_id", MockDB.get_root_id)
+@mock.patch.object(
+    GoogleSnapshotDatabase, "get_shared_drives", MockDB.get_shared_drives
+)
+@mock.patch.object(
+    GoogleSnapshotDatabase, "get_files_of_file_ids", MockDB.get_files_of_file_ids
+)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_all_permission_of_file",
+    MockDB.get_all_permission_of_file,
+)
+@mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
+@mock.patch.object(
+    GoogleAnalysis, "get_sharing_differences", MockAnalysis.get_sharing_differences
+)
+def test_valid_is_file_folder_diff_process_query_search_with_file_ids():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = 'is:file_folder_diff and file_ids:["FILEID19"]'
+    mock_is_groups = True
+    files = service.process_query_search(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
+    )
+    assert files
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleQueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
+@mock.patch.object(
+    GoogleAuthDatabase,
+    "update_or_push_recent_queries",
+    MockDB.update_or_push_recent_queries,
+)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirement",
+    MockDB.get_access_control_requirement,
+)
+@mock.patch.object(
+    GoogleQueryBuilder, "get_files_of_query", MockQueryBuilder.get_files_of_query
+)
+@mock.patch.object(
+    GoogleAnalysis,
+    "tag_files_and_permissions_with_violation",
+    MockAnalysis.tag_files_and_permissions_with_violation,
+)
+def test_valid_access_control_requirements_process_query_search():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "accessControl:ACR#1"
+    mock_is_groups = False
+    files = service.process_query_search(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
+    )
+    assert files
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleQueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(GoogleAnalysis, "__init__", MockAnalysis.__init__)
+@mock.patch.object(
+    GoogleAuthDatabase,
+    "update_or_push_recent_queries",
+    MockDB.update_or_push_recent_queries,
+)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirement",
+    MockDB.get_access_control_requirement,
+)
+@mock.patch.object(
+    GoogleQueryBuilder, "get_files_of_query", MockQueryBuilder.get_files_of_query
+)
+@mock.patch.object(
+    GoogleAnalysis, "tag_files_and_permissions_with_violation", side_effect=Exception
+)
+def test_invalid_access_control_requirements_process_query_search(
+    google_analysis_exception,
+):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "accessControl:ACR#1"
+    mock_is_groups = False
+    files = service.process_query_search(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query, mock_is_groups
+    )
+    assert not files
 
 
 @mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
@@ -832,7 +1009,7 @@ def test_valid_is_file_folder_diff_validate_query():
     mock_user_id = "MOCK_USER_ID1"
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_email = "yoobae@cs.stonybrook.edu"
-    mock_query = "is:file_folder_diff"
+    mock_query = "is:file_folder_diff and file_ids=[]"
     validated = service.validate_query(
         mock_user_id, mock_email, mock_snapshot_name, mock_query
     )
@@ -843,11 +1020,89 @@ def test_valid_is_file_folder_diff_validate_query():
 @mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
 @mock.patch.object(GoogleQueryBuilder, "__init__", MockQueryBuilder.__init__)
 @mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirement",
+    MockDB.get_access_control_requirement,
+)
+@mock.patch.object(
     GoogleQueryBuilder,
     "create_tree_and_validate",
     MockQueryBuilder.create_tree_and_validate,
 )
-def test_invalid_is_file_folder_diff_validate_query():
+def test_valid_access_control_requirement_validate_query():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "accessControl:ACR#1"
+    validated = service.validate_query(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query
+    )
+    assert validated
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleQueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirement",
+    MockDB.get_access_control_requirement,
+)
+@mock.patch.object(
+    GoogleQueryBuilder,
+    "create_tree_and_validate",
+    MockQueryBuilder.create_tree_and_validate,
+)
+def test_invalid_access_control_requirement_validate_query():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "accessControl:ACR#1 and drive:MyDrive"
+    validated = service.validate_query(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query
+    )
+    assert (
+        validated
+        == "Invalid Query: Access Control Requirements cannot be searched with other queries"
+    )
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleQueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirement",
+    MockDB.get_access_control_requirement,
+)
+@mock.patch.object(
+    GoogleQueryBuilder,
+    "create_tree_and_validate",
+    MockQueryBuilder.create_tree_and_validate,
+)
+def test_invalid_access_control_requirement_validate_query2():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_snapshot_name = "FILE_SNAPSHOT1"
+    mock_email = "yoobae@cs.stonybrook.edu"
+    mock_query = "accessControl:INVALID_ACR"
+    validated = service.validate_query(
+        mock_user_id, mock_email, mock_snapshot_name, mock_query
+    )
+    assert (
+        validated
+        == "No Such Requirement: There is no access control requirement named :INVALID_ACR"
+    )
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(GoogleAuthDatabase, "__init__", MockUserDataBase.__init__)
+@mock.patch.object(GoogleQueryBuilder, "__init__", MockQueryBuilder.__init__)
+@mock.patch.object(
+    GoogleQueryBuilder,
+    "create_tree_and_validate",
+    MockQueryBuilder.create_tree_and_validate,
+)
+def test_invalid_validate_query():
     mock_user_id = "MOCK_USER_ID1"
     mock_snapshot_name = "FILE_SNAPSHOT1"
     mock_email = "yoobae@cs.stonybrook.edu"
@@ -857,7 +1112,7 @@ def test_invalid_is_file_folder_diff_validate_query():
     )
     assert (
         validated
-        == "Invalid Query: file folder differences cannot be searched with other queries"
+        == "Invalid Query: invalid format of file folder sharing difference query"
     )
 
 
@@ -935,3 +1190,168 @@ def test_invalid_get_recent_queries(google_auth_exception):
     mock_email = "yoobae@cs.stonybrook.edu"
     recent_queries = service.get_recent_queries(mock_email)
     assert not recent_queries
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "create_access_control_requirement",
+    MockDB.create_access_control_requirement,
+)
+def test_valid_create_access_control_requirement():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control = {
+        "name": "ACR",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    created = service.create_access_control_requirement(
+        mock_user_id, mock_access_control
+    )
+    assert created
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase, "create_access_control_requirement", side_effect=Exception
+)
+def test_invalid_create_access_control_requirement(create_acr_exception):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control = {
+        "name": "ACR",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": ["yoollee@cs.stonybrook.edu"],
+        "DW": [],
+        "Grp": True,
+    }
+    created = service.create_access_control_requirement(
+        mock_user_id, mock_access_control
+    )
+    assert not created
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "check_duplicate_access_control_requirement",
+    MockDB.check_duplicate_access_control_requirement,
+)
+def test_valid_duplicate_check_duplicate_access_control_requirement():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control = {
+        "name": "ACR#3",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": ["yoobae@cs.stonybrook.edu"],
+        "DR": [],
+        "DW": ["yoollee@cs.stonybrook.edu"],
+        "Grp": True,
+    }
+    duplicate = service.check_duplicate_access_control_requirement(
+        mock_user_id, mock_access_control
+    )
+    assert duplicate
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "check_duplicate_access_control_requirement",
+    MockDB.check_duplicate_access_control_requirement,
+)
+def test_valid_not_duplicate_check_duplicate_access_control_requirement():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control = {
+        "name": "ACR#3",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": [],
+        "DW": ["yoollee@cs.stonybrook.edu"],
+        "Grp": False,
+    }
+    duplicate = service.check_duplicate_access_control_requirement(
+        mock_user_id, mock_access_control
+    )
+    assert not duplicate
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "check_duplicate_access_control_requirement",
+    side_effect=Exception,
+)
+def test_invalid_check_duplicate_access_control_requirement(snapshot_db_exception):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control = {
+        "name": "ACR#3",
+        "query": "drive:MyDrive",
+        "AR": [],
+        "AW": [],
+        "DR": [],
+        "DW": ["yoollee@cs.stonybrook.edu"],
+        "Grp": False,
+    }
+    duplicate = service.check_duplicate_access_control_requirement(
+        mock_user_id, mock_access_control
+    )
+    assert duplicate is None
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirements",
+    MockDB.get_access_control_requirements,
+)
+def test_valid_get_access_control_requirements():
+    mock_user_id = "MOCK_USER_ID1"
+    access_control_requirements = service.get_access_control_requirements(mock_user_id)
+    assert access_control_requirements
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "get_access_control_requirements",
+    side_effect=Exception,
+)
+def test_invalid_get_access_control_requirements(snapshot_db_exception):
+    mock_user_id = "MOCK_USER_ID1"
+    access_control_requirements = service.get_access_control_requirements(mock_user_id)
+    assert access_control_requirements is None
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase,
+    "delete_access_control_requirement",
+    MockDB.delete_access_control_requirement,
+)
+def test_valid_delete_access_control_requirements():
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control_requirement_name = "MOCK_ACR#2"
+    deleted = service.delete_access_control_requirement(
+        mock_user_id, mock_access_control_requirement_name
+    )
+    assert deleted
+
+
+@mock.patch.object(GoogleSnapshotDatabase, "__init__", MockDB.__init__)
+@mock.patch.object(
+    GoogleSnapshotDatabase, "delete_access_control_requirement", side_effect=Exception
+)
+def test_invalid_delete_access_control_requirements(snapshot_db_exception):
+    mock_user_id = "MOCK_USER_ID1"
+    mock_access_control_requirement_name = "MOCK_ACR#2"
+    deleted = service.delete_access_control_requirement(
+        mock_user_id, mock_access_control_requirement_name
+    )
+    assert deleted is None

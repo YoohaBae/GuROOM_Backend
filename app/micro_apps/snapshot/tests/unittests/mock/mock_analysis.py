@@ -1,3 +1,5 @@
+import json
+
 absolute_path_to_data = "./app/micro_apps/snapshot/tests/data"
 
 
@@ -34,3 +36,14 @@ class MockAnalysis:
                 "additional_base_file_snapshot_permissions": [{"id": "PERMISSIONID1"}],
             }
         ]
+
+    @classmethod
+    def tag_files_and_permissions_with_violation(cls, snapshot_name, files, acr):
+        permissions = []
+        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
+            data = json.load(json_file)
+        for file in files:
+            for permission in data:
+                if permission["file_id"] == file["id"]:
+                    permissions.append(permission)
+        return files, permissions

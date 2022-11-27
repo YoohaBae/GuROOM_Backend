@@ -398,8 +398,6 @@ class DropboxSnapshotService(SnapshotService):
     def process_query_search(self, user_id, email, snapshot_name, query: str):
         user_db = DropboxAuthDatabase()
         try:
-            query_obj = {"search_time": datetime.utcnow(), "query": query}
-            user_db.update_or_push_recent_queries(email, query_obj)
             # retrieve file folder sharing different files
             if "is:file_folder_diff" in query:
                 file_ids = ast.literal_eval(
@@ -422,12 +420,15 @@ class DropboxSnapshotService(SnapshotService):
             elif "accessControl" in query:
                 access_control_requirement_name = query.split(":")[1]
                 # tagged files and permissions of access control requirement
+                data = self.get_files_and_permissions_of_access_control_requirement(
+                    user_id, email, snapshot_name, access_control_requirement_name
+                )
+                if data is None:
+                    raise ValueError("unable to retrieve data")
                 (
                     files,
                     permissions,
-                ) = self.get_files_and_permissions_of_access_control_requirement(
-                    user_id, email, snapshot_name, access_control_requirement_name
-                )
+                ) = data
                 files = json.loads(json.dumps(files, cls=DateTimeEncoder))
                 # group the permissions by the same file ids
                 permission_grouped = self.group_permission_by_file_id(permissions)
@@ -443,6 +444,8 @@ class DropboxSnapshotService(SnapshotService):
                 return files, permission_grouped
             # query other files
             else:
+                query_obj = {"search_time": datetime.utcnow(), "query": query}
+                user_db.update_or_push_recent_queries(email, query_obj)
                 query_builder = DropboxQueryBuilder(user_id, email, snapshot_name)
                 data = query_builder.get_files_of_query(query)
                 files = json.loads(json.dumps(data, cls=DateTimeEncoder))
@@ -542,7 +545,7 @@ class DropboxSnapshotService(SnapshotService):
             return duplicate
         except Exception as error:
             self.logger.error(error)
-            return False
+            return None
 
     def get_access_control_requirements(self, user_id):
         snapshot_db = DropboxSnapshotDatabase(user_id)

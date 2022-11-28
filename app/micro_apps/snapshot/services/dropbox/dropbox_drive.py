@@ -118,7 +118,7 @@ class DropboxDrive(Drive):
                 elif raw_role == "viewer_no_comment":
                     role = "reader"
                 else:
-                    raise ValueError("invalid role")
+                    return None, None
                 formatted_permission = {
                     "driveId": None,
                     "file_id": file_id,
@@ -130,6 +130,8 @@ class DropboxDrive(Drive):
                 }
                 formatted_permissions.append(formatted_permission)
             return formatted_permissions, next_page_token
+        else:
+            return None, None
 
     def get_permissions_of_files(self, token, file_ids):
         files_permissions = []
@@ -137,6 +139,8 @@ class DropboxDrive(Drive):
             file_permissions, next_page_token = self.get_permissions_of_file(
                 token, file_id
             )
+            if file_permissions is None:
+                return None
             while next_page_token is not None:
                 (new_file_permissions, next_page_token) = self.get_permissions_of_file(
                     token, file_id
@@ -177,7 +181,7 @@ class DropboxDrive(Drive):
                 elif raw_role == "viewer_no_comment":
                     role = "reader"
                 else:
-                    raise ValueError("invalid role")
+                    return None, None
                 formatted_permission = {
                     # this is the shared_folder_id
                     "driveId": folder_id,

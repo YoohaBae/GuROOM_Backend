@@ -42,9 +42,6 @@ class SnapshotDatabase:
     def get_all_permission_of_file(self, snapshot_name, file_id):
         raise NotImplementedError("Must be implemented by child class")
 
-    def get_all_permission_of_snapshot(self, snapshot_name):
-        raise NotImplementedError("Must be implemented by child class")
-
     def get_all_files_of_snapshot(self, snapshot_name):
         raise NotImplementedError("Must be implemented by child class")
 

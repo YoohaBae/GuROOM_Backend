@@ -187,8 +187,8 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         file_collection_name = f"{self.user_id}.{snapshot_name}.files"
         query = {"name": file_name}
         filter_query = {"_id": 0}
-        files = self._db.find_document(file_collection_name, query, filter_query)
-        return files["id"]
+        file = self._db.find_document(file_collection_name, query, filter_query)
+        return file["id"]
 
     def get_files_with_certain_role(self, snapshot_name, role_name, email):
         permission_collection_name = f"{self.user_id}.{snapshot_name}.permissions"

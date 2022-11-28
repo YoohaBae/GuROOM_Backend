@@ -9,18 +9,6 @@ class MockDB:
     def __init__(self, user_id):
         self.user_id = user_id
 
-    # @classmethod
-    # def get_root_id(cls, snapshot_name):
-    #     return "ROOTID1"
-
-    @classmethod
-    def get_parent_id(cls, snapshot_name, file_id):
-        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
-            data = json.load(json_file)
-            for file in data:
-                if file["id"] == file_id:
-                    return file["parents"][0]
-
     @classmethod
     def create_file_snapshot(cls, snapshot_name, files, permissions):
         pass
@@ -39,17 +27,6 @@ class MockDB:
             data = json.load(json_file)
             return data
 
-    # @classmethod
-    # def get_shared_drives(cls, snapshot_name):
-    #     with open(absolute_path_to_data + "/file_snapshots.json") as json_file:
-    #         data = json.load(json_file)
-    #         target_snapshot = None
-    #         for file_snapshot in data:
-    #             if file_snapshot["name"] == snapshot_name:
-    #                 target_snapshot = file_snapshot
-    #                 break
-    #     return target_snapshot["shared_drives"]
-
     @classmethod
     def get_file_under_folder(cls, snapshot_name, offset=None, limit=None, path=None):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
@@ -61,39 +38,8 @@ class MockDB:
         return target_files
 
     @classmethod
-    def get_empty_file_under_folder(
-        cls, snapshot_name, offset=None, limit=None, folder_id=None
-    ):
-        return []
-
-    @classmethod
-    def get_files_with_no_path(cls, snapshot_name):
-        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
-            data = json.load(json_file)
-            target_files = []
-            for file in data:
-                if file["path"] is None:
-                    target_files.append(file)
-            return target_files
-
-    @classmethod
     def get_all_files_of_snapshot(cls, snapshot_name):
         with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
-            data = json.load(json_file)
-            return data
-
-    @classmethod
-    def get_path_of_file(cls, snapshot_name, file_id):
-        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
-            data = json.load(json_file)
-            for file in data:
-                if file["id"] == file_id:
-                    return file["path"]
-        return None
-
-    @classmethod
-    def get_all_permission_of_snapshot(cls, snapshot_name):
-        with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
             data = json.load(json_file)
             return data
 
@@ -187,23 +133,6 @@ class MockDB:
                 if re.match(regex_path, file["name"]):
                     result_file.append(file)
             return result_file
-
-    # @classmethod
-    # def get_files_with_certain_role_including_groups(cls, snapshot_name, role, email):
-    #     target_permissions = []
-    #     with open(absolute_path_to_data + "/snapshot1_permissions.json") as json_file:
-    #         data = json.load(json_file)
-    #         for permission in data:
-    #             if role == permission["role"] and email == permission["emailAddress"]:
-    #                 target_permissions.append(permission)
-    #     file_ids = [p["file_id"] for p in target_permissions]
-    #     result_file = []
-    #     with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
-    #         data = json.load(json_file)
-    #         for file in data:
-    #             if file["id"] in file_ids:
-    #                 result_file.append(file)
-    #         return result_file
 
     @classmethod
     def get_files_with_certain_role(cls, snapshot_name, role, email):
@@ -359,13 +288,24 @@ class MockDB:
     def delete_access_control_requirement(cls, access_control_name):
         pass
 
-    # @classmethod
-    # def get_group_emails_of_user_email(cls, email):
-    #     with open(absolute_path_to_data + "/group_snapshots.json") as json_file:
-    #         data = json.load(json_file)
-    #         group_emails = []
-    #         for group in data:
-    #             for member in group["memberships"]:
-    #                 if email == member["email"]:
-    #                     group_emails.append(group["group_email"])
-    #         return group_emails
+    @classmethod
+    def get_file_id_of_name(cls, snapshot_name, file_name):
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["name"] == file_name:
+                    return file["id"]
+            return None
+
+    @classmethod
+    def get_path_of_file(cls, snapshot_name, file_id):
+        with open(absolute_path_to_data + "/snapshot1_files.json") as json_file:
+            data = json.load(json_file)
+            for file in data:
+                if file["id"] == file_id:
+                    return file["path"]
+            return None
+
+    @classmethod
+    def check_duplicate_file_snapshot_name(cls, snapshot_name):
+        return False

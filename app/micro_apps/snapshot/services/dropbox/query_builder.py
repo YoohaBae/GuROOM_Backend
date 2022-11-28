@@ -81,11 +81,16 @@ class DropboxQueryBuilder(QueryBuilder):
             return False
 
     def validate_user(self, user_email):
+        # user email is me
         if user_email == "me":
+            # replace it with user email
             return self.user_email
         else:
+            # validate email format
             if not self.validate_email(user_email):
+                # get domain from user email
                 domain = re.search(r"@[\w.]+", self.user_email).group()
+                # create new email by attaching domain of account user email to end
                 user_email = user_email + domain
             return user_email
 
@@ -123,6 +128,7 @@ class DropboxQueryBuilder(QueryBuilder):
             raise ValueError(f"Invalid Path Value: {path} is not in the correct format")
 
     def validate_value(self, operator, value):
+        # operator is one of the following
         if operator in [
             "owner",
             "creator",
@@ -131,12 +137,15 @@ class DropboxQueryBuilder(QueryBuilder):
             "writable",
         ]:
             self.validate_user(value)
+        # operator is one of the following which uses regex as values
         elif operator in ["name", "folder", "inFolder"]:
             self.validate_regex(operator, value)
+        # operator is path
         elif operator == "path":
             self.validate_path(value)
+        # operator is sharing
         elif operator == "sharing":
-            sharing_options = ["none", "individual"]
+            sharing_options = ["none"]
             if value not in sharing_options:
                 raise ValueError(
                     f"Invalid Sharing Option: {value} is not one of "
@@ -157,8 +166,10 @@ class DropboxQueryBuilder(QueryBuilder):
             self.validate_operator(operator)
             value = node[2]
             self.validate_value(operator, value)
+        # if left node of tree exists, validate left node
         if tree.left is not None:
             self.validate(tree.left)
+        # if right node of tree exists, validate right node
         if tree.right is not None:
             self.validate(tree.right)
 
@@ -207,6 +218,7 @@ class DropboxQueryBuilder(QueryBuilder):
             files = self._snapshot_db.get_files_with_certain_role(
                 self.snapshot_name, operator, email
             )
+        # file of to operator
         elif operator == "to":
             email = self.validate_user(value)
             file_ids = self._snapshot_db.get_directly_shared_permissions_file_ids(
@@ -229,6 +241,7 @@ class DropboxQueryBuilder(QueryBuilder):
             )
             files = []
             for folder in folder_ids_and_names:
+                # for all folders => get all files that are only directly under that folder
                 path = folder["path"] + "/" + folder["name"]
                 files = ListOfDictsComparor.union(
                     files,
@@ -243,6 +256,7 @@ class DropboxQueryBuilder(QueryBuilder):
             )
             files = []
             for folder in folder_ids_and_names:
+                # get all folders and files under that folder recursively by using path regex
                 folder_path = rf"^{folder['path']}/{folder['name']}$"
                 files = ListOfDictsComparor.union(
                     files,

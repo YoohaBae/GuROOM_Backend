@@ -365,8 +365,11 @@ class GoogleAnalysis(Analysis):
                 if violation:
                     file_violation = True
             file["violation"] = file_violation
+            # if the file has violated ACR
             if file_violation:
+                # add to violated files
                 violated_files.append(file)
+                # add permission to violated permissions
                 violated_files_permissions.extend(permissions)
         return violated_files, violated_files_permissions
 
@@ -436,8 +439,12 @@ class GoogleAnalysis(Analysis):
                 if violation:
                     file_violation = True
             file["violation"] = file_violation
+
+            # if the file has violated ACR
             if file_violation:
+                # add to violated files
                 violated_files.append(file)
+                # add permission to violated permissions
                 violated_files_permissions.extend(permissions)
         return violated_files, violated_files_permissions
 
@@ -450,6 +457,7 @@ class GoogleAnalysis(Analysis):
         DW = access_control_requirement["DW"]
         Grp = access_control_requirement["Grp"]
 
+        # groups:true
         if Grp:
             (
                 violated_files,
@@ -457,6 +465,7 @@ class GoogleAnalysis(Analysis):
             ) = self.tag_files_and_permissions_with_violation_groups(
                 snapshot_name, files, AR, AW, DR, DW
             )
+        # groups:false
         else:
             (
                 violated_files,

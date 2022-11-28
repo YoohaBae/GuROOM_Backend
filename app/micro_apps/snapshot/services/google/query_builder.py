@@ -63,12 +63,10 @@ class GoogleQueryBuilder(QueryBuilder):
         operators = [
             "drive",
             "owner",
-            # "creator",
             "from",
             "to",
             "readable",
             "writable",
-            # "sharable",
             "name",
             "inFolder",
             "folder",
@@ -99,11 +97,16 @@ class GoogleQueryBuilder(QueryBuilder):
             return drive_name
 
     def validate_user(self, user_email):
+        # user email is me
         if user_email == "me":
+            # replace it with user email
             return self.user_email
         else:
+            # validate email format
             if not self.validate_email(user_email):
+                # get domain from user email
                 domain = re.search(r"@[\w.]+", self.user_email).group()
+                # create new email by attaching domain of account user email to end
                 user_email = user_email + domain
             return user_email
 
@@ -141,8 +144,10 @@ class GoogleQueryBuilder(QueryBuilder):
             raise ValueError(f"Invalid Path Value: {path} is not in the correct format")
 
     def validate_value(self, operator, value):
+        # drive is the operator
         if operator == "drive":
             self.validate_drive(value)
+        # operator is one of the following
         elif operator in [
             "owner",
             "creator",
@@ -158,7 +163,7 @@ class GoogleQueryBuilder(QueryBuilder):
         elif operator == "path":
             self.validate_path(value)
         elif operator == "sharing":
-            sharing_options = ["none", "anyone", "individual", "domain"]
+            sharing_options = ["none", "anyone", "domain"]
             if value not in sharing_options:
                 raise ValueError(
                     f"Invalid Sharing Option: {value} is not one of "
@@ -179,8 +184,10 @@ class GoogleQueryBuilder(QueryBuilder):
             self.validate_operator(operator)
             value = node[2]
             self.validate_value(operator, value)
+        # if left node of tree exists, validate left node
         if tree.left is not None:
             self.validate(tree.left)
+        # if right node of tree exists, validate right node
         if tree.right is not None:
             self.validate(tree.right)
 
@@ -269,6 +276,7 @@ class GoogleQueryBuilder(QueryBuilder):
                 self.snapshot_name, value
             )
             files = []
+            # for all folders => get all files that are only directly under that folder
             for folder in folder_ids_and_names:
                 folder_id = folder["id"]
                 files = ListOfDictsComparor.union(
@@ -284,6 +292,7 @@ class GoogleQueryBuilder(QueryBuilder):
             )
             files = []
             for folder in folder_ids_and_names:
+                # get all folders and files under that folder recursively by using path regex
                 folder_path = rf"^{folder['path']}/{folder['name']}$"
                 files = ListOfDictsComparor.union(
                     files,
@@ -309,8 +318,6 @@ class GoogleQueryBuilder(QueryBuilder):
                 files = self._snapshot_db.get_files_of_file_ids(
                     self.snapshot_name, unique_file_ids
                 )
-            elif value == "individual":
-                pass
             elif value == "domain":
                 # domain of user email
                 domain = re.search(r"@[\w.]+", self.user_email).group()

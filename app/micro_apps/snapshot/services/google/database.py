@@ -233,8 +233,12 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
         shared_drives = self._db.find_document(
             file_snapshot_collection_name, query, filter_query
         )
+
+        # check every shared drive
         for shared_drive in shared_drives["shared_drives"]:
+            # if id of shared drive is the file id
             if shared_drive["id"] == file_id:
+                # create path by adding name to /
                 return "/" + shared_drive["name"]
 
         if path_of_file is None:
@@ -286,11 +290,15 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
 
         grouped_groups = defaultdict(def_value)
         for group in all_groups:
+            # group groups by group name
             grouped_groups[group["group_name"]].append(group)
         result_groups = []
+        # for every group with same group name
         for key in grouped_groups.keys():
+            # if there are more than one version of the group
             if len(grouped_groups[key]) > 1:
                 recent = grouped_groups[key][0]
+                # get the most recent group
                 for group in grouped_groups[key]:
                     if recent["create_time"] < group["create_time"]:
                         recent = group
@@ -307,9 +315,13 @@ class GoogleSnapshotDatabase(SnapshotDatabase):
         )
         formatted_members = []
         for member in raw_members:
+            # if there is no display name
             if member["displayName"] is None:
+                # replace it with the email
                 member["displayName"] = member["emailAddress"]
+            # if there is no email address but domain exists
             elif member["emailAddress"] is None and member["domain"]:
+                # replace email address with domain
                 member["emailAddress"] = member["domain"]
             formatted_member = {
                 "email": member["emailAddress"],

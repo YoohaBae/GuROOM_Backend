@@ -158,9 +158,13 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
         )
         formatted_members = []
         for member in raw_members:
+            # if there is no display name
             if member["displayName"] is None:
+                # replace it with the email
                 member["displayName"] = member["emailAddress"]
+            # if there is no email address but domain exists
             elif member["emailAddress"] is None and member["domain"]:
+                # replace email address with domain
                 member["emailAddress"] = member["domain"]
             formatted_member = {
                 "email": member["emailAddress"],

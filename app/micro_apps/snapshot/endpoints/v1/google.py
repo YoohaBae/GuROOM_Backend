@@ -47,6 +47,7 @@ def take_file_snapshot(
     access_token = authorize.get_jwt_subject()
     snapshot_name = body.snapshot_name
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
 
     if user_id is None:
@@ -54,6 +55,7 @@ def take_file_snapshot(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # check if snapshot with same name exists
     duplicate = service.check_duplicate_file_snapshot_name(user_id, snapshot_name)
 
     if duplicate:
@@ -70,6 +72,7 @@ def take_file_snapshot(
             content="unable to retrieve root id",
         )
 
+    # get all the shared drives from google api
     shared_drives = service.get_all_shared_drives_from_api(access_token)
     if shared_drives is None:
         return JSONResponse(
@@ -77,6 +80,7 @@ def take_file_snapshot(
             content="unable to retrieve shared drives",
         )
 
+    # get the files from google api
     files = service.get_all_files_from_api(access_token)
     if files is None:
         return JSONResponse(
@@ -84,6 +88,7 @@ def take_file_snapshot(
             content="unable to retrieve files",
         )
 
+    # create file snapshot
     created = service.create_file_snapshot(
         user_id, snapshot_name, files, root_id, shared_drives
     )
@@ -93,6 +98,7 @@ def take_file_snapshot(
             content="snapshot creation failed",
         )
 
+    # perform analysis of inherit and direct permissions
     analysis_performed = service.perform_inherit_direct_permission_analysis(
         user_id, snapshot_name
     )
@@ -121,12 +127,14 @@ def delete_file_snapshot(
     access_token = authorize.get_jwt_subject()
     snapshot_name = body.snapshot_name
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # delete file snapshot
     deleted = service.delete_file_snapshot(user_id, snapshot_name)
     if not deleted:
         return JSONResponse(
@@ -152,12 +160,14 @@ def edit_file_snapshot_name(
     snapshot_name = body.snapshot_name
     new_snapshot_name = body.new_snapshot_name
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # edit name of file snapshot
     edited = service.edit_file_snapshot_name(user_id, snapshot_name, new_snapshot_name)
     if not edited:
         return JSONResponse(
@@ -178,12 +188,14 @@ def get_file_snapshot_names(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get list of file snapshot names
     names = service.get_file_snapshot_names(user_id)
     if names is None:
         return JSONResponse(
@@ -203,6 +215,7 @@ def get_recent_queries(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get email of user
     email = service.get_user_email_from_token(access_token)
     if email is None:
         return JSONResponse(
@@ -210,6 +223,7 @@ def get_recent_queries(authorize: AuthJWT = Depends()):
             content="unable to retrieve user email",
         )
 
+    # get the recent queries searched by user
     queries = service.get_recent_queries(email)
     if queries is None:
         return JSONResponse(
@@ -230,12 +244,14 @@ def get_shared_drives(snapshot_name: str, authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get all the shared drives from database
     shared_drives = service.get_shared_drives(user_id, snapshot_name)
     if shared_drives is None:
         return JSONResponse(
@@ -271,6 +287,7 @@ def get_file_snapshot(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
@@ -330,12 +347,14 @@ def search_files(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get user email of user
     email = service.get_user_email_from_token(access_token)
     if email is None:
         return JSONResponse(
@@ -343,12 +362,17 @@ def search_files(
             content="unable to retrieve user email",
         )
     is_groups = True
+
+    # if groups is off, remove it from query and set bool to true
     if "groups:off" in query:
         # if groups:off exist -> remove it from the query and set the is_groups to false
         query = query.replace("groups:off and ", "")
         is_groups = False
+
+    # validate query format
     valid = service.validate_query(user_id, email, snapshot_name, query)
 
+    # if not valid return the error message explaining reason of invalidness
     if type(valid) == str:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -373,9 +397,11 @@ def search_files(
         and type(query_result[1]) == dict
     ):
         files, permissions = query_result
+
+    # normal query search
     else:
         files = query_result
-        # permissions of file list
+        # get permissions of file list
         permissions = service.get_permission_of_files(user_id, snapshot_name, files)
 
     if permissions is None:
@@ -404,12 +430,14 @@ def get_snapshot_difference(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get the difference between two snapshots
     difference = service.get_difference_of_two_snapshots(
         user_id, base_snapshot_name, compare_snapshot_name
     )
@@ -439,12 +467,14 @@ def get_file_folder_sharing_difference(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get difference between file and folder
     difference = service.get_file_folder_sharing_difference(
         user_id, snapshot_name, file_id
     )
@@ -477,12 +507,14 @@ def get_unique_members_of_file_snapshot(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get the unique member emails and names that exist in permissions of file snapshot
     members = service.get_unique_members_of_file_snapshot(
         user_id, snapshot_name, is_groups
     )
@@ -516,6 +548,7 @@ async def create_group_membership_snapshot(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
@@ -556,12 +589,14 @@ def get_group_membership_snapshot(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get the most recent group membership snapshots of each group
     groups = service.get_recent_group_membership_snapshots(user_id)
     if groups is None:
         return JSONResponse(
@@ -584,12 +619,14 @@ def create_access_control_requirements(
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # check if access control requirement fields are duplicate
     duplicate = service.check_duplicate_access_control_requirement(
         user_id, access_control
     )
@@ -634,12 +671,14 @@ def get_access_control_requirements(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     access_token = authorize.get_jwt_subject()
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # get all access control requirements
     access_control_requirements = service.get_access_control_requirements(user_id)
 
     # failed to retrieve access control requirements
@@ -667,15 +706,19 @@ def delete_access_control_requirements(
     access_token = authorize.get_jwt_subject()
     access_control_requirement_name = body.name
 
+    # get user id of user
     user_id = service.get_user_id_from_access_token(access_token)
     if user_id is None:
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND, content="unable to retrieve user id"
         )
 
+    # delete access control requirement
     deleted = service.delete_access_control_requirement(
         user_id, access_control_requirement_name
     )
+
+    # deleting failed
     if not deleted:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

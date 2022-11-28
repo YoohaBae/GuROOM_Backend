@@ -46,7 +46,9 @@ class DropboxDrive(Drive):
                     modified_time = file["server_modified"]
                 else:
                     modified_time = None
+                # if it is a shared folder
                 if "shared_folder_id" in file:
+                    # format the data
                     formatted_folder = {
                         "mimeType": file[".tag"],
                         "id": file["id"],
@@ -59,11 +61,13 @@ class DropboxDrive(Drive):
                     }
                     formatted_shared_folders.append(formatted_folder)
                 else:
+                    # if it is not a shared folder
                     path = file["path_display"].rsplit("/", 1)[0]
                     if "parent_shared_folder_id" in file:
                         driveId = file["parent_shared_folder_id"]
                     else:
                         driveId = None
+                    # format the file
                     formatted_file = {
                         "mimeType": file[".tag"],
                         "id": file["id"],
@@ -109,6 +113,7 @@ class DropboxDrive(Drive):
             for permission in permissions:
                 user = permission["user"]
                 raw_role = permission["access_type"][".tag"]
+                # rename the roles
                 if raw_role == "editor":
                     role = "writer"
                 elif raw_role == "owner":
@@ -119,6 +124,7 @@ class DropboxDrive(Drive):
                     role = "reader"
                 else:
                     return None, None
+                # format the permissions
                 formatted_permission = {
                     "driveId": None,
                     "file_id": file_id,
@@ -172,6 +178,7 @@ class DropboxDrive(Drive):
             for permission in permissions:
                 user = permission["user"]
                 raw_role = permission["access_type"][".tag"]
+                # rename the roles
                 if raw_role == "editor":
                     role = "writer"
                 elif raw_role == "owner":
@@ -182,6 +189,7 @@ class DropboxDrive(Drive):
                     role = "reader"
                 else:
                     return None, None
+                # format the permissions
                 formatted_permission = {
                     # this is the shared_folder_id
                     "driveId": folder_id,

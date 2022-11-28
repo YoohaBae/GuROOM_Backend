@@ -29,7 +29,9 @@ class DropboxAnalysis(Analysis):
             folder_permissions = self._snapshot_db.get_all_permission_of_file(
                 snapshot_name, folder_id
             )
+            # if it is a folder
             if shared_folder["mimeType"] == "folder":
+                # perform dfs
                 self.dfs(
                     visited_file_ids,
                     folder_path,
@@ -38,6 +40,7 @@ class DropboxAnalysis(Analysis):
                     folder_id,
                 )
             else:
+                # if not set the inherited to false as it is not under a folder or shared
                 for permission in folder_permissions:
                     permission["inherited"] = False
 
@@ -225,6 +228,7 @@ class DropboxAnalysis(Analysis):
         DR = access_control_requirement["DR"]
         DW = access_control_requirement["DW"]
         for file in files:
+            # get all the permissions of the file
             permissions = self._snapshot_db.get_all_permission_of_file(
                 snapshot_name, file["id"]
             )
@@ -285,7 +289,11 @@ class DropboxAnalysis(Analysis):
                 if violation:
                     file_violation = True
             file["violation"] = file_violation
+
+            # if the file has violated ACR
             if file_violation:
+                # add to violated files
                 violated_files.append(file)
+                # add permission to violated permissions
                 violated_files_permissions.extend(permissions)
         return violated_files, violated_files_permissions

@@ -586,6 +586,7 @@ class GoogleSnapshotService(SnapshotService):
                 file_ids = ast.literal_eval(
                     query.split(" ")[2].replace("file_ids:", "")
                 )
+                # get list of files that have different permissions with folder
                 if len(file_ids) == 0:
                     data = self.get_files_with_diff_permission_from_folder(
                         user_id,
@@ -593,6 +594,7 @@ class GoogleSnapshotService(SnapshotService):
                     )
                     different_files = json.loads(json.dumps(data, cls=DateTimeEncoder))
                     return different_files
+                # check if the certain files permission is different from folder
                 else:
                     files = self.check_if_files_have_different_permission_from_folder(
                         user_id, snapshot_name, file_ids
@@ -628,6 +630,7 @@ class GoogleSnapshotService(SnapshotService):
             # query other files
             else:
                 query_obj = {"search_time": datetime.utcnow(), "query": query}
+                # add to recent queries
                 user_db.update_or_push_recent_queries(email, query_obj)
                 query_builder = GoogleQueryBuilder(user_id, email, snapshot_name)
                 query_builder.is_groups = is_groups

@@ -62,6 +62,7 @@ class GoogleDrive(Drive):
         if status_code == 200:
             file_obj = file_request.json()
             next_page_token = None
+            # more data exist
             if "nextPageToken" in file_obj:
                 next_page_token = file_obj["nextPageToken"]
             files = file_obj["files"]
@@ -93,6 +94,7 @@ class GoogleDrive(Drive):
         if status_code == 200:
             drive_obj = drive_request.json()
             next_page_token = None
+            # more data exist
             if "nextPageToken" in drive_obj:
                 next_page_token = drive_obj["nextPageToken"]
             drives = drive_obj["drives"]

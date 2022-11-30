@@ -257,7 +257,7 @@ class DropboxQueryBuilder(QueryBuilder):
             files = []
             for folder in folder_ids_and_names:
                 # get all folders and files under that folder recursively by using path regex
-                folder_path = rf"^{folder['path']}/{folder['name']}$"
+                folder_path = rf"^{folder['path']}/{folder['name']}"
                 files = ListOfDictsComparor.union(
                     files,
                     self._snapshot_db.get_files_with_path_regex(

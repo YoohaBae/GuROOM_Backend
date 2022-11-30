@@ -29,9 +29,9 @@ class GoogleDrive(Drive):
                 params={
                     "access_token": token,
                     "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                    "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                    "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                    "size, contentRestrictions)",
+                              "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                              "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, teamDriveId, "
+                              "size, contentRestrictions)",
                     "corpora": "allDrives",
                     "supportsAllDrives": True,
                     "includeItemsFromAllDrives": True,
@@ -46,9 +46,9 @@ class GoogleDrive(Drive):
                 params={
                     "access_token": token,
                     "fields": "files(kind, mimeType, id, name, parents, spaces, createdTime, modifiedTime, "
-                    "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
-                    "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, "
-                    "size, contentRestrictions)",
+                              "sharedWithMeTime, sharingUser, owners, driveId, shared, ownedByMe, "
+                              "capabilities, permissions, permissionIds, fullFileExtension, fileExtension, teamDriveId, "
+                              "size, contentRestrictions)",
                     "corpora": "allDrives",
                     "supportsAllDrives": True,
                     "includeItemsFromAllDrives": True,
@@ -102,20 +102,21 @@ class GoogleDrive(Drive):
         else:
             return None, None
 
-    def get_permission_detail_of_shared_drive_file(self, token, file_id, permission_id):
-        permission_detail_request = requests.get(
-            f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions/{permission_id}",
+    def get_permissions_of_file(self, token, file_id):
+        permissions_request = requests.get(
+            f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions",
             params={
                 "access_token": token,
                 "fields": "*",
+                "pageSize": 100,
                 "supportsAllDrives": True,
                 "useDomainAdminAccess": False,
             },
         )
 
-        status_code = getattr(permission_detail_request, "status_code")
+        status_code = getattr(permissions_request, "status_code")
         if status_code == 200:
-            permission_detail = permission_detail_request.json()
-            return permission_detail
+            permission_obj = permissions_request.json()
+            return permission_obj["permissions"]
         else:
             return None

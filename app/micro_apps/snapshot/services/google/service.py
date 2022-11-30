@@ -88,24 +88,11 @@ class GoogleSnapshotService(SnapshotService):
                     )
                     files += new_files
             for file in files:
-                shared_drive_permissions_for_file = []
-                # separate result into file and permission
-                if (
-                    "driveId" in file
-                    and file["driveId"] is not None
-                    and "permissionIds" in file
-                    and "permissionIds" != []
-                ):
-                    permission_ids = file["permissionIds"]
-                    for pid in permission_ids:
-                        # shared drive permissions must be retrieved separately by a different api request
-                        permission = (
-                            google_drive.get_permission_detail_of_shared_drive_file(
-                                access_token, file["id"], pid
-                            )
-                        )
-                        shared_drive_permissions_for_file.append(permission)
-                    file["permissions"] = shared_drive_permissions_for_file
+                if "teamDriveId" in file and file["teamDriveId"] is not None:
+                    permissions = google_drive.get_permissions_of_file(
+                        access_token, file["id"]
+                    )
+                    file["permissions"] = permissions
             return files
         except Exception as error:
             self.logger.error(error)
@@ -116,9 +103,7 @@ class GoogleSnapshotService(SnapshotService):
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
-            snapshot_db.create_file_snapshot(
-                snapshot_name, files, root_id, shared_drives
-            )
+            snapshot_db.create_file_snapshot(snapshot_name, files, root_id, shared_drives)
             return True
         except Exception as error:
             self.logger.error(error)

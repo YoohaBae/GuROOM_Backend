@@ -103,33 +103,3 @@ def test_invalid_get_shared_drives(get):
     assert not shared_drives
     assert not next_page_token
 
-
-@mock.patch.dict(os.environ, environment_variables)
-@mock.patch(
-    "requests.get",
-    side_effect=MockRequests.mocked_requests_valid_get_permission_detail_of_shared_drive_file,
-)
-def test_valid_get_permission_detail_of_shared_drive_file(get):
-    mock_access_token = "ACCESS_TOKEN"
-    mock_file_id = "FILEID1"
-    mock_permission_id = "PERMISSIONID1"
-    mock_google_drive = GoogleDrive()
-    permission_detail = mock_google_drive.get_permission_detail_of_shared_drive_file(
-        mock_access_token, mock_file_id, mock_permission_id
-    )
-    assert permission_detail
-
-
-@mock.patch(
-    "requests.get",
-    side_effect=MockRequests.mocked_requests_invalid_get_permission_detail_of_shared_drive_file,
-)
-def test_invalid_get_permission_detail_of_shared_drive_file(get):
-    mock_access_token = "INVALID_TOKEN"
-    mock_file_id = "FILEID1"
-    mock_permission_id = "PERMISSIONID1"
-    mock_google_drive = GoogleDrive()
-    permission_detail = mock_google_drive.get_permission_detail_of_shared_drive_file(
-        mock_access_token, mock_file_id, mock_permission_id
-    )
-    assert not permission_detail

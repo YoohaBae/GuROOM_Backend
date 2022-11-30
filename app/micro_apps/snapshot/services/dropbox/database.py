@@ -275,7 +275,6 @@ class DropboxSnapshotDatabase(SnapshotDatabase):
             "AW": access_control.AW,
             "DR": access_control.DR,
             "DW": access_control.DW,
-            "Grp": access_control.Grp,
         }
         access_control = self._db.find_document(
             access_control_requirement_collection_name, query

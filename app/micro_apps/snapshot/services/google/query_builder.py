@@ -214,11 +214,11 @@ class GoogleQueryBuilder(QueryBuilder):
                 right_files = self.get_files_from_tree(tree.right)
             if boolean_operator == "and":
                 # get intersection
-                if left_files and right_files:
+                if left_files is not None and right_files is not None:
                     return ListOfDictsComparor.intersection(left_files, right_files)
             elif boolean_operator == "or":
                 # get union
-                if left_files and right_files:
+                if left_files is not None and right_files is not None:
                     return ListOfDictsComparor.union(left_files, right_files)
             elif boolean_operator == "-":
                 # get difference
@@ -244,10 +244,14 @@ class GoogleQueryBuilder(QueryBuilder):
                 files = self._snapshot_db.get_files_with_certain_role_including_groups(
                     self.snapshot_name, operator, email
                 )
+                if files is None:
+                    raise ValueError("file data is invalid")
             else:
                 files = self._snapshot_db.get_files_with_certain_role(
                     self.snapshot_name, operator, email
                 )
+                if files is None:
+                    raise ValueError("file data is invalid")
         # file of from operator
         elif operator == "from":
             email = self.validate_user(value)

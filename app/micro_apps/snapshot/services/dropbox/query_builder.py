@@ -196,11 +196,11 @@ class DropboxQueryBuilder(QueryBuilder):
                 right_files = self.get_files_from_tree(tree.right)
             if boolean_operator == "and":
                 # get intersection
-                if left_files and right_files:
+                if left_files is not None and right_files is not None:
                     return ListOfDictsComparor.intersection(left_files, right_files)
             elif boolean_operator == "or":
                 # get union
-                if left_files and right_files:
+                if left_files is not None and right_files is not None:
                     return ListOfDictsComparor.union(left_files, right_files)
             elif boolean_operator == "-":
                 # get difference

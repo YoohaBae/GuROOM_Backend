@@ -102,4 +102,3 @@ def test_invalid_get_shared_drives(get):
     shared_drives, next_page_token = mock_google_drive.get_shared_drives(access_token)
     assert not shared_drives
     assert not next_page_token
-

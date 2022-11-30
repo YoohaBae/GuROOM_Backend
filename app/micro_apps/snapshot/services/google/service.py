@@ -103,7 +103,9 @@ class GoogleSnapshotService(SnapshotService):
     ):
         snapshot_db = GoogleSnapshotDatabase(user_id)
         try:
-            snapshot_db.create_file_snapshot(snapshot_name, files, root_id, shared_drives)
+            snapshot_db.create_file_snapshot(
+                snapshot_name, files, root_id, shared_drives
+            )
             return True
         except Exception as error:
             self.logger.error(error)

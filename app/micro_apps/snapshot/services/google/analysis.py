@@ -297,7 +297,7 @@ class GoogleAnalysis(Analysis):
                             # violation
                             violation = True
                             violation_type.append("AR")
-                            violation_description = (
+                            violation_description.append(
                                 f"{emailAddress} is not in Allowed Readers"
                             )
 

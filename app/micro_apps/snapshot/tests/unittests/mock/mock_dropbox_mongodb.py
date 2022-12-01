@@ -77,7 +77,6 @@ class MockMongoDB:
                     AW = query["AW"]
                     DR = query["DR"]
                     DW = query["DW"]
-                    Grp = query["Grp"]
                     for acr in data:
                         if (
                             acr["query"] == search_query
@@ -85,7 +84,6 @@ class MockMongoDB:
                             and acr["AW"] == AW
                             and acr["DR"] == DR
                             and acr["DW"] == DW
-                            and acr["Grp"] == Grp
                         ):
                             return True
                     return None
